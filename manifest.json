@@ -1,0 +1,12 @@
+{
+  "name": "PharmaCore",
+  "short_name": "PharmaCore",
+  "start_url": "pharmacore-v2-paper.html",
+  "display": "standalone",
+  "background_color": "#f3ecdf",
+  "theme_color": "#211a13",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
