@@ -1,0 +1,1989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>PharmaCore Study — Field Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f3ecdf;
+  --paper-2:#ece2cf;
+  --card:#fffcf6;
+  --ink:#211a13;
+  --ink-soft:#4d4238;
+  --muted:#8c7d68;
+  --line:rgba(33,26,19,0.13);
+  --line-strong:rgba(33,26,19,0.24);
+  --accent:#b3502c;
+  --accent-soft:rgba(179,80,44,0.11);
+  --accent-line:rgba(179,80,44,0.35);
+  --amber:#9c6b12;
+  --radius-lg:18px;
+  --radius-md:12px;
+  --radius-sm:7px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:'Work Sans',system-ui,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(ellipse 700px 420px at 12% 0%, rgba(179,80,44,0.05), transparent 60%),
+    var(--paper);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+/* subtle paper grain */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0.13  0 0 0 0 0.10  0 0 0 0 0.07  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+.app{max-width:460px;margin:0 auto;min-height:100vh;position:relative;padding:0 16px 40px;}
+
+h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0.01em;}
+.mono{font-family:'JetBrains Mono',monospace;}
+
+/* ---------- Top nav ---------- */
+.tabbar{
+  position:sticky;top:0;left:0;right:0;z-index:50;
+  display:flex;align-items:center;gap:22px;
+  background:var(--paper);
+  border-bottom:1px solid var(--line-strong);
+  padding:18px 16px 12px;
+  margin:0 -16px 22px;
+}
+.tabbtn{
+  background:none;border:none;color:var(--muted);font-size:13px;font-weight:600;
+  padding:2px 0 10px;cursor:pointer;position:relative;font-family:'Work Sans',sans-serif;
+  display:flex;flex-direction:column;align-items:center;gap:0;
+}
+.tabbtn svg{display:none;}
+.tabbtn.active{color:var(--ink);}
+.tabbtn.active::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--accent);}
+
+.screen{display:none;position:relative;z-index:1;animation:fadeUp .3s ease;}
+.screen.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ---------- Card base ---------- */
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  box-shadow:0 2px 0 rgba(179,80,44,0.03), 0 10px 24px -18px rgba(33,26,19,0.35);
+  position:relative;
+  transition:border-color .2s, box-shadow .2s, transform .15s;
+}
+.card::before{display:none;}
+.card:active{transform:scale(0.99);}
+
+/* ---------- HOME ---------- */
+.greet-row{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;}
+.greet-left{display:flex;align-items:center;gap:13px;}
+.avatar{
+  width:44px;height:44px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;font-family:'Fraunces',serif;color:var(--card);
+  background:var(--ink);
+}
+.greet-sub{font-size:12px;color:var(--muted);margin-bottom:3px;}
+.greet-name{font-size:22px;font-weight:600;font-family:'Fraunces',serif;}
+.icon-btn{
+  width:38px;height:38px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;
+  background:var(--card);border:1px solid var(--line-strong);color:var(--ink-soft);cursor:pointer;
+}
+.icon-btn:hover{border-color:var(--accent-line);color:var(--accent);}
+
+.progress-card{padding:18px 20px;margin-bottom:14px;}
+.progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:11px;}
+.progress-top .label{font-size:12px;color:var(--muted);font-weight:500;}
+.progress-top .value{font-size:12.5px;color:var(--accent);font-weight:700;}
+.progress-track{height:7px;border-radius:20px;background:var(--paper-2);overflow:hidden;}
+.progress-fill{height:100%;border-radius:20px;background:var(--accent);}
+
+.ring-row{display:flex;gap:10px;margin-bottom:14px;}
+.ring-card{flex:1;padding:15px 8px 13px;text-align:center;}
+.ring-svg{width:52px;height:52px;margin:0 auto 7px;}
+.ring-bg{fill:none;stroke:var(--paper-2);stroke-width:5;}
+.ring-fg{fill:none;stroke-width:5;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;}
+.ring-num{font-size:14px;font-weight:700;fill:var(--ink);font-family:'Fraunces',serif;}
+.ring-label{font-size:9.5px;color:var(--muted);font-weight:600;letter-spacing:.02em;}
+
+.pill-row{display:flex;gap:10px;margin-bottom:24px;}
+.pill-btn{
+  flex:1;padding:12px 10px;border-radius:var(--radius-sm);text-align:center;font-size:12.5px;font-weight:600;
+  border:1px solid var(--line-strong);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:.18s;
+}
+.pill-btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.pill-btn.primary:hover{background:var(--accent);border-color:var(--accent);}
+.pill-btn.ghost{background:var(--card);color:var(--ink-soft);}
+.pill-btn.ghost:hover{border-color:var(--accent-line);color:var(--accent);}
+
+.section-title{display:flex;justify-content:space-between;align-items:baseline;margin:24px 0 13px;}
+.section-title h3{font-size:16px;margin:0;font-weight:600;color:var(--ink);font-family:'Fraunces',serif;}
+.section-title span{font-size:11px;color:var(--muted);}
+
+.task-item{
+  display:flex;align-items:center;gap:12px;padding:14px 15px;margin-bottom:9px;border-radius:var(--radius-md);
+  cursor:pointer;
+}
+.task-item:hover{border-color:var(--accent-line);}
+.task-tag{width:5px;align-self:stretch;border-radius:4px;flex-shrink:0;}
+.task-info{flex:1;min-width:0;}
+.task-title{font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.task-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.task-badge{font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.03em;white-space:nowrap;text-transform:lowercase;}
+
+/* ---------- SETUP / BROWSE ---------- */
+.setup-header{margin-bottom:18px;}
+.setup-header h2{font-size:23px;margin:0 0 4px;font-family:'Fraunces',serif;}
+.setup-header p{font-size:12.5px;color:var(--muted);margin:0;}
+
+.field-card{padding:15px 16px 13px;margin-bottom:12px;}
+.field-label{font-size:10.5px;font-weight:700;color:var(--accent);letter-spacing:.04em;text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+.text-input{
+  width:100%;background:var(--paper);border:1px solid var(--line-strong);border-radius:var(--radius-sm);
+  padding:11px 13px;color:var(--ink);font-size:14px;font-family:inherit;outline:none;
+}
+.text-input::placeholder{color:var(--muted);}
+.text-input:focus{border-color:var(--accent);}
+
+/* ---------- SESSION / lesson ---------- */
+/* Sticky compact header: collapses smoothly into pinned back+context bar on scroll, expands back at top */
+.sess-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin:0 -16px 6px;padding:10px 16px;
+  position:sticky;top:var(--tabbar-h,52px);z-index:40;
+  background:var(--paper);
+  border-bottom:1px solid transparent;
+  transition:padding .22s ease,border-color .22s ease,box-shadow .22s ease;
+}
+.sess-header.compact{
+  padding:6px 16px;
+  border-bottom-color:var(--line-strong);
+  box-shadow:0 6px 14px -10px rgba(33,26,19,0.35);
+}
+.sess-back{width:34px;height:34px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--line-strong);color:var(--ink-soft);cursor:pointer;flex-shrink:0;transition:width .22s ease,height .22s ease;}
+.sess-header.compact .sess-back{width:28px;height:28px;}
+.sess-title{text-align:center;}
+.sess-title .cat{font-size:10px;color:var(--accent);font-weight:700;letter-spacing:.05em;text-transform:uppercase;overflow:hidden;transition:max-height .22s ease,opacity .22s ease;max-height:14px;opacity:1;}
+.sess-header.compact .sess-title .cat{max-height:0;opacity:0;}
+.sess-title .name{font-size:15px;font-weight:600;font-family:'Fraunces',serif;transition:font-size .22s ease;}
+.sess-header.compact .sess-title .name{font-size:13px;}
+.sess-progress-track{height:5px;border-radius:20px;background:var(--paper-2);margin:14px 0 6px;overflow:hidden;}
+.sess-progress-fill{height:100%;background:var(--accent);border-radius:20px;}
+
+.empty-hint{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;}
+.lesson-meta{font-size:11px;color:var(--muted);margin:2px 0 16px;font-weight:500;}
+
+/* ---------- Accordion stacked drug/otc cards ---------- */
+.acc-card{padding:0;margin-bottom:11px;overflow:hidden;cursor:pointer;}
+.group-header{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line-strong);}
+.group-header:first-child{margin-top:0;}
+.acc-head{display:flex;align-items:center;gap:12px;padding:14px 15px;}
+.acc-head .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.acc-head-info{flex:1;min-width:0;}
+.acc-head-name{font-size:14px;font-weight:600;color:var(--ink);font-family:'Fraunces',serif;}
+.acc-head-preview{font-size:11.5px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.acc-head-brandcount{font-size:9.5px;font-weight:700;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent-line);padding:3px 8px;border-radius:5px;flex-shrink:0;white-space:nowrap;}
+.acc-chev{width:18px;height:18px;flex-shrink:0;color:var(--muted);transition:transform .2s;}
+.acc-card.open .acc-chev{transform:rotate(180deg);color:var(--accent);}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+.acc-card.open .acc-body{max-height:1400px;}
+.acc-body-inner{padding:0 15px 15px;border-top:1px solid var(--line);margin-top:2px;padding-top:12px;}
+.acc-full-info{font-size:12.5px;color:var(--ink-soft);line-height:1.6;margin-bottom:10px;}
+.acc-brand-title{font-size:9.5px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;}
+.acc-brand-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.acc-brand-chip{font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:var(--radius-sm);background:var(--paper);border:1px solid var(--line-strong);color:var(--ink-soft);}
+.acc-no-brand{font-size:11.5px;color:var(--muted);font-style:italic;}
+.acc-ar{font-size:12px;color:var(--ink-soft);margin-bottom:10px;line-height:1.65;direction:rtl;text-align:right;background:var(--accent-soft);border:1px solid var(--accent-line);padding:10px 12px;border-radius:var(--radius-md);}
+
+/* ---------- OTC detail page (tables) ---------- */
+.otc-link-row{display:flex;align-items:center;gap:12px;padding:13px 15px;cursor:pointer;}
+.otc-arrow{width:16px;height:16px;flex-shrink:0;color:var(--muted);}
+.otc-link-row:hover .otc-arrow{color:var(--accent);}
+
+.detail-section{margin-bottom:18px;}
+.detail-section-title{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:7px;}
+.dtable{width:100%;min-width:540px;border-collapse:separate;border-spacing:0;font-size:12px;}
+.dtable-wrap{border:1px solid var(--line);border-radius:var(--radius-md);overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--card);position:relative;}
+.dtable th,.dtable td{white-space:nowrap;}
+.dtable th:last-child,.dtable td:last-child{white-space:normal;min-width:160px;}
+.dtable-wrap.scrollable{background-image:linear-gradient(to right,rgba(0,0,0,0) 85%,rgba(0,0,0,0.06));}
+.dtable th{text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;padding:9px 12px;background:var(--paper);border-bottom:1px solid var(--line);}
+.dtable td{padding:10px 12px;color:var(--ink-soft);border-bottom:1px solid var(--line);vertical-align:top;line-height:1.4;}
+.dtable tr:last-child td{border-bottom:none;}
+.dtable td.strong{color:var(--ink);font-weight:600;}
+.dtable td.mono-cell{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);}
+
+.warn-card{padding:14px 16px;background:rgba(156,107,18,0.08);border-color:rgba(156,107,18,0.3);}
+.warn-card .detail-section-title{color:var(--amber);}
+.warn-list{margin:0;padding-left:18px;}
+.warn-list li{font-size:12px;color:var(--ink-soft);line-height:1.6;margin-bottom:4px;}
+
+.notes-card{padding:14px 16px;}
+.notes-list{margin:0;padding-left:18px;}
+.notes-list li{font-size:12px;color:var(--ink-soft);line-height:1.6;margin-bottom:5px;}
+
+.step-list{margin:0;padding-left:0;list-style:none;counter-reset:step;}
+.step-list li{counter-increment:step;font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-bottom:9px;padding-left:28px;position:relative;}
+.step-list li::before{content:counter(step);position:absolute;left:0;top:0;width:19px;height:19px;border-radius:5px;background:var(--accent-soft);border:1px solid var(--accent-line);color:var(--accent);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+
+
+/* ---------- Chapter grid (Home) — 2 cards per row, reorderable ---------- */
+.chapter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.chapter-card{
+  background:var(--card);border:1px solid var(--line-strong);border-radius:var(--radius-md);
+  padding:13px 12px 11px;cursor:pointer;position:relative;transition:border-color .15s ease,transform .1s ease;
+  display:flex;flex-direction:column;gap:6px;min-height:92px;
+}
+.chapter-card:hover{border-color:var(--accent-line);}
+.chapter-card:active{transform:scale(.98);}
+.chapter-card .cc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.chapter-card .cc-title{font-size:13px;font-weight:600;color:var(--ink);line-height:1.25;}
+.chapter-card .cc-meta{font-size:10.5px;color:var(--muted);margin-top:auto;}
+.chapter-card .cc-reorder{position:absolute;top:6px;right:6px;display:flex;flex-direction:column;gap:2px;}
+.chapter-card .cc-reorder button{
+  width:19px;height:15px;border:none;background:var(--paper);border:1px solid var(--line-strong);
+  color:var(--muted);font-size:9px;line-height:1;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center;
+}
+.chapter-card .cc-reorder button:hover{color:var(--accent);border-color:var(--accent-line);}
+.reset-order-link{font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline;}
+.backup-hint{font-size:10.5px;color:var(--muted);line-height:1.5;margin:-4px 0 18px;}
+
+/* ---------- Pedi Calculator ---------- */
+.unit-toggle{display:flex;gap:6px;margin-top:8px;}
+.unit-toggle button{
+  flex:1;padding:8px 0;border-radius:8px;border:1px solid var(--line-strong);background:var(--paper);
+  color:var(--ink-soft);font-size:12.5px;font-weight:600;cursor:pointer;
+}
+.unit-toggle button.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.pc-row{display:flex;gap:8px;}
+.pc-row .field-card{flex:1;}
+.pc-result{background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:var(--radius-md);padding:14px 16px;margin-top:4px;}
+.pc-result .pc-line{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px dashed var(--accent-line);}
+.pc-result .pc-line:last-child{border-bottom:none;}
+.pc-result .pc-line .k{font-size:12px;color:var(--ink-soft);}
+.pc-result .pc-line .v{font-size:15px;font-weight:700;color:var(--accent);}
+.pc-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;}
+.pc-link{font-size:12px;color:var(--accent);text-decoration:underline;cursor:pointer;text-align:center;margin-top:18px;}
+
+/* ---------- Edit mode ---------- */
+.edit-toggle{margin-left:auto;font-size:15px;padding:4px 8px;border-radius:8px;}
+.edit-toggle.active{background:var(--accent);color:#fff;}
+.cc-del{position:absolute;bottom:6px;right:6px;width:26px;height:26px;border-radius:7px;background:var(--paper);border:1px solid var(--line-strong);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.85;}
+.cc-del:hover{opacity:1;border-color:var(--accent-line);}
+.add-chapter-card{display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:600;font-size:13px;border-style:dashed;cursor:pointer;min-height:92px;}
+.edit-btns{display:flex;gap:6px;margin-right:4px;}
+.edit-btns button{border:none;background:var(--paper);border:1px solid var(--line-strong);border-radius:6px;width:26px;height:26px;font-size:12px;cursor:pointer;}
+.chip-x{margin-left:6px;cursor:pointer;color:var(--muted);font-weight:700;}
+.chip-x:hover{color:var(--accent);}
+.add-chip{border:1px dashed var(--accent-line);color:var(--accent);cursor:pointer;background:none;}
+.edit-inline{font-size:10.5px;font-weight:600;color:var(--accent);cursor:pointer;text-decoration:underline;text-transform:none;letter-spacing:0;}
+
+/* ---------- Modal (drug / chapter / table / notes editor) ---------- */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(33,26,19,0.45);z-index:100;align-items:flex-end;justify-content:center;}
+.modal-backdrop.open{display:flex;}
+.modal-card{background:var(--paper);width:100%;max-width:440px;max-height:86vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:18px 18px 16px;animation:fadeUp .2s ease;}
+@media (min-width:480px){ .modal-card{border-radius:18px;margin-bottom:6vh;} }
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.modal-header span{font-size:15px;font-weight:700;font-family:'Fraunces',serif;}
+.modal-x{border:none;background:var(--card);border:1px solid var(--line-strong);width:28px;height:28px;border-radius:8px;font-size:15px;cursor:pointer;color:var(--ink-soft);}
+.modal-body .field-label{margin-top:2px;}
+.modal-body textarea.text-input{min-height:70px;resize:vertical;font-family:inherit;}
+.modal-actions{display:flex;gap:8px;margin-top:16px;}
+.modal-row{display:flex;gap:8px;}
+.modal-row .field-card{flex:1;}
+.modal-hint{font-size:10.5px;color:var(--muted);margin:-6px 0 12px;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="tabbar">
+    <button class="tabbtn active" id="tab-home" onclick="goto('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      Home
+    </button>
+    <button class="tabbtn" id="tab-setup" onclick="goto('setup')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      Browse
+    </button>
+    <button class="tabbtn" id="tab-pedcalc" onclick="goto('pedcalc')">
+      Pedi Calc
+    </button>
+    <button class="tabbtn edit-toggle" id="editModeBtn" onclick="toggleEditMode()" title="Edit content">✎</button>
+  </div>
+
+  <!-- ================= SCREEN 1 : HOME ================= -->
+  <section class="screen active" id="screen-home">
+    <div class="greet-row">
+      <div class="greet-left">
+        <div class="avatar">💊</div>
+        <div>
+          <div class="greet-sub">Welcome back</div>
+          <div class="greet-name">PharmaCore</div>
+        </div>
+      </div>
+      <div class="icon-btn" onclick="goto('setup')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </div>
+    </div>
+
+    <div class="card progress-card">
+      <div class="progress-top">
+        <span class="label">Today's coverage</span>
+        <span class="value" id="progressPct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="ring-row" id="ringRow"></div>
+
+    <div class="pill-row">
+      <div class="pill-btn primary" onclick="goto('setup')">🔎 Search Drugs</div>
+      <div class="pill-btn ghost" onclick="startRandomSession()">⚡ Quick Review</div>
+    </div>
+
+    <div class="pill-row">
+      <div class="pill-btn ghost" onclick="exportDB()">💾 Backup my data</div>
+      <div class="pill-btn ghost" onclick="document.getElementById('importFile').click()">📂 Restore backup</div>
+    </div>
+    <input type="file" id="importFile" accept="application/json" style="display:none;" onchange="importDB(this)">
+    <div class="backup-hint">Your added/edited content auto-saves on this device. Download a backup occasionally so nothing is lost if you switch devices or clear browser data.</div>
+
+    <div class="section-title"><h3>Course Chapters</h3><span><span class="reset-order-link" onclick="resetChapterOrder()">Reset order</span><span id="resetDataLink" class="reset-order-link" style="margin-left:10px;display:none;" onclick="resetDB()">Reset data</span></span></div>
+    <div id="chapterList"></div>
+  </section>
+
+  <!-- ================= SCREEN 2 : SETUP / BROWSE ================= -->
+  <section class="screen" id="screen-setup">
+    <div class="setup-header">
+      <h2>Search</h2>
+      <p>Find a drug, brand or condition.</p>
+    </div>
+
+    <div class="card field-card">
+      <div class="field-label">Search</div>
+      <input class="text-input" id="searchInput" placeholder="e.g. Paracetamol, Augmentin, Gastritis…" oninput="renderResults()">
+    </div>
+
+    <div id="resultsArea"></div>
+  </section>
+
+  <!-- ================= SCREEN 3 : SESSION ================= -->
+
+  <section class="screen" id="screen-session">
+    <div class="sess-header">
+      <div class="sess-back" onclick="goto('home')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+      </div>
+      <div class="sess-title">
+        <div class="cat" id="sessCat">—</div>
+        <div class="name" id="sessName">Select a topic</div>
+      </div>
+      <div class="sess-back" onclick="goto('setup')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </div>
+    </div>
+    <div class="sess-progress-track"><div class="sess-progress-fill" id="sessProgressFill" style="width:0%"></div></div>
+    <div class="lesson-meta" id="lessonMeta">0 items</div>
+
+    <div id="sessCardArea"></div>
+  </section>
+
+  <!-- ================= SCREEN 4 : OTC TOPIC DETAIL (full page) ================= -->
+  <section class="screen" id="screen-otcdetail">
+    <div class="sess-header">
+      <div class="sess-back" onclick="closeOtcDetail()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+      </div>
+      <div class="sess-title">
+        <div class="cat" id="otcDetCat">OTC TOPIC</div>
+        <div class="name" id="otcDetName">—</div>
+      </div>
+      <div style="width:36px;"></div>
+    </div>
+    <div id="otcDetArea" style="margin-top:18px;"></div>
+  </section>
+
+  <!-- ================= SCREEN 5 : PEDIATRIC DOSES (lesson, opened from chapter card) ================= -->
+  <section class="screen" id="screen-pediatric">
+    <div class="setup-header">
+      <h2>Pediatric Doses</h2>
+      <p>Weight-based dose reference.</p>
+    </div>
+    <div id="pediatricArea"></div>
+  </section>
+
+  <!-- ================= SCREEN 6 : PEDI CALCULATOR (interactive tool) ================= -->
+  <section class="screen" id="screen-pedcalc">
+    <div class="setup-header">
+      <h2>Pedi Calculator</h2>
+      <p>Estimate weight and calculate dose volume.</p>
+    </div>
+    <div id="pedcalcArea"></div>
+  </section>
+
+</div>
+
+<!-- ================= EDIT MODAL (shared: drug / chapter / table / notes) ================= -->
+<div id="editModal" class="modal-backdrop" onclick="if(event.target.id==='editModal')closeModal()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-header"><span id="modalTitle"></span><button class="modal-x" onclick="closeModal()">×</button></div>
+    <div id="modalBody" class="modal-body"></div>
+    <div class="modal-actions">
+      <button class="pill-btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="pill-btn primary" id="modalSaveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   DATA — extracted & condensed per course rules
+   ========================================================= */
+const DATA = [
+{id:"analgesics",name:"Analgesics",color:"#f472b6",type:"drug",
+ drugs:[
+  {group:"Salicylates",g:"Aspirin",info:"NSAID • Non-selective COX • Anti-platelet • M 75–162mg / L 162–325mg",brands:["Aspocid","Rivo","Aspirin","Jusprin","Ezacard","Aggrex"]},
+  {group:"Propionic Acid Derivatives",g:"Ibuprofen",info:"NSAID • Propionic acid derivative • Max 1200mg/day • Children safe after 6 months",brands:["Brufen","Contafever"]},
+  {group:"Propionic Acid Derivatives",g:"Naproxen",info:"NSAID • Propionic acid derivative • Max 1200mg/day",brands:["Naprofen"]},
+  {group:"Propionic Acid Derivatives",g:"Ketoprofen",info:"NSAID • Propionic acid derivative • Max 300mg/day",brands:["Profenid","Alcofan","Ketofan","Bi Profenid","Bi Alcofan","Biketogesic"]},
+  {group:"Acetic Acid Derivatives",g:"Diclofenac Na",info:"NSAID • Acetic acid derivative • Max 150mg/day • Children safe after 1 year",brands:["Voltaren","Arthrofast","Divido","Diclac","Rapidus","Rapiflam"]},
+  {group:"Acetic Acid Derivatives",g:"Diclofenac K",info:"NSAID • Acetic acid derivative (fast-acting/effervescent) • Max 150mg/day",brands:["Catafast","Catafl","Olfen","Dolphin","Cataflam","Oflam"]},
+  {group:"Acetic Acid Derivatives",g:"Ketorolac",info:"NSAID • Acetic acid derivative • Strongest analgesic of the class • Max 40mg oral / 120mg IM",brands:["Ketolac"]},
+  {group:"Acetic Acid Derivatives",g:"Aceclofenac",info:"NSAID • Acetic acid derivative • Low GIT risk • Max 150mg/day",brands:["Adolor","Bristaflam","Fenac"]},
+  {group:"Acetic Acid Derivatives",g:"Etodolac",info:"NSAID • Acetic acid derivative • Max 200mg/day",brands:["Etodine","Etodolac"]},
+  {group:"Acetic Acid Derivatives",g:"Indomethacin",info:"NSAID • Acetic acid derivative",brands:["Indocid"]},
+  {group:"Enolic Acid Derivatives",g:"Tenoxicam",info:"NSAID • Enolic acid derivative • Max 40mg/day",brands:["Epicotil","Soral"]},
+  {group:"Enolic Acid Derivatives",g:"Lornoxicam",info:"NSAID • Enolic acid derivative • Rapid action • Max 16mg/day",brands:["Xefo","Rheuxicam"]},
+  {group:"Enolic Acid Derivatives",g:"Piroxicam",info:"NSAID • Enolic acid derivative • High GIT risk • Max 40mg/day",brands:["Feldene","Brexin"]},
+  {group:"Fenamic Acid Derivatives",g:"Mefenamic Acid",info:"NSAID • Fenamic acid derivative • Preferred for dysmenorrhea • Max 1500mg/day",brands:["Ponstan Forte"]},
+  {group:"Selective COX-2 Inhibitors",g:"Celecoxib",info:"Selective COX-2 inhibitor • Low GIT risk • 100–200mg once • Max 400mg/day",brands:["Celebrex","Celecoxib","Celecox","Eurocox","Arythrex"]},
+  {group:"Selective COX-2 Inhibitors",g:"Etoricoxib",info:"Selective COX-2 inhibitor • Dose 30–120mg once",brands:["Arcoxia"]},
+  {group:"Selective COX-2 Inhibitors",g:"Meloxicam",info:"Selective COX-2 inhibitor • Max 15mg/day",brands:["Anticox 2","Mobic","Mobitil","Melocam","Moxen","Medexaflam"]},
+  {group:"Selective COX-2 Inhibitors",g:"Nimesulide",info:"Selective COX-2 inhibitor • Max 400mg/day",brands:["Sulide"]},
+  {group:"Selective COX-3 Inhibitor",g:"Paracetamol",info:"Selective COX-3 inhibitor • Max 4g/day • Toxic dose 10g adult / 4g child • Safe in infants, gastritis, asthma, hypertension & pregnancy",brands:["Doliprane","Abimol","Adol","Panadol","Panadol Extra","Paramol","Perfalgan (IV)","Injectmol (IV)","Cetal","Pyral","Paralex Plus","Tempra"]}
+ ],
+ quickRef:[
+  ["Pregnancy","Paracetamol"],["Dysmenorrhea","Ponstan Forte / Naproxen"],["Gastritis","Paracetamol / Cox-2"],
+  ["Asthma","Paracetamol"],["Renal colic","Diclofenac"],["Renal disease","Paracetamol / Brufen"],
+  ["Children","Brufen (after 6m)"],["G6PD deficiency","Paracetamol"],["Hypertension","Paracetamol"],["Liver disease","Paralex Plus"],
+  ["Low GIT risk","Celecoxib, Aceclofenac, Ketoprofen"],["High GIT risk","Piroxicam, Ketorolac, Indomethacin"]
+ ]},
+
+{id:"peptic",name:"Peptic Ulcer Drugs",color:"#fb923c",type:"drug",
+ drugs:[
+  {group:"H2 Blockers",g:"Ranitidine",info:"H2 blocker • Max 300mg/day • 1×1 or 1×2 • Cat B",brands:["Zantac","Histac","Ranitak","Rantidol","Rani (effervescent 150/300mg)","Aciloc","Noerosive"]},
+  {group:"H2 Blockers",g:"Famotidine",info:"H2 blocker • 20–40mg",brands:["Antodine","Famotin","Famotak","Servipep","Peptic","Gastrodomina"]},
+  {group:"Proton Pump Inhibitors",g:"Omeprazole",info:"PPI • 20–40mg • Max 40mg/day once • Cat C",brands:["Gasec","Losec","Risek","Napizole","Pepzol","Downoprazol","Omez","Omepral","Omepak","Estohalt","Fastcure","Gastroloc","Antopral"]},
+  {group:"Proton Pump Inhibitors",g:"Pantoprazole",info:"PPI • 20–40mg • Max 40mg/day once • Cat C",brands:["Pantoloc","Protofix","Pantazol","Controloc","Zurcal"]},
+  {group:"Proton Pump Inhibitors",g:"Esomeprazole",info:"PPI • 20–40mg • Max 40mg/day once • Cat C",brands:["Nexium","Eso-Protocol","Ezogast","Esomepex","Esmopump","Esomelodan"]},
+  {group:"Proton Pump Inhibitors",g:"Rabeprazole",info:"PPI • 20mg once • Cat C",brands:["Pariet","Bepra"]},
+  {group:"Proton Pump Inhibitors",g:"Lansoprazole",info:"PPI • 15–30mg once • Cat C",brands:["Zollipak","Gastrocure"]},
+  {group:"Prostaglandin Analogue",g:"Misoprostol",info:"Prostaglandin analogue • Cat X (abortifacient) • Max 800mcg • 1×4",brands:["Cytotec","Misotac","Misoprost"]},
+  {group:"Mucosal Protective Agents",g:"Sucralfate",info:"Mucosal protective agent • Max 4g • 1×1 up to 2×2 • Cat B",brands:["Gastrofait"]},
+  {group:"Mucosal Protective Agents",g:"Rebamipide",info:"Mucosal protective agent • 1×3",brands:["Mucosta"]},
+  {group:"Antacids",g:"Magaldrate + Simethicone",info:"Antacid • anti-flatulent • after meal • Cat B",brands:["Maalox Plus","Miopan Plus"]},
+  {group:"Antacids",g:"Magaldrate + Dimethicone",info:"Antacid • anti-flatulent • after meal • Cat B",brands:["Epicogel","Glycodal"]},
+  {group:"Antacids",g:"Magaldrate + Oxethazaine",info:"Antacid • local analgesic action • Cat B",brands:["Mucogel"]},
+  {group:"Antacids",g:"Magaldrate + Alginic Acid",info:"Antacid • anti-reflux • Cat B",brands:["Gaviscon"]}
+ ],
+ quickRef:[
+  ["First-time heartburn","H2 blocker ×4 weeks (Rani effervescent + Maalox sachet)"],
+  ["Recurring / emergency heartburn","Rani injection + Rani effervescent + Maalox sachet"],
+  ["First-time epigastric pain — Duodenal","PPI + MPA ×4 weeks"],
+  ["First-time epigastric pain — Gastric","PPI + MPA ×8 weeks"],
+  ["H.Pylori Triple therapy","PPI 20 + Metronidazole 500 + Clarithromycin 500 BID ×14 days"],
+  ["H.Pylori branded combos","Heli Cure, Therapy, Peptic Care, Trio-Clar"],
+  ["H.Pylori Sequential therapy","PPI20 + Amoxicillin 1g BID ×5d, then PPI20 + Metronidazole500 + Clarithromycin500 BID ×5d"]
+ ],
+ tables:[
+  {title:"🧾 Rx — Heartburn Case (first-time vs. recurring)",cols:["Presentation","Drug","Form","Dose"],rows:[
+   ["First-time heartburn","Rani (Ranitidine), effervescent","Tab","H2-blocker course, 4 weeks"],
+   ["First-time heartburn","Maalox Plus","Sachet","Per label"],
+   ["Recurring / emergency heartburn","Rani injection","Amp","Emergency"],
+   ["Recurring / emergency heartburn","Rani effervescent + Maalox sachet","Tab / Sachet","Continue as above"]
+  ]},
+  {title:"🧾 Rx — First-time Epigastric Pain (Duodenal vs. Gastric)",cols:["Type","Regimen"],rows:[
+   ["Duodenal (D)","PPI + Mucosal Protective Agent (MPA), 4 weeks"],
+   ["Gastric (G)","PPI + Mucosal Protective Agent (MPA), 8 weeks"]
+  ]}
+ ]},
+
+{id:"git",name:"GIT Drugs",color:"#34d399",type:"drug",
+ drugs:[
+  {group:"Laxatives",g:"Lactulose",info:"Osmotic laxative • Onset 24h • 15–30ml once • Cat B",brands:["Lactulose","Laxolac","Duphalac","Sedalac"]},
+  {group:"Laxatives",g:"Glycerin Suppository",info:"Osmotic laxative • Onset 30 min • Adult & Pediatric forms",brands:["Glycerin Supp"]},
+  {group:"Laxatives",g:"Bisacodyl",info:"Stimulant laxative • Onset 8h • 2 tabs at bedtime • Cat B",brands:["Minalax","Bisadyl","Abilaxine"]},
+  {group:"Laxatives",g:"Sodium Picosulfate",info:"Stimulant laxative • Cat B",brands:["Picolax"]},
+  {group:"Laxatives",g:"Senna",info:"Stimulant laxative • 2 tab once • Cat C",brands:["Senalax","Purgaton drops","Salin Natural"]},
+  {group:"Laxatives",g:"Bulk-forming fiber",info:"Onset 48h once / enema route",brands:["Bran","Enemax","Nassar"]},
+  {group:"Antidiarrheal Agents",g:"Loperamide",info:"Anti-diarrheal • ↓ motility • good for IBS-D • Cat B",brands:["Imodium"]},
+  {group:"Antidiarrheal Agents",g:"Lactobacillus (flora restore)",info:"1–2 tab each, once",brands:["Lacteol Fort"]},
+  {group:"Antidiarrheal Agents",g:"Pectin + Kaolin",info:"Toxin adsorbent",brands:["Kapect"]},
+  {group:"Antidiarrheal Agents",g:"Antimicrobial GIT agents",info:"Tab / Suspension • 1×3",brands:["Antinal","Entocid","Smecta (15ml×3)","Streptoquin (15ml×3)","Diax"]},
+  {group:"Anti-Emetics",g:"Domperidone",info:"Anti-emetic • D2 antagonist • Cat C • Tab/Syrup/Supp",brands:["Motilium","Motinorm","Gastromotil","Motilfast"]},
+  {group:"Anti-Emetics",g:"Metoclopramide",info:"Anti-emetic • D2 antagonist • Cat B • Tab/Amp",brands:["Primperan","Vomistop"]},
+  {group:"Anti-Emetics",g:"Ondansetron",info:"Anti-emetic • 5-HT3 antagonist • Cat B • Amp",brands:["Zofran","Danset"]},
+  {group:"Anti-Emetics",g:"Meclizine",info:"Anti-emetic • H1 antagonist • Cat B",brands:["Navoproxin"]},
+  {group:"Anti-Emetics",g:"Cyclizine",info:"Anti-emetic • H1 antagonist • Cat B • Tab/Amp",brands:["Emetrex"]},
+  {group:"Anti-Emetics",g:"Doxylamine",info:"Anti-emetic • H1 antagonist • Cat B",brands:["Vomibreak"]},
+  {group:"Anti-Emetics",g:"Cortisone + Vit B6",info:"Anti-emetic adjunct • Amp • Cat B",brands:["Cortigen","Cortiplex"]},
+  {group:"Antispasmodics",g:"Tiemonium",info:"Antispasmodic • 1×4 • Tab/Syrup/Amp • Cat B",brands:["Visceralgine","Viscera","Spasmofree"]},
+  {group:"Antispasmodics",g:"Hyoscine",info:"Antispasmodic • Tab/Amp • Cat C",brands:["Buscopan"]},
+  {group:"Antispasmodics",g:"Dicyclomine",info:"Antispasmodic • Cat B",brands:["Spasmorest"]},
+  {group:"Antispasmodics",g:"Pipoxalone",info:"Antispasmodic",brands:["Rowapraxin"]},
+  {group:"IBS Agents",g:"Mebeverine",info:"IBS: relieves painful spasm • 1×3 before meals",brands:["Coloverin","Duspatalin","Colona","Colospasmin"]},
+  {group:"IBS Agents",g:"Clidinium + Chlordiazepoxide",info:"IBS antispasmodic + anxiolytic • Cat D",brands:["Librax"]},
+  {group:"IBS Agents",g:"Drotaverine",info:"IBS antispasmodic",brands:["Do-Spa"]},
+  {group:"IBS Agents",g:"Simethicone (anti-flatulent, IBS)",info:"2×3 after meals",brands:["Disflatyl","Flatidyl","Eucarbon"]},
+  {group:"IBS Agents",g:"Mosapride",info:"Prokinetic for IBS-C",brands:["Fluxopride"]},
+  {group:"IBS Agents",g:"Itopride",info:"Prokinetic for IBS-C",brands:["Garopride","Ganaton"]},
+  {group:"IBS Agents",g:"Trimebutine",info:"Prokinetic for IBS-C • Tab/Syrup",brands:["Gast-Reg","Tritone","Debridat"]},
+  {group:"IBS Agents",g:"Natural Fiber/Oil",info:"For IBS",brands:["Verdo","Colon Aid","Bran"]},
+  {group:"Baby Colic",g:"Simethicone (Baby colic)",info:"Syrup/drops • 15 drops after meal",brands:["Baby Rest","Dentinox"]},
+  {group:"Baby Colic",g:"Natural oil (Baby colic)",info:"1 teaspoon ×3",brands:["Aquavera","Aqua Plus","Gripe Water"]},
+  {group:"Rehydration & Digestants",g:"ORS",info:"<2y: 100ml, >2y: 200ml after every diarrhea/vomiting episode. Severity by skin pinch: <2sec mild, >2sec moderate, >1sec(prolonged) severe→hospital/PICU",brands:["ORS","Rehydran","Hydro Safe","Lohydran"]},
+  {group:"Rehydration & Digestants",g:"Digestant enzymes",info:"Once before meals ×3",brands:["Digest Eze","Deginorm","DI EASE","Spasmodigestin","Spasmo Amrase"]}
+ ]},
+
+{id:"antibiotics",name:"Antibiotics",color:"#818cf8",type:"drug",
+ drugs:[
+  {group:"Penicillins",g:"Penicillin G",info:"Short-acting penicillin • No staph coverage • No oral form • Cat B",brands:[]},
+  {group:"Penicillins",g:"Benzathine Penicillin",info:"Long-acting • Once monthly • Rheumatic fever prophylaxis • Cat B",brands:["Pencitard","Depo-Pen","Retarpen"]},
+  {group:"Penicillins",g:"Penicillin V",info:"Short-acting, oral • No staph coverage • 1×4 • Cat B",brands:["Ospen"]},
+  {group:"Penicillins",g:"Penicillinase-resistant Penicillin",info:"Anti-staph • oral • 1×3 • Cat B",brands:["Miclox","Rivaclox","Flumox"]},
+  {group:"Penicillins",g:"Ampicillin",info:"Moderate spectrum • No staph • 1×4 • poor oral absorption",brands:["Epicocillin"]},
+  {group:"Penicillins",g:"Amoxicillin",info:"Moderate spectrum • better oral absorption • 1×3 • Cat B",brands:["Amoxil","Ibiamox","E-Mox"]},
+  {group:"Penicillins",g:"Ampicillin + Sulbactam",info:"Broad spectrum, anti-staph, anaerobe • Vial • 1×2 for 7–10 days",brands:["Unasyn","Sulbin","Unictam","Novactam"]},
+  {group:"Penicillins",g:"Amoxicillin + Clavulanic Acid",info:"Broad spectrum, anti-staph, anaerobe • Oral • Cat B",brands:["Augmentin","Julmentin","Emoxclav","Deltaclav","Curam","Hibiotic","Megamox","Klavox","Clavimox"]},
+  {group:"Penicillins",g:"Piperacillin + Tazobactam",info:"Extended spectrum • Anti-pseudomonal & anti-staph • Vial • 1×3 for 7–14 days",brands:["Piprataz","Tazocin"]},
+  {group:"1st Generation Cephalosporin",g:"Cefadroxil",info:"1st gen cephalosporin • Good +ve, less -ve, strong anti-staph • 1×2×10 • Cat B",brands:["Duricef","Curisafe","Biodroxil"]},
+  {group:"1st Generation Cephalosporin",g:"Cephalexin / Cephradine / Cefazolin",info:"1st gen cephalosporin • 1×2 (parenteral for cefazolin)",brands:["Ceporex","Velosef","Zinol (inj.)"]},
+  {group:"2nd Generation Cephalosporin",g:"Cefaclor",info:"2nd gen cephalosporin • Less +ve, good -ve • 1×3×10",brands:["Ceclor","Bacticlor"]},
+  {group:"2nd Generation Cephalosporin",g:"Cefuroxime",info:"2nd gen cephalosporin • 1×2×10",brands:["Zinat"]},
+  {group:"2nd Generation Cephalosporin",g:"Cefprozil",info:"2nd gen cephalosporin • 1×2×10",brands:["Cefzil"]},
+  {group:"3rd Generation Cephalosporin",g:"Cefotaxime",info:"3rd gen cephalosporin • Less +ve, excellent -ve • 1–2g×2",brands:["Cefotax","Claforan","Xorin"]},
+  {group:"3rd Generation Cephalosporin",g:"Ceftazidime",info:"3rd gen cephalosporin • Anti-pseudomonas • 1–2g×2",brands:["Fortum"]},
+  {group:"3rd Generation Cephalosporin",g:"Cefoperazone",info:"3rd gen cephalosporin • Anti-pseudomonas • 1–2g×2",brands:["Cefobid"]},
+  {group:"3rd Generation Cephalosporin",g:"Ceftriaxone",info:"3rd gen cephalosporin • Broad, mainly -ve, mild anaerobe • 1–2g once daily • Caution: neonatal jaundice",brands:["Ceftriaxone","Triaxone","Wintriaxone","Oframax","Ramicefterax","Epicephin"]},
+  {group:"3rd Generation Cephalosporin",g:"Cefixime",info:"3rd gen, oral • 400mg/day ×5 days",brands:["Ximacef","Suprax"]},
+  {group:"3rd Generation Cephalosporin",g:"Cefdinir",info:"3rd gen, oral • 600mg/day ×10 days",brands:["Dinar"]},
+  {group:"4th Generation Cephalosporin",g:"Cefepime",info:"4th gen cephalosporin • Excellent +ve & -ve • 1–2g×2",brands:["Maxipime","Wincef"]},
+  {group:"5th Generation Cephalosporin",g:"5th gen Cephalosporin",info:"Covers MRSA & VRSA",brands:["Zevtera"]},
+  {group:"1st Generation Quinolone",g:"Nalidixic Acid",info:"1st gen quinolone",brands:["Nalidram"]},
+  {group:"2nd Generation Quinolone",g:"Ciprofloxacin",info:"2nd gen quinolone • Less +ve, excellent -ve • 500–750mg • 1×2×7-14d • Avoid food/dairy • Contra pregnancy(C)/<18y",brands:["Ciprobay","Cipromax","Ciprocin","Ciprofar","Cipro"]},
+  {group:"3rd Generation Quinolone",g:"Levofloxacin",info:"3rd gen quinolone • Good +ve, excellent -ve • 500mg 1×1×5-7d, single dose option",brands:["Levanic","Tavanic","Tavacin","Levoxin","Lee Flox","Unibiotic"]},
+  {group:"4th Generation Quinolone",g:"Moxifloxacin / Gemifloxacin / Gatifloxacin",info:"4th gen quinolone • Excellent +/-ve • 1×1×5, single dose; also eye drop forms",brands:["Avelox","Factive","Gatilox"]},
+  {group:"Macrolides",g:"Erythromycin",info:"Macrolide • No staph • Take with food • Diphtheria • 1×4 • Cat B",brands:["Erythroprim"]},
+  {group:"Macrolides",g:"Clarithromycin",info:"Macrolide • H.Pylori regimen • 1×2 for 7–14 days • Cat C",brands:["Klacid","Clarikan"]},
+  {group:"Macrolides",g:"Azithromycin",info:"Macrolide • Chlamydia • single/short course 1×1×3-5d • Cat B",brands:["Zithromax","Zisrocin","Zithrokan","Azalide","Azrolid","Xithrone"]},
+  {group:"Macrolides",g:"Spiramycin",info:"Macrolide • Toxoplasmosis • 3M IU ×2 • Cat B",brands:["Rovamycine","Rovac","Spirex"]},
+  {group:"Macrolides",g:"Clindamycin",info:"Macrolide-class coverage • Anaerobes, anti-staph, bone/teeth infection • 300mg×2×7 • Cat B",brands:["Dalacin C","Clindam C","Mepaclind"]},
+  {group:"Aminoglycosides",g:"Gentamicin",info:"Aminoglycoside • Cat D • Amp/Cream",brands:["Garamycin"]},
+  {group:"Aminoglycosides",g:"Tobramycin",info:"Aminoglycoside • Cat D • Eye drops",brands:["Tobrex"]},
+  {group:"Aminoglycosides",g:"Amikacin",info:"Aminoglycoside • Cat D • Amp/Spray",brands:["Amikacin"]},
+  {group:"Aminoglycosides",g:"Neomycin",info:"Aminoglycoside • Tab • Used for hepatic encephalopathy",brands:["Neomycin"]},
+  {group:"Miscellaneous Antibiotics",g:"Fusidic Acid",info:"Topical, anti-staph",brands:["Fucidin","Fuci"]},
+  {group:"Miscellaneous Antibiotics",g:"Co-Trimoxazole",info:"UTI/GIT/respiratory • 1×2×10",brands:["Septrin","Septazole"]},
+  {group:"Miscellaneous Antibiotics",g:"Imipenem",info:"Carbapenem • 1×3",brands:["Tienam"]},
+  {group:"Miscellaneous Antibiotics",g:"Linezolid",info:"Covers MRSA/VRSA • 1×2×10 days",brands:["Linezolid","Averozolid"]},
+  {group:"Miscellaneous Antibiotics",g:"Vancomycin",info:"MRSA coverage • Infusion • 1×2 • Oto/nephrotoxic",brands:["Vancomycin","Vancomix"]},
+  {group:"Miscellaneous Antibiotics",g:"Teicoplanin",info:"IM/IV, glycopeptide",brands:["Targocid"]},
+  {group:"Miscellaneous Antibiotics",g:"Rifaximin",info:"Local GIT antiseptic • 1×3×3",brands:["Gastrobiotic"]},
+  {group:"Miscellaneous Antibiotics",g:"Nitrofurantoin",info:"UTI-specific • Cat B",brands:["Uvamin"]},
+  {group:"Miscellaneous Antibiotics",g:"Doxycycline",info:"Tetracycline family • Acne • 1×2×1 then 1×1×6 • Cat D",brands:["Vibramycin","Tabocine"]},
+  {group:"Miscellaneous Antibiotics",g:"Oxytetracycline",info:"Tetracycline family, topical use",brands:["Terramycin"]}
+ ]},
+
+{id:"antifungal",name:"Anti-Fungal",color:"#facc15",type:"drug",
+ drugs:[
+  {group:"Local (Topical) Antifungals",g:"Nystatin",info:"Local (drops) • Oral candidiasis",brands:["Nystatin","Fungistatin","Mycostatin"]},
+  {group:"Local (Topical) Antifungals",g:"Miconazole",info:"Local azole • 1×2 for 2–6 weeks",brands:["Daktarin","Miconaz","Micoban"]},
+  {group:"Local (Topical) Antifungals",g:"Tioconazole",info:"Local azole",brands:["Trosyd"]},
+  {group:"Local (Topical) Antifungals",g:"Clotrimazole",info:"Local azole",brands:["Canesten"]},
+  {group:"Local (Topical) Antifungals",g:"Ketoconazole",info:"Local azole",brands:["Nizoral"]},
+  {group:"Local (Topical) Antifungals",g:"Terbinafine (Topical)",info:"Topical allylamine • Tinea • 1×1 or 1×2 for 7 days",brands:["Lamisil","Lamifen","Terbin","Fungisafe"]},
+  {group:"Systemic Antifungals",g:"Fluconazole",info:"Systemic • 150mg • Candida: 150mg once • Tinea: 150mg weekly ×2–4wks",brands:["Diflucan","Fungican","Flucoral"]},
+  {group:"Systemic Antifungals",g:"Itraconazole",info:"Systemic • 100mg • Candida: 200mg×2×1 • Tinea: 100mg×2×7",brands:["Itranox","Itrapex","Sporanox"]},
+  {group:"Systemic Antifungals",g:"Terbinafine (Systemic)",info:"250mg • Tinea: 1×1 for 2–4 weeks",brands:["Lamisil","Lamifen","Terbin","Fungisafe"]}
+ ]},
+
+{id:"antiprotozoal",name:"Anti-Protozoal",color:"#38bdf8",type:"drug",
+ drugs:[
+  {g:"Metronidazole",info:"Giardiasis 1×3×7 • Amebiasis 1×3×7 (+7 repeat) • Tab/Syrup/Supp • Cat B",brands:["Flagyl","Amrizol"]},
+  {g:"Tinidazole",info:"Giardiasis/Amebiasis vegetative: 2g once • Cyst: 2g×1×3 after meal",brands:["Fasigyn","Protozole"]},
+  {g:"Secnidazole",info:"Amebiasis vegetative: 2g once • Cyst: 2g×1×3 after meal",brands:["Amebazole","Cipazole","Flagentyl"]},
+  {g:"Diloxanide + Metronidazole",info:"Amebiasis • 1×3×7 • Tab/Syrup",brands:["Furazol"]},
+  {g:"Nitazoxanide",info:"Giardiasis • 1×2×3 • Tab/Syrup",brands:["Nanazoxid","Nitazode","Nit Clean"]}
+ ],
+ quickRef:[["Enemies","Giardia (vegetative + cyst), Amoeba (vegetative + cyst)"],["Giardia symptom","No tenesmus"],["Amoeba symptom","Tenesmus present"]]},
+
+{id:"insulin",name:"Insulin & Antidiabetics",color:"#f87171",type:"drug",
+ drugs:[
+  {group:"Insulin Secretagogues",g:"Glibenclamide (Sulfonylurea)",info:"Increases insulin secretion",brands:["Daonil","Diaben"]},
+  {group:"Insulin Secretagogues",g:"Gliclazide (Sulfonylurea)",info:"Increases insulin secretion",brands:["Diamicron","Dianormal"]},
+  {group:"Insulin Secretagogues",g:"Glimepiride (Sulfonylurea)",info:"Increases insulin secretion",brands:["Amaryl","Dolcyl"]},
+  {group:"Insulin Secretagogues",g:"Repaglinide (Glinide)",info:"Increases insulin secretion, meal-timed",brands:["Novonorm","Repaglinide"]},
+  {group:"DPP-4 Inhibitors",g:"Sitagliptin (DPP4-i)",info:"Increases incretin hormone",brands:["Janovia","Janumet (combo)"]},
+  {group:"DPP-4 Inhibitors",g:"Vildagliptin (DPP4-i)",info:"Increases incretin hormone",brands:["Galvus"]},
+  {group:"DPP-4 Inhibitors",g:"Saxagliptin (DPP4-i)",info:"Increases incretin hormone",brands:["Onglyza"]},
+  {group:"DPP-4 Inhibitors",g:"Linagliptin (DPP4-i)",info:"Increases incretin hormone",brands:["Trajenta"]},
+  {group:"GLP-1 Agonist",g:"Liraglutide (Injectable GLP-1)",info:"0.6–1.8mg once daily",brands:["Victoza"]},
+  {group:"Insulin Preparations",g:"Insulin — Short Acting",info:"Onset 30min • Duration 4–8h • 30min before meal (Bolus)",brands:["Actrapid","Insulin-R","Humulin R"]},
+  {group:"Insulin Preparations",g:"Insulin — Rapid Acting",info:"Onset 5min • Duration 3–5h • With meal (Bolus)",brands:["Novorapid","Humalog","Apidra"]},
+  {group:"Insulin Preparations",g:"Insulin — Intermediate",info:"Onset 1–2h • Duration 10–12h • Twice daily (Basal)",brands:["Insulatard","Humulin N"]},
+  {group:"Insulin Preparations",g:"Insulin — Mixed 70/30",info:"Combined Bolus + Basal",brands:["Mixtard","Novomix","Humulin 70/30"]},
+  {group:"Insulin Preparations",g:"Insulin — Long Acting",info:"Onset 1–2h • Duration 24h • Once daily (Basal)",brands:["Lantus","Levemir","Toujeo"]},
+  {group:"Insulin Preparations",g:"Insulin — Ultra-Long",info:"Duration 42h",brands:["Tresiba"]},
+  {group:"Other Oral Antidiabetics",g:"Pioglitazone",info:"Insulin sensitizer",brands:["Actos","Ensudyne","Glustin"]},
+  {group:"Other Oral Antidiabetics",g:"Acarbose",info:"Decreases carbohydrate absorption",brands:["Glucobay"]},
+  {group:"Other Oral Antidiabetics",g:"Metformin",info:"Sensitizer + ↓ absorption • With meal • Max 2550mg",brands:["Cidophage","Glucophage","Amophage"]},
+  {group:"SGLT2 Inhibitors",g:"Canagliflozin (SGLT2-i)",info:"Inhibits glucose reabsorption • Once daily",brands:["Invokana"]},
+  {group:"SGLT2 Inhibitors",g:"Dapagliflozin (SGLT2-i)",info:"Inhibits glucose reabsorption • Once daily",brands:["Forxiga"]},
+  {group:"SGLT2 Inhibitors",g:"Empagliflozin (SGLT2-i)",info:"Inhibits glucose reabsorption • Once daily",brands:["Jardiance"]}
+ ],
+ quickRef:[
+  ["Fasting glucose","Normal <100 · Prediabetes 100–125 · Diabetes >126 mg/dl"],
+  ["2-hour post-meal","Normal <140 · Prediabetes 140–199 · Diabetes >200 mg/dl"],
+  ["HbA1c","Normal <5.7% · Prediabetes 5.7–6.4% · Diabetes >6.5%"],
+  ["Insulin dose rule","Total daily units ≈ half body weight (kg)"],
+  ["Glibenclamide+Metformin combos","Diavance, Glimet, Glucovance"],
+  ["Glimepiride+Metformin","Amaryl M"],["Pioglitazone+Metformin","Pioglumet"],["Vildagliptin+Metformin","Galvus Met"]
+ ]},
+
+{id:"cold",name:"Common Cold Drugs",color:"#a3e635",type:"drug",
+ drugs:[
+  {g:"Paracetamol",info:"Analgesic component (P) • Max 4000 mg/day",brands:[]},
+  {g:"Ibuprofen",info:"Analgesic component (B) • Max 1200 mg/day",brands:[]},
+  {g:"Pseudoephedrine",info:"Decongestant (P.E) • Max 240 mg/day",brands:[]},
+  {g:"Chlorpheniramine",info:"1st-gen antihistamine • Max 32 mg/day • Effective dose 4 mg/6hr",brands:[]},
+  {g:"Diphenhydramine",info:"1st-gen antihistamine • Max 400 mg/day",brands:[]},
+  {g:"Brompheniramine",info:"1st-gen antihistamine • Max 24 mg/day",brands:[]},
+  {g:"Loratadine / Cetirizine",info:"2nd-gen antihistamine • Max 10 mg/day • Less sedating",brands:[]}
+ ],
+ tables:[
+  {title:"Maximum Daily Doses",cols:["Component","Maximum Dose"],rows:[
+   ["Pseudoephedrine (P.E)","240 mg/day"],
+   ["Ibuprofen (Brufen)","1200 mg/day"],
+   ["Paracetamol","4000 mg/day"],
+   ["Chlorpheniramine (1st gen)","32 mg/day — effective 4 mg/6hr"],
+   ["Diphenhydramine (1st gen)","400 mg/day"],
+   ["Brompheniramine (1st gen)","24 mg/day"],
+   ["Loratadine & Cetirizine (2nd gen)","10 mg/day"]
+  ]},
+  {title:"P.E + 2nd-Gen Antihistaminic — Dose 1×2",cols:["Name","Analgesic","P.E","Antihistaminic","Caffeine","Dose"],rows:[
+   ["Trimed / Flu","P-500","120mg","Loratadine 5mg","–","1×2"],
+   ["Clearest","–","120mg","Cetirizine","–","1×2"],
+   ["Mosedin P","–","120mg","Loratadine 5mg","–","1×2"]
+  ]},
+  {title:"Ibuprofen-Based — No Antihistaminic",cols:["Name","Analgesic","P.E","Antihistaminic","Caffeine","Dose"],rows:[
+   ["Brufen Cold","B-400","60mg","–","–","1×3"],
+   ["Power Caps","B-400","45mg","–","–","1×3"]
+  ]},
+  {title:"Ibuprofen + 1st-Gen Antihistaminic",cols:["Name","Analgesic","P.E","Antihistaminic","Caffeine","Dose"],rows:[
+   ["Antiflu","B-200","60mg","Chlorpheniramine 3mg","Caffeine","1×4"]
+  ]},
+  {title:"Paracetamol + 1st-Gen Antihistaminic",cols:["Name","Analgesic","P.E","Antihistaminic","Caffeine","Dose"],rows:[
+   ["Congestal","P-650","60mg","Chlorpheniramine 4mg","–","1×4"],
+   ["Cold Free","P-500","60mg","Chlorpheniramine 4mg","–","1×4"],
+   ["Power C.F","P-500","30mg","Chlorpheniramine 3mg","Caffeine","2×3"],
+   ["Comtrex","P-500","30mg","Brompheniramine 2mg","–","2×4"],
+   ["Panadol CF","P-500","30mg","Chlorpheniramine 2mg","–","2×4"],
+   ["Panadol CF (alt.)","P-500","30mg","–","Caffeine","2×4"],
+   ["1.2.3","P-500","30mg","Chlorpheniramine 2mg","–","2×4"]
+  ]},
+  {title:"Night & Day — Dual-Formula Tablet",cols:["Name","Analgesic","P.E","Antihistaminic","Caffeine","Dose"],rows:[
+   ["Night tablet","P-500","–","Diphenhydramine 25mg","–","1×2"],
+   ["Day tablet","P-600","90mg","–","–","1×2"]
+  ]},
+  {title:"Special / Pregnant-Safe — Minimal Ingredients",cols:["Name","Analgesic","P.E","Antihistaminic","Caffeine","Dose"],rows:[
+   ["Allercet Cold","P-400","30mg","Cetirizine 5mg","–","1×1"],
+   ["Cevamol","P-400","–","–","Vit C","1×4"]
+  ]}
+ ]},
+
+{id:"cough",name:"Cough Medications",color:"#2dd4bf",type:"drug",
+ drugs:[
+  {group:"Antitussives (Dry Cough)",g:"Butamirate",info:"Antitussive (dry cough) • 15ml×4",brands:["Sinecod"]},
+  {group:"Antitussives (Dry Cough)",g:"Dextromethorphan",info:"Antitussive (dry cough)",brands:["Dextromethorphan"]},
+  {group:"Antitussives (Dry Cough)",g:"Pipazetate",info:"Antitussive (dry cough) • 1×3",brands:["Selgon"]},
+  {group:"Antitussives (Dry Cough)",g:"Cloperastine",info:"Antitussive (dry cough) • 5ml×3",brands:["Notussil"]},
+  {group:"Antitussives (Dry Cough)",g:"Binproprin",info:"Antitussive (dry cough)",brands:["Pectipro"]},
+  {group:"Mucolytics (Wet Cough)",g:"N-Acetyl Cysteine",info:"Mucolytic (wet cough) • 1×2 effervescent • Cat B",brands:["Acetyl Cysteine","Cabri"]},
+  {group:"Mucolytics (Wet Cough)",g:"Bromhexine",info:"Mucolytic (wet cough) • 1×3 • Cat A",brands:["Bisolvon"]},
+  {group:"Mucolytics (Wet Cough)",g:"Erdosteine",info:"Mucolytic (wet cough) • 1×2",brands:["Mucosol","Mucotec"]},
+  {group:"Combination Products",g:"Mucolytic + Expectorant combos",info:"Various syrup combinations",brands:["All-Vent","Farcosolvin","Mucophylline","Ultrasolv","Osipect","Octovent Plus"]},
+  {group:"Combination Products",g:"Herbal dry-cough syrups",info:"Plant-based expectorant/soothing syrups",brands:["Bronchicum","Balsam","Pentamix","Babeton","Guava","Ivyrospan"]},
+  {group:"Combination Products",g:"Dry & allergic cough combo",info:"Antihistaminic + antitussive",brands:["Bronchophane","Tussivan-N"]},
+  {group:"Combination Products",g:"Wet & allergic cough combo",info:"Mucolytic + antihistaminic",brands:["Avipect","Rectoplexil","Coughsed (1×2)"]}
+ ],
+ quickRef:[
+  ["Antitussive ban","Never in children under 2 years (dry cough syrups) unless absolute necessity"],
+  ["Mucolytic ban","Never in children under 1 year (wet/mucolytic syrups) unless absolute necessity"],
+  ["Cough in child <2y, home care","1) Nasal wash 2) Elevate head during sleep 3) Warm fluids"]
+ ]},
+
+{id:"vitamins",name:"Vitamins & Supplements",color:"#fbbf24",type:"drug",
+ drugs:[
+  {g:"Calcium Supplements",info:"Bone health / deficiency",brands:["Cal-Mag","Calcitron","Calcimat","Caldin C","Calcium D3","Calcid","Calcimax Extreme","Osteocare","Maxical"]},
+  {g:"Vitamin B Complex",info:"Neurological support / deficiency",brands:["B-Com","Betolvex","Becozyme","Livabion","Depovit","Tri-B","Neurovit","Neuroton","Neurimax","Milga"]},
+  {g:"Iron Supplements",info:"Iron-deficiency anemia",brands:["Ferrobella","Feroglobin","Ferose","Ferrotron","Phara Fero","Vitaferrol","Theragran","Heamoton"]},
+  {g:"Multivitamins",info:"Daily requirement / prophylaxis",brands:["Vitamax Plus","Vitamount","Centrum","Totavit","Supravit","Megavit Zinc","Sansovit","Bebe Vit"]},
+  {g:"Folic Acid",info:"See quick reference for exact dosing cases",brands:["Folic Acid 5mg","Foli Cap 2.5mg","Cobal F"]},
+  {g:"Vitamin D (Alfacalcidol / Cholecalciferol)",info:"Active vitamin D forms",brands:["Devarol amp","Bon-One","One Alpha","Vidrop dp","Alfacalcidol dp"]},
+  {g:"Other tonics & specialty vitamins",info:"Memory, hair, general tonic, antioxidant support",brands:["Arcalion","C-Retard","Vitacid Eff","A-Viton","Vitamin E","Extra 1000","Biostrong","Royal Jelly","Royal Vit G","Queen","Cavigen","Trib Gold","Selenium","Carnivita","Gensing","Ginko","Herbana","Baraka","Carnitol","Pantogar","Hairtone","N.F.Y.H","Omega 3 Plus","Actimar","Tomex Plus"]},
+  {g:"PMS / Menopause support",info:"Taken cycle day 5 to day 25 (after PMS period)",brands:["Meparose","Primarose"]}
+ ],
+ quickRef:[
+  ["Megaloblastic anemia","Folic acid 5–15mg/day for ≥4 months (Foli Cap 2.5mg 1×6 or 2×3, or Folic Acid 5mg 1×3)"],
+  ["Chronic anemic state","Folic acid 5mg/day (Foli Cap 2.5mg 1×2/2×1, or Folic Acid 5mg 1×1)"],
+  ["Pregnancy, high risk (prior neural tube defect / folate deficiency)","5mg/day pre-conception through 1st trimester"],
+  ["Normal pregnancy prophylaxis","400–800 mcg/day (Cobal F 1×2/1×3, or Folic Acid 500mcg 1×1)"],
+  ["Vitamin D pathway","Sun → Cholesterol → Cholecalciferol (liver, inactive) → Alfacalcidol (kidney, active)"]
+ ]},
+
+{id:"derma",name:"Creams & Ointments",color:"#f472b6",type:"drug",
+ drugs:[
+  {group:"Topical Corticosteroids",g:"Hydrocortisone",info:"Topical cortisone — Mild potency • 3–4×/day",brands:["Hydrocortisone"]},
+  {group:"Topical Corticosteroids",g:"Fluticasone / Alclometasone",info:"Topical cortisone — Moderate potency • 2–3×/day",brands:["Cutivate","Perderm"]},
+  {group:"Topical Corticosteroids",g:"Betamethasone / Mometasone / Triamcinolone",info:"Topical cortisone — Potent • 1–2×/day",brands:["Betnovate","Betaderm","Diprosone","Elocon","Elocortin","Topicort","Borgasone"]},
+  {group:"Topical Corticosteroids",g:"Clobetasol",info:"Topical cortisone — Very potent • once/day",brands:["Dermovate","Clovacort"]},
+  {group:"Topical Antibiotics",g:"Fusidic Acid (topical)",info:"Topical antibiotic • 2–4×/day",brands:["Fucidin","Fusiderm","Fusi Top"]},
+  {group:"Topical Antibiotics",g:"Gentamicin (topical)",info:"Topical antibiotic • 2–4×/day",brands:["Garamycin","Gentamycin","Cidomycin"]},
+  {group:"Massage & Supportive Creams",g:"Massage Creams",info:"Local, 1–2×/day",brands:["Algasal","Algason","Myocool","BioFreeze","Myorel","Moov","Hi-Forte"]},
+  {group:"Massage & Supportive Creams",g:"Edema care",info:"—",brands:["Reparil","Alpha Kadol","Tromacure"]},
+  {group:"Massage & Supportive Creams",g:"Scar care",info:"—",brands:["Scaro","Scartex","Contractubex"]},
+  {group:"Massage & Supportive Creams",g:"Bruises care",info:"—",brands:["Hemoclar","Thrombex","Extrauma"]},
+  {group:"Massage & Supportive Creams",g:"Burn care",info:"—",brands:["Mebo","Dermazin","Burnazin"]},
+  {group:"Massage & Supportive Creams",g:"Moisturizers",info:"—",brands:["Panthenol","Carbamide (Urecare)"]},
+  {group:"Massage & Supportive Creams",g:"Topical anesthetics",info:"—",brands:["Xylocaine","Lidocaine","Ultracain"]},
+  {group:"Massage & Supportive Creams",g:"Hemorrhoid care",info:"—",brands:["Proctosedyl","Procto 4","Faktu"]},
+  {group:"Massage & Supportive Creams",g:"Nipple fissure",info:"—",brands:["Orient-N","Niplo"]},
+  {group:"Massage & Supportive Creams",g:"Anal fissure (GTN)",info:"—",brands:["Acretin"]},
+  {group:"Massage & Supportive Creams",g:"Acne / Hyperpigmentation",info:"Adapalene-based",brands:["Clearalique"]}
+ ]},
+
+{id:"eye",name:"Eye Preparations",color:"#60a5fa",type:"drug",
+ drugs:[
+  {group:"Artificial Tears",g:"Artificial Tears",info:"3–4×/day",brands:["Hy Fresh","Refresh Tears","Refresh Liquigel","Refresh Plus Naturale","Thilo-Tears","Genteal Gel","Liquifilm Gel","Artelac","Optive","Systane"]},
+  {group:"Anti-Allergy",g:"Anti-Allergy eye drops",info:"Redness / itching / tearing • 2×3–4",brands:["Naphcon A","Ocumethyl","Optipred","Orchapred","Orchazid","Pred Forte","Prisoline","Flucon","Fluca","Trillerg","Visine","Dexatrol"]},
+  {group:"Antibiotic Eye Drops",g:"Tobramycin (eye)",info:"Antibiotic • 2×4–6",brands:["Tobrex","Tobrin","Avazir"]},
+  {group:"Antibiotic Eye Drops",g:"Moxifloxacin / Gatifloxacin (eye)",info:"Antibiotic • 1×3×4 / 1×8×2 then 1×4×4",brands:["Vigamox","Fortymox","Tymer","Zymar"]},
+  {group:"Antibiotic Eye Drops",g:"Ofloxacin (eye)",info:"Antibiotic • 2×3–4",brands:["Oflox","Optiflox"]},
+  {group:"Glaucoma Agents",g:"Timolol (glaucoma)",info:"Beta blocker • ↓ secretion • 1×2",brands:["Timolol"]},
+  {group:"Glaucoma Agents",g:"Brinzolamide (glaucoma)",info:"CAI • ↓ secretion • 1×3",brands:["Azopt"]},
+  {group:"Glaucoma Agents",g:"Prostaglandin analogues (glaucoma)",info:"↓ secretion • once in the evening",brands:["Travatan","Xalatan","Lumigan"]},
+  {group:"Glaucoma Agents",g:"Brimonidine (glaucoma)",info:"Alpha-2 agonist • ↓ secretion, ↑ excretion • 1×2",brands:["Alphagan"]},
+  {group:"Glaucoma Agents",g:"Glaucoma Combinations",info:"BB+CAI or BB+alpha2-agonist • 1×2",brands:["Cosopot (BB+CAI)","Xolamol (BB+CAI)","Combigan (BB+Alpha2)"]},
+  {group:"Contact Lens Care",g:"Contact lens solution",info:"—",brands:["ReNu","Opti-Free","Perfect Care"]}
+ ]},
+
+{id:"sexual",name:"Sexual Health",color:"#f43f5e",type:"drug",
+ drugs:[
+  {group:"PDE5 Inhibitors — Sildenafil",g:"Sildenafil",info:"PDE5 inhibitor • ED • Take ½h before meal, 1h before intercourse • Effect lasts 6–8h",brands:["Viagra","Erec","Virecta","Vivag 25mg","Silden 25mg","Faroviga 25mg","Napifit","Nerhasilda (sublingual)"]},
+  {group:"PDE5 Inhibitors — Tadalafil",g:"Tadalafil",info:"PDE5 inhibitor • ED • Take 2h before intercourse • Duration 36h — longest-acting",brands:["Cialis","Erectalis","Cialong","Tadalong","Snafi","Starkoprex"]},
+  {group:"PDE5 Inhibitors — Vardenafil",g:"Vardenafil",info:"PDE5 inhibitor, more selective • ED • Take ½h before meal & ½h before intercourse",brands:["Powerecta","Farorecta","Levitra","SoLvetra","Varde","Vardenorect"]},
+  {group:"PDE5 Inhibitors — Avanafil",g:"Avanafil",info:"PDE5 inhibitor • ED • Take ¼h before intercourse — fastest onset, safest for emergency use",brands:["Atconafil","Avanjoy","Erovanafile"]},
+  {group:"Premature Ejaculation",g:"Dapoxetine",info:"SSRI • Premature ejaculation • Take 1h before intercourse",brands:["Joybox","Matujac","Durjoy","Derilgy","Priligy","Andopoxtine"]},
+  {group:"Premature Ejaculation",g:"Clomipramine / Escitalopram",info:"Antidepressant, off-label for premature ejaculation • Take 4h before intercourse • Note: may reduce libido with use",brands:["Anafranil","Cipralex"]},
+  {group:"Premature Ejaculation",g:"Lidocaine (topical)",info:"Topical anesthetic • Premature ejaculation • Apply 2–5 min before intercourse",brands:["Lidocaine","Xylocaine"]},
+  {group:"Barrier / Lubricant",g:"Condom",info:"Barrier method, also delays ejaculation",brands:["Durex","Simplex","Fiesta","One Touch"]},
+  {group:"Barrier / Lubricant",g:"Lubricant Gel",info:"—",brands:["Durex","KY","Astroglide"]},
+  {group:"Women's Libido",g:"Flibanserin",info:"Antidepressant class ('female Viagra') • ↑ Dopamine & Norepinephrine, ↓ Serotonin • 100mg once at bedtime • Discontinue after 8 weeks if no improvement • Approved Aug 2015",brands:["Flibanorin"]}
+ ],
+ tables:[
+  {title:"Erection Physiology & Drug Mechanism",cols:["Step","Event"],rows:[
+   ["1","Sexual stimulation → endothelial cells/NANC nerves release Nitric Oxide (NO)"],
+   ["2","NO activates Guanylate Cyclase"],
+   ["3","GTP → cGMP (cGMP triggers smooth-muscle relaxation → erection)"],
+   ["4","PDE5 enzyme breaks down cGMP → GMP, ending the erection"],
+   ["5","PDE5 inhibitor drugs block this breakdown → cGMP stays high → erection sustained"]
+  ]},
+  {title:"PDE5 Inhibitor Comparison",cols:["Drug","Take Before Intercourse","Duration"],rows:[
+   ["Sildenafil","1h (½h before meal)","6–8h"],
+   ["Tadalafil","2h","36h"],
+   ["Vardenafil","½h (½h before meal)","~5h"],
+   ["Avanafil","¼h (15 min) — fastest, safest for emergency use","~6h"]
+  ]},
+  {title:"Erectile Dysfunction — Definition",cols:["Criterion","Threshold"],rows:[
+   ["Duration",">3 months"],
+   ["Definition","Inability to initiate or maintain an erection long enough for intercourse"]
+  ]},
+  {title:"Premature Ejaculation — Diagnostic Criteria",cols:["Criterion","Threshold"],rows:[
+   ["Duration",">3 months"],
+   ["Intravaginal latency time","<2 min"],
+   ["Number of thrusts","<15"],
+   ["Partner satisfaction","<50%"]
+  ]}
+ ]},
+
+{id:"misc",name:"Miscellaneous",color:"#c084fc",type:"drug",
+ drugs:[
+  {group:"Muscle Relaxants",g:"Baclofen / Tizanidine / Dantrolene",info:"Antispasticity (central cause)",brands:["Baclofen","Sirdalud","Dantrelax"]},
+  {group:"Muscle Relaxants",g:"Cyclobenzaprine / Orphenadrine",info:"Antispasmodic (peripheral) • Amp for emergency",brands:["Norflex"]},
+  {group:"Muscle Relaxants",g:"Chlorzoxazone + Paracetamol",info:"Antispasmodic combo",brands:["Myofen","Exept","Myolgin"]},
+  {group:"Muscle Relaxants",g:"Methocarbamol + Diclofenac",info:"Antispasmodic combo",brands:["Dimra","Relax","Relaxon","Methoquick"]},
+  {group:"Anti-Edematous & Enzymes",g:"Trypsin/Chymotrypsin (proteolytic enz.)",info:"Anti-edematous • 1–2×3 before meal",brands:["Reparil","Alphintern","Amebezin","Maxilase"]},
+  {group:"Anti-Vertigo",g:"Betahistine",info:"Anti-vertigo • H3 antagonist • 8–16–24mg • Max 48mg/day",brands:["BetaSerc","Verserc","Microserc"]},
+  {group:"Neuropathic Pain",g:"Pregabalin",info:"Neuropathic pain • Max 300mg/day",brands:["Lyrica","Lyrolin","Pregedinapex","Pregavalex","Kemirica","Normolepsy"]},
+  {group:"Neuropathic Pain",g:"Gabapentin",info:"Neuropathic pain • 900–3600mg/day",brands:["Gaptin","Conventin"]},
+  {group:"Joint Support",g:"Chondroitin + Glucosamine",info:"Joint support • 1×3×1 month after meal",brands:["Dorofen","Genuphil","Glucosamin Com"]},
+  {group:"Joint Support",g:"Avocado Oil",info:"Joint support • once daily for 6 months",brands:["Piascledine"]},
+  {group:"Biliary Colic",g:"Biliary colic agents",info:"Dissolve cholesterol gallstones • 1×3",brands:["Rowachol","Bilichol","Ursofalk","Livagoal"]},
+  {group:"Gout & Renal Stone",g:"Allopurinol (XOI)",info:"Chronic gout • ↓ uric acid production • 100–900mg/day",brands:["Zyloric","No-Uric","Harpagin"]},
+  {group:"Gout & Renal Stone",g:"Febuxostat (XOI)",info:"Chronic gout • 40–80mg/day",brands:["Feburic","Goutifade","Alloben","Xanthistop"]},
+  {group:"Gout & Renal Stone",g:"Colchicine",info:"Acute gout attack • 1×3 before meal • anti-inflammatory",brands:["Colchicine"]},
+  {group:"Gout & Renal Stone",g:"Uric-acid stone agents",info:"Piperazine excretion + antispasmodic",brands:["Urivin","Urosolvine","Uricol Plus"]},
+  {group:"Gout & Renal Stone",g:"Magnesium Citrate / K-Na-Hydrogen Citrate",info:"Ca-oxalate stone alkalization • 1×3 • Cat A",brands:["Epimag","Xenomag","Uralyt-U"]},
+  {group:"Gout & Renal Stone",g:"Renal antiseptic (general)",info:"Antiseptic + antispasmodic, all stone types • 1×3",brands:["Rowatinex","Urinex","Kellagon","Cystone (also ↓ stone formation)","Proximol Com"]},
+  {group:"Benign Prostatic Hyperplasia",g:"Doxazosin / Prazosin (Alpha-1 blocker)",info:"BPH — relax prostate/urethra muscle",brands:["Cardura","Dosin","Minipress"]},
+  {group:"Benign Prostatic Hyperplasia",g:"Tamsulosin (Alpha-1a blocker)",info:"BPH • 0.4–0.8mg once",brands:["Tamsulin","Tamsul","Omnic"]},
+  {group:"Benign Prostatic Hyperplasia",g:"Finasteride (5-alpha reductase inhibitor)",info:"BPH • once daily • decreases prostate size",brands:["Proscar","Prostat","Prostride"]},
+  {group:"Benign Prostatic Hyperplasia",g:"Herbal BPH agents",info:"1×2",brands:["Prostanorm","Prostacure","Pepon Plus"]},
+  {group:"Bleeding Control",g:"Vitamin K",info:"Bleeding control • improves clotting factors • once",brands:["Amri-K","Konakion"]},
+  {group:"Bleeding Control",g:"Etamsylate",info:"Bleeding control • 1×3×5 • improves platelet adhesiveness",brands:["Dicynone","Haemostop","Hemostat","Haemostatine"]},
+  {group:"Bleeding Control",g:"Tranexamic Acid",info:"Bleeding control • antifibrinolytic • 1×3×5",brands:["Kapron"]},
+  {group:"Vaginal Infection Treatment",g:"Clindamycin (vaginal)",info:"Bacterial vaginosis • Contra: virgin",brands:["Dalacin","Amrizole N"]},
+  {group:"Vaginal Infection Treatment",g:"Metronidazole (vaginal)",info:"Bacterial vaginosis + trichomonas",brands:["Amrizole"]},
+  {group:"Vaginal Infection Treatment",g:"Clotrimazole (vaginal)",info:"Trichomonas/Candida",brands:["Canesten","Candistan"]},
+  {group:"Vaginal Infection Treatment",g:"Miconazole (vaginal)",info:"Candida",brands:["Gynozol","Gynoconazol"]},
+  {group:"Vaginal Infection Treatment",g:"Econazole/Isoconazole (vaginal)",info:"Candida",brands:["Gynoryl","Candicure"]},
+  {group:"Vaginal Infection Treatment",g:"Tioconazole (vaginal, broad)",info:"Broad spectrum",brands:["Gyno Trosyd"]},
+  {group:"Vaginal Douches",g:"Vaginal douches",info:"—",brands:["Gold Betadine","Malva","Klenva","Alka-Misr","Vagyl","Tantum"]},
+  {group:"Mouth Wash",g:"Mouth wash",info:"—",brands:["Betadine","Listerine","Orafresh","Oravex","Oraldene","Oracin","Hexitol","Tantum"]},
+  {group:"Baby Care Topical",g:"Baby care topical",info:"—",brands:["Sudocrem","Sanosan","Care By Care","Zinc Olive","Baby Cream","Rasha"]},
+  {group:"Antiseptic Lozenges",g:"Antiseptic lozenges",info:"3–5 daily",brands:["Strepsils","Candy Seem","Pectol","Larypro","Tantum"]},
+  {group:"Antianginal Drugs",g:"Nitroglycerin (long-acting)",info:"Antianginal",brands:["Nitromak Retard","Nitroderm"]},
+  {group:"Antianginal Drugs",g:"Isosorbide Mononitrate",info:"Antianginal, long-acting",brands:["Effox","Imdur","Monomak"]},
+  {group:"Antianginal Drugs",g:"Isosorbide Dinitrate",info:"Antianginal emergency • 5mg, repeat q5min up to 3 doses within 15–30min",brands:["Dinitra"]},
+  {group:"Antianginal Drugs",g:"New antianginal agents",info:"1×2",brands:["Vastarel","Randil","Procoralan"]},
+  {group:"Antihypotensive Drugs",g:"Etilefrine",info:"Antihypotensive • sympathomimetic • 10–20 drops×3",brands:["Effortil","Vascon"]},
+  {group:"Antihypotensive Drugs",g:"Heptaminol",info:"Antihypotensive • 25 drops×3",brands:["Corasore"]},
+  {group:"Antihypotensive Drugs",g:"Midodrine",info:"Antihypotensive vasoconstrictor • 1×3",brands:["Midodrine"]},
+  {group:"Anti-Prolactin & Anti-Estrogen",g:"Cabergoline",info:"Anti-prolactin • ½ tab×2×2 weekly",brands:["Dostinex","Elonda"]},
+  {group:"Anti-Prolactin & Anti-Estrogen",g:"Clomiphene / Tamoxifen",info:"Anti-estrogen • 1×2×5 starting day 1",brands:["Clomid","Tamoxifen"]},
+  {group:"Bone Support",g:"Bisphosphonates",info:"Bone support • inhibits osteoclasts • once weekly",brands:["Actonel","Fosavance","Fosamax","Egy Dronate"]},
+  {group:"Venotonic",g:"Diosmin",info:"Venotonic • ↑ venous tone • 1×2×6 months",brands:["Daflon","Dafrex","Dioven","Diosed-C"]},
+  {group:"Liver Support",g:"Silymarin",info:"Liver support • enhances hepatocytes, antioxidant",brands:["Hipamax Plus","Hepaticum","Leverin","Legalon 140","Silymarin Plus","Bional"]},
+  {group:"Brain Stimulant & Circulatory",g:"Piracetam",info:"Brain stimulant / circulatory",brands:["Stimulan","Nootropil","Oxitropil"]},
+  {group:"Brain Stimulant & Circulatory",g:"Vincamine",info:"Brain circulatory • once",brands:["Oxybral"]},
+  {group:"Brain Stimulant & Circulatory",g:"Naftidrofuryl",info:"Brain circulatory • 1×3",brands:["Praxilene"]},
+  {group:"Brain Stimulant & Circulatory",g:"Meclofenoxate",info:"Brain circulatory • 1×2",brands:["Lucidril"]},
+  {group:"Brain Stimulant & Circulatory",g:"Cilostazol",info:"Peripheral vascular / circulatory",brands:["Pletaal"]},
+  {group:"Brain Stimulant & Circulatory",g:"Ginkgo herbal circulatory",info:"1×2",brands:["Tebonina Forte"]},
+  {group:"Migraine Treatment",g:"Ergotamine + Paracetamol + Caffeine + Domperidone",info:"Migraine attack • 2 tab at attack, 30min interval, max 10/week",brands:["No-Migraine"]},
+  {group:"Migraine Treatment",g:"Ergotamine + Novalgin + Caffeine (±Phenobarbital)",info:"Migraine attack",brands:["Amigraine","Migranil"]},
+  {group:"Migraine Treatment",g:"Paracetamol + Metoclopramide",info:"Migraine attack",brands:["Migracid"]},
+  {group:"Migraine Treatment",g:"Sumatriptan",info:"5-HT1 agonist • Migraine • 50–100mg • Max 100mg/attack, 200mg/day",brands:["Imigran"]},
+  {group:"Migraine Treatment",g:"Zolmitriptan",info:"5-HT1 agonist • Migraine • 2.5mg • Max 10mg, ≥2h interval",brands:["Zomig"]},
+  {group:"Ear Drops",g:"Ear drops — Antibiotic+Steroid+Anesthetic",info:"4×4",brands:["Otal Dp"]},
+  {group:"Ear Drops",g:"Ear drops — Antibiotic+Steroid",info:"3×2×7",brands:["Viotic Dp"]},
+  {group:"Ear Drops",g:"Ear drops — Antiseptic+Analgesic",info:"3×3",brands:["Otocalm Dp"]},
+  {group:"Ear Drops",g:"Ear wax softener/remover",info:"3×3×3",brands:["Remowax Dp"]},
+  {group:"Ear Drops",g:"Ear drops — Antifungal",info:"1×2",brands:["Batrafen Dp"]}
+ ],
+ quickRef:[
+  ["Renal stone types","Uric acid 10–20% (acidic urine) · Ca Oxalate 80% (acidic urine) · Ca Phosphate 5–10% (alkaline urine)"],
+  ["Gout — chronic phase","Xanthine oxidase inhibitor (between attacks)"],
+  ["Gout — acute attack","Colchicine + anti-inflammatory"],
+  ["BPH expulsive therapy","Alpha blocker (Tamsulosin) + CCB (Adalat) + PDE5-i (Cialis)"]
+ ]},
+
+{id:"imported",name:"Imported Drugs",color:"#94a3b8",type:"drug",
+ drugs:[
+  {g:"Move Free",info:"Joint support",brands:[]},
+  {g:"Centrum",info:"Multivitamin",brands:[]},
+  {g:"Feroglobin",info:"Iron supplement",brands:[]},
+  {g:"Osteocare",info:"Calcium supplement",brands:[]},
+  {g:"Panadol Family",info:"Paracetamol combinations",brands:[]},
+  {g:"Pregnacare",info:"Multivitamin for pregnancy",brands:[]},
+  {g:"Perfectil",info:"Multivitamin (skin/hair/nails)",brands:[]},
+  {g:"Lipo 6 / Harva / Fettarm",info:"Weight loss",brands:[]},
+  {g:"Omega 3.6.9",info:"Omega fatty acids",brands:[]},
+  {g:"Neurobion",info:"Vitamin B complex",brands:[]},
+  {g:"Biotin + Bepanthen",info:"Amp",brands:[]},
+  {g:"Cytotec",info:"Misoprostol",brands:[]},
+  {g:"PG",info:"Hair vitamin",brands:[]},
+  {g:"Navidoxine",info:"Anti-emetic",brands:[]},
+  {g:"Solpadeine",info:"Analgesic",brands:[]},
+  {g:"Radian Cream / Moov Cream",info:"Massage cream",brands:[]},
+  {g:"Gripe Water",info:"Antiflatulent syrup",brands:[]},
+  {g:"Efalex / Efamol Syrup",info:"Omega 3",brands:[]},
+  {g:"Green Tea",info:"Weight loss",brands:[]},
+  {g:"Eltroxin 50–100",info:"Thyroxine",brands:[]},
+  {g:"Nexium",info:"PPI (Esomeprazole)",brands:[]},
+  {g:"Plavix",info:"↓ blood viscosity (antiplatelet)",brands:[]}
+ ]},
+
+{id:"pediatric",name:"Pediatric Doses",color:"#fda4af",type:"peds",
+ drugs:[
+  {g:"Weight estimation",info:"Under 1 year: (age in months + 9) ÷ 2. 1–8 years: (age × 2) + 8. 9–11 years: (age × 2) + 9",brands:[]},
+  {g:"Dose calculation method",info:"Step 1: Find active ingredient concentration in bottle (e.g. 200mg/5ml). Step 2: Find effective dose (mg/kg/day), e.g. 10mg/kg/day. Step 3: Multiply by weight → total daily mg → convert to ml using bottle concentration.",brands:[]},
+  {g:"Cefotaxime (Vial)",info:"250/500/1000mg strengths • 50–180 mg/kg/day ÷2 • 50kg ≈ adult dose",brands:["Cefotax Vial"]},
+  {g:"Ceftriaxone (Vial)",info:"250/500/1000mg strengths • 50–75 mg/kg/day once daily",brands:["Ceftriaxone Vial"]},
+  {g:"Unictam (Vial)",info:"375/750/1500mg strengths • 100–150 mg/kg/day ÷2 • dose ≈ half body weight ×100",brands:["Unictam Vial"]}
+ ],
+ notes:[
+  "Priority when treating a febrile child: (1) Anti-pyretic first, (2) Antibiotic if indicated.",
+  "Never sponge a febrile child with a cold/iced wet towel — it can trigger shivering and paradoxically raise core temperature.",
+  "Correct IM injection sites in infants: outer thigh and upper arm/deltoid (marked ✓). Avoid the forehead/scalp and other unapproved sites (marked ✗)."
+ ],
+ tables:[
+  {title:"🧾 Anti-Pyretic — by weight",cols:["Drug","Effective Dose","Frequency"],rows:[
+   ["Cetal Syrup 250mg/5ml","10–15 mg/kg/day","Weight ÷4, every 6 hours"],
+   ["Brufen Syrup 100mg/5ml","20–30 mg/kg/day","Weight ÷3, every 6 hours"],
+   ["Catafly Syrup 2mg/1ml","2–3 mg/kg/day","Weight ÷2, every 12 hours"],
+   ["Dolphin Suppository 12.5mg","2–3 mg/kg/day","1 supp every 12h (after 3 years)"]
+  ]},
+  {title:"🧾 Oral Antibiotic — by weight",cols:["Drug","Effective Dose","Frequency"],rows:[
+   ["Zithrokan Susp 200mg/5ml","10 mg/kg/day, for 3–5 days","Weight ÷4, once daily for 3 days"],
+   ["Unictam Susp 250mg/5ml","25–50 mg/kg/day","Weight ÷2, every 12 hours"],
+   ["Ceclor 250mg/5ml","20–40 mg/kg/day","Weight ÷4, every 8 hours"],
+   ["Klacid 250mg/5ml","15 mg/kg/day","Weight ÷6, every 12 hours"],
+   ["Augmentin (25–50 mg/kg/day)","156mg/5ml","Weight ÷2, every 8 hours"],
+   ["Augmentin (25–50 mg/kg/day)","228mg/5ml","Weight ÷3, every 8 hours"],
+   ["Augmentin (25–50 mg/kg/day)","312mg/5ml","Weight ÷4, every 8 hours"],
+   ["Augmentin (25–50 mg/kg/day)","457mg/5ml","Weight ÷4, every 12 hours"],
+   ["Duricef 250mg/5ml","25–50 mg/kg/day","Weight ÷4, every 12 hours"],
+   ["Flagyl 125mg/5ml","250 mg/day (35–50 mg/kg/day)","1.5cm per kg, divided every 8 hours"]
+  ]},
+  {title:"🧾 Parenteral Antibiotic — by weight",cols:["Drug","Effective Dose","Vial Selection / Frequency"],rows:[
+   ["Cefotax Vial","50–180 mg/kg/day ÷2 (50kg = adult)","<10kg → 250mg | 10–20kg → 500mg | >20kg → 1000mg"],
+   ["Ceftriaxone Vial","50–75 mg/kg/day, once daily","Half body weight × 100, once daily"],
+   ["Unictam Vial","100–150 mg/kg/day ÷2 (40kg = adult)","Half body weight × 100, twice daily"]
+  ]},
+  {title:"🧾 Symptomatic Dosing — by symptom & age",cols:["Symptom","Age","Drug","Dose"],rows:[
+   ["Oral Candidiasis","Premature","Fungistatin drops","1ml ×4"],
+   ["Oral Candidiasis","Infant","Fungistatin drops","2ml ×4"],
+   ["Oral Candidiasis","Children","Fungistatin drops","5ml ×4"],
+   ["Vomiting","Any","Danset amp","1ml / 13kg / dose"],
+   ["Vomiting","Any","Cortiplex ped amp","1 amp at most, max 2 injections/day"],
+   ["Vomiting","<35kg","Motilium syrup","2.5–5ml / 10kg / dose ×3"],
+   ["Spasm",">2 years","Buscopan amp 20mg/1ml","0.5ml / 10kg / dose"],
+   ["Spasm",">2 years","Visceralgine syrup 2mg/1ml","0.5ml/kg/day ÷3"],
+   ["Constipation","Any","Lactulose syrup","1ml/kg, divided into 3 doses"],
+   ["Constipation","Any","Picolax drops","1 drop/kg once, max 15 drops"]
+  ]},
+  {title:"🧾 Symptomatic Dosing — Diarrhea, Cough & Allergy",cols:["Symptom","Age","Drug","Dose"],rows:[
+   ["Diarrhea","<2 months","Antinal susp","5ml ×2"],
+   ["Diarrhea","<1 year","Antinal susp","5ml ×3"],
+   ["Diarrhea",">1 year","Antinal susp","5ml ×4"],
+   ["Diarrhea","Any","Kapect syrup","5ml ×3"],
+   ["Diarrhea","1–3 years","Nanazoxid susp","5ml ×2 ×3 days"],
+   ["Diarrhea","4–11 years","Nanazoxid susp","10ml ×2 ×3 days"],
+   ["Edema (anti-inflammatory enzyme)","<6 years","Maxilase syrup","5ml ×3"],
+   ["Edema (anti-inflammatory enzyme)",">6 years","Maxilase syrup","10ml ×3"],
+   ["Dry Cough","Infant","Fenistil drops","10 drops ×3"],
+   ["Dry Cough","2–6 years","Sincode syrup","5ml ×3"],
+   ["Dry Cough","6–12 years","Sincode syrup","10ml ×3"],
+   ["Dry Cough","Any","Selgon drops","1 drop/kg, divided into 2 doses"],
+   ["Wet Cough","Infant","Ambroxol drops","25 drops ×2"],
+   ["Wet Cough","2–5 years","Ambroxol syrup","2.5ml ×3"],
+   ["Wet Cough","5–12 years","Ambroxol syrup","5ml ×3"],
+   ["Common Cold","<6 years","Fenistil drops (antihistaminic)","10–30 drops"],
+   ["Common Cold",">6 years","Dolo D syrup","10ml ×4"],
+   ["Allergy / Antihistaminic","<1 year","Fenistil drops","10–30 drops"],
+   ["Allergy / Antihistaminic","6 months–5 years","Levohistam syrup","2.5ml ×1"],
+   ["Allergy / Antihistaminic","2–6 years","Zyrtec syrup","2.5ml ×1"],
+   ["Allergy / Antihistaminic","6–12 years","Zyrtec syrup","10ml ×1"],
+   ["Allergy / Antihistaminic","Any","Avil amp","Half ml / 20kg"]
+  ]}
+ ]},
+
+{id:"fridge",name:"Refrigerator Drugs",color:"#7dd3fc",type:"peds",
+ drugs:[
+  {group:"Level 1 — Ward Fridge",g:"Anticoagulants",info:"Level 1 — must stay refrigerated",brands:["Heparin","Cal-Heparin","Clexane","Innohep"]},
+  {group:"Level 1 — Ward Fridge",g:"Erythropoietin",info:"Level 1",brands:["Epoetin","Recormon","Eprex"]},
+  {group:"Level 1 — Ward Fridge",g:"Injectable Iron",info:"Level 1",brands:["Ferosac","Sacrofer","Cosmofer"]},
+  {group:"Level 1 — Ward Fridge",g:"Injectable Vitamin D",info:"Level 1",brands:["Alfacareno","One-Alpha","Alfacalcidol"]},
+  {group:"Level 1 — Ward Fridge",g:"Fridge Eye Drops/Gel",info:"Level 1",brands:["Travatan","Xalatan","Genteal Gel"]},
+  {group:"Level 1 — Ward Fridge",g:"Progesterone",info:"Level 1",brands:["Prontogest","Cyclogest"]},
+  {group:"Level 1 — Ward Fridge",g:"Cerebrolysin",info:"Level 1 — CNS support",brands:["Cerebrolysin"]},
+  {group:"Level 1 — Ward Fridge",g:"Influenza Vaccine",info:"Level 1",brands:["Vaxigrip"]},
+  {group:"Level 1 — Ward Fridge",g:"Insulin",info:"Level 1 — all pen, penfill & vial forms",brands:[]},
+  {group:"Level 2",g:"FSH",info:"Level 2 — fertility hormone",brands:["Fostimon","Epigonal","Gonal-f"]},
+  {group:"Level 2",g:"HMG",info:"Level 2",brands:["Menopur","Merional"]},
+  {group:"Level 2",g:"HCG / LH analogue",info:"Level 2",brands:["Choriomon","Epifasi","Pregnyl"]},
+  {group:"Level 2",g:"LH",info:"Level 2",brands:["Luveris"]},
+  {group:"Level 2",g:"Oxytocin",info:"Level 2 — IV",brands:["Syntocinon"]},
+  {group:"Level 2",g:"Calcitonin",info:"Level 2 — IV/IM",brands:["Miacalcic"]},
+  {group:"Level 3",g:"Growth Hormone (Somatropin)",info:"Level 3 — Vial",brands:[]},
+  {group:"Level 3",g:"Anti-D Immunoglobulin",info:"Level 3",brands:["Rhophylac"]},
+  {group:"Level 3",g:"Streptokinase",info:"Level 3",brands:["Streptase","Sedonase"]},
+  {group:"Level 3",g:"Fridge Antibiotics",info:"Level 3",brands:["Tienam","Tazocin","Vancomycin"]},
+  {group:"Level 3",g:"Synovial fluid injections",info:"Level 3",brands:["Curavisc","Suplasyn","Durolane"]},
+  {group:"Level 3",g:"Interferon",info:"Level 3",brands:["Avonex","Egyferon","Reiferon"]},
+  {group:"Level 3",g:"Anti-Cancer Agents",info:"Level 3",brands:["Aclasta","Avastin","Bleocin","Carboplatin","Cisplatin","Endoxan","Faslodex","Gemzar","Mitomycin","Oxaliplatin","Zoladex","Decapeptyl"]}
+ ]},
+
+{id:"otc-approach",name:"OTC — Clinical Approach",color:"#5eead4",type:"otc",
+ topics:[
+  {id:"otc-history",t:"History Taking Framework",
+   ar:"التشخيص في الصيدلية بيعتمد على أخذ تاريخ مرضي كامل قبل صرف أي دواء.",
+   dd:[],
+   steps:[
+    "What is the complaint?",
+    "Onset – Duration – Cause of complaint",
+    "Ask about other symptoms in the same system",
+    "Ask about symptoms in another system",
+    "Ask about chronic diseases",
+    "Ask about current medications"
+   ],
+   management:[],
+   redFlags:["Needs labs/investigations","Cause unknown","Not improving, especially elderly","Child under 1 year","Surgical case","Trauma","Chronic disease"],
+   notes:["Never write a full prescription without proper history-taking or blind imitation.","Rx structure: 1) Drug name (Rx/) 2) Concentration 3) Form (Tab/Amp) 4) Dose & frequency (e.g. 1×2×7)"]},
+
+  {id:"otc-abdpain",t:"Abdominal Pain",
+   ar:"ألم البطن مش تشخيص واحد؛ مكان الألم والأعراض المصاحبة بيساعدونا نحدد السبب.",
+   dd:[
+    ["Epigastric pain + heartburn","Gastritis / MI"],
+    ["RUQ pain + fatty meal trigger","Cholecystitis"],
+    ["Flank pain + dysuria","UTI / Renal stone"],
+    ["Pain + fever + vomiting","GE / Appendicitis"],
+    ["Menses-related pain","Dysmenorrhea / Ovulation / Ectopic pregnancy"],
+    ["Diffuse pain + distention","IBS"]
+   ],
+   management:[
+    {cause:"Gastritis",cls:"PPI + Mucosal protective",example:"Omeprazole (Gasec) + Rebamipide (Mucosta)",regimen:"4–8 weeks"},
+    {cause:"Cholecystitis",cls:"Antispasmodic + Biliary agent",example:"Tiemonium (Visceralgine) amp + Rowachol",regimen:"Visceralgine amp then Rowachol 1×3"},
+    {cause:"UTI / Renal colic",cls:"Renal antiseptic + Alkalinizer",example:"Rowatinex + Magnesium citrate (Epimag)",regimen:"Rowatinex 1×3 + Epimag effervescent"},
+    {cause:"Muscle spasm",cls:"Antispasmodic combo",example:"Methocarbamol+Diclofenac (Dimra)",regimen:"1×3 + warm compresses"},
+    {cause:"Gastroenteritis",cls:"Anti-emetic + Antimicrobial + Antispasmodic",example:"Domperidone (Motilium) + Antinal + Visceralgine",regimen:"1×3 + ORS + Brufen PRN"}
+   ],
+   redFlags:["Abdominal pain + heartburn → treat as possible MI until proven otherwise, especially diabetics, hypertensives, elderly"],
+   notes:["Always ask last menstrual period in any female with abdominal pain."],
+   tables:[
+    {title:"🧾 Rx — Gastritis / Epigastric Pain (± fever-vomiting)",cols:["Drug","Form","Dose","Notes"],rows:[
+     ["Antodine (Ranitidine)","Amp","—","Emergency H2-blocker injection"],
+     ["Danset (Ondansetron)","Amp","—","For associated vomiting"],
+     ["Controloc 40 (Pantoprazole)","Tab","1×1","Take on an empty stomach"],
+     ["Mucosta (Rebamipide)","Tab","1×3","Mucosal protective agent"],
+     ["Motilium (Domperidone)","Tab","Per label","Home symptomatic use"],
+     ["Lifestyle advice","—","—","Avoid spicy/fried food and carbonated drinks"]
+    ]},
+    {title:"🧾 Rx — Renal Colic / UTI (choose by urine filter result)",cols:["Cause","Drug","Form","Dose"],rows:[
+     ["Ca Oxalate stone","Epimag (Magnesium citrate), effervescent","Tab","1 tab morning & evening"],
+     ["Ca Oxalate stone","Rowatinex","Tab","1×3"],
+     ["Uric acid stone","Urivin, effervescent","Tab","Per label"],
+     ["Uric acid stone","Rowatinex","Tab","1×3"],
+     ["UTI (infection)","Levanic (Levofloxacin)","Tab","1×1 for 5 days"],
+     ["UTI (infection)","Spasmofen","Amp","—"],
+     ["UTI (infection)","Rowatinex","Tab","1×3"]
+    ]},
+    {title:"🧾 Rx — Muscle Spasm (worse with movement, better with rest)",cols:["Drug","Form","Dose","Notes"],rows:[
+     ["Algason","Cream","Apply locally","Local massage relief"],
+     ["Dimra (Methocarbamol + Diclofenac)","Tab","1×3","—"],
+     ["Norflex (Orphenadrine)","Amp","—","Acute spasm"],
+     ["Rowatinex","Tab","Per label","—"],
+     ["Warm compress","—","Morning & evening","Local heat application"]
+    ]},
+    {title:"🧾 Rx — Gastroenteritis (periumbilical pain, watery diarrhea ± fever)",cols:["Drug","Form","Dose"],rows:[
+     ["Motilium (Domperidone)","Tab","1×3"],
+     ["Antinal (Nifuroxazide)","Tab","1×3"],
+     ["Brufen (Ibuprofen)","Tab","1×3"],
+     ["Visceralgine (Tiemonium)","Tab","1×3"],
+     ["Ciprobay (Ciprofloxacin)","Tab","1×2 for 7 days"],
+     ["ORS","Sachet","Per diarrhea/vomiting episode"]
+    ]},
+    {title:"🧾 Rx — IBS (menses / ovulation / ectopic pregnancy ruled out first)",cols:["Dominant Symptom","Drug","Form","Dose"],rows:[
+     ["Spasm (مغص)","Coloverin (Mebeverine) — or Coloverin-D + Algason cream","Tab","1×3"],
+     ["Distention (انتفاخ)","Disflatyl","Tab","2×3"],
+     ["Diarrhea (إسهال)","Imodium — or add Rowatinex","Tab","1×3"],
+     ["Constipation (إمساك)","Gast-Reg","Tab","1×3"]
+    ]}
+   ]},
+
+  {id:"otc-vomiting",t:"Vomiting",
+   ar:"القيء عرض له أسباب كتير من الجهاز الهضمي والحمل والدوخة.",
+   dd:[
+    ["Epigastric pain","Gastritis / MI"],
+    ["With diarrhea + fever","Gastroenteritis"],
+    ["RLQ tenderness","Appendicitis"],
+    ["Amenorrhea","Pregnancy"],
+    ["No flatus + constipation","Intestinal Obstruction"],
+    ["Post-fatty meal, RUQ pain","Cholecystitis / Hepatitis"],
+    ["Throbbing headache","Migraine"],
+    ["Recent travel / motion","Motion sickness"]
+   ],
+   management:[
+    {cause:"Simple/functional vomiting",cls:"D2 antagonist",example:"Domperidone (Motilium)",regimen:"Tab/Syrup/Supp per cause"},
+    {cause:"Severe / in-hospital",cls:"5-HT3 antagonist",example:"Ondansetron (Zofran)",regimen:"Amp"},
+    {cause:"Underlying cause",cls:"—",example:"Treat the primary condition (Gastritis / GE / Migraine etc.)",regimen:"See relevant chapter"}
+   ],
+   redFlags:["Vomiting + constipation together, in a child or elderly patient → rule out Intestinal Obstruction first"],
+   notes:[]},
+
+  {id:"otc-diarrhea",t:"Diarrhea",
+   ar:"لازم نفرق الإسهال البسيط عن العدوى أو أعراض الجفاف.",
+   dd:[
+    ["Tenesmus","Amebiasis"],
+    ["Fever + vomiting + abd pain","Gastroenteritis"],
+    ["Recent travel","Traveler's diarrhea"],
+    ["Distention + abd pain","IBS-D"],
+    ["Diabetic with neuropathy","Diabetic diarrhea"],
+    ["Recent new medication","Drug-induced"]
+   ],
+   management:[
+    {cause:"Non-infective diarrhea",cls:"Anti-motility",example:"Loperamide (Imodium)",regimen:"per episode"},
+    {cause:"Infective diarrhea",cls:"Intestinal antimicrobial",example:"Nifuroxazide (Antinal)",regimen:"1×3"},
+    {cause:"Bacterial, severe",cls:"Antibiotic",example:"Ciprofloxacin (Ciprobay)",regimen:"1×2×7"},
+    {cause:"All types",cls:"Rehydration",example:"ORS",regimen:"<2y 100ml, >2y 200ml per episode"}
+   ],
+   redFlags:["Skin pinch <2sec: mild","Skin pinch >2sec: moderate","Prolonged/sustained tenting: severe → hospital/PICU"],
+   notes:[]},
+
+  {id:"otc-constipation",t:"Constipation",
+   ar:"الإمساك المزمن غالباً بسبب نمط الحياة (قلة حركة وألياف).",
+   dd:[
+    ["Rectal pain + itching + prolapse","Hemorrhoids"],
+    ["Distention + abd pain, chronic","IBS-C"],
+    ["Vomiting, chronic","Intestinal Obstruction"],
+    ["No exercise, no fiber","Simple/lifestyle constipation"]
+   ],
+   management:[
+    {cause:"Hemorrhoids stage 1–2",cls:"Laxative + Venotonic + Local",example:"Bisacodyl (Minalax) + Diosmin (Daflon) + Procto-4",regimen:"Minalax + Procto-4 + Daflon tabs"},
+    {cause:"Simple constipation",cls:"Osmotic laxative",example:"Lactulose (Duphalac)",regimen:"15–30ml once, increase fiber & exercise"}
+   ],
+   redFlags:[],
+   notes:[]},
+
+  {id:"otc-fever",t:"Fever",
+   ar:"الحرارة عادة بتبقى علامة على عدوى؛ لازم نحدد مكانها.",
+   dd:[
+    ["Vomiting + diarrhea","Gastroenteritis"],
+    ["Cough + tachypnea","Respiratory infection"],
+    ["Fatigue + rhinorrhea","Common cold"],
+    ["Dysuria","UTI"],
+    ["Ear pain","Otitis media"],
+    ["Pus collection","Abscess"],
+    ["Infant, gum swelling","Teething"]
+   ],
+   management:[
+    {cause:"Abscess",cls:"Oral + Topical antibiotic",example:"Cefadroxil (Curisafe) + Fusidic acid (Fucidin)",regimen:"Oral course + topical ointment + warm compresses"},
+    {cause:"Fever/pain, symptomatic",cls:"Antipyretic/analgesic",example:"Ibuprofen (Brufen)",regimen:"PRN"},
+    {cause:"Swelling, adjunct",cls:"Anti-inflammatory enzyme",example:"Trypsin (Alphintern)",regimen:"PRN"}
+   ],
+   redFlags:[],
+   notes:["Chronic/recurring causes: always add lifestyle advice — adequate exercise, fiber, rest."]},
+
+  {id:"otc-headache",t:"Headache & Red Flags",
+   ar:"الصداع له علامات خطر لازم نستبعدها الأول قبل أي حاجة تانية.",
+   dd:[
+    ["Pallor + orthostatic hypotension","Anemia"],
+    ["Eye strain, relieved by rest","Eye problem"],
+    ["Occipital + high BP","Hypertension"],
+    ["Low oral intake","Hypoglycemia"],
+    ["Facial pain worse leaning forward + nasal symptoms","Sinusitis"],
+    ["Dental pain + swelling","Dental abscess"],
+    ["Neck pain + limited movement","Muscle spasm"],
+    ["Recent drug use","Drug-induced"],
+    ["Unilateral throbbing + photophobia/phonophobia + nausea","Migraine"],
+    ["Bilateral tight-band, worse with stress","Tension headache"],
+    ["Unilateral + tearing + running nose","Cluster headache"]
+   ],
+   management:[
+    {cause:"Migraine attack, 1st line",cls:"Strong NSAID (± antiemetic)",example:"Diclofenac (Voltaren) + Dexamethasone amp if severe",regimen:"At onset"},
+    {cause:"Migraine, specific agent",cls:"5-HT1 agonist (Triptan)",example:"Sumatriptan (Imigran)",regimen:"Max 100mg/attack, 200mg/day"},
+    {cause:"Migraine prophylaxis",cls:"Beta blocker",example:"Propranolol (Indral)",regimen:"If frequent attacks"},
+    {cause:"Cluster headache attack",cls:"Oxygen / Triptan",example:"100% O2 15min, or Sumatriptan injection",regimen:"At attack"}
+   ],
+   redFlags:["Seizures","Loss of consciousness","Recurrent vomiting","Very high fever","Sudden severe headache unlike before","Stiff/rigid neck"],
+   notes:["Migraine diagnostic criteria: attacks last 4h–3days; unilateral & pulsating; severe intensity; nausea/vomiting; photophobia/phonophobia (≥1 present); other causes excluded."]},
+
+  {id:"otc-tinea",t:"Tinea (Fungal Skin Infections)",
+   ar:"التينيا ليها أنواع مختلفة حسب المكان، والعلاج بيختلف موضعي أو جهازي حسب الشدة.",
+   dd:[
+    ["Feet, odor + maceration + itching","Tinea pedis"],
+    ["Trunk, white/brown flaky patches","Tinea versicolor"],
+    ["Body, ring-shaped lesion","Tinea corporis"],
+    ["Groin / inner thigh","Tinea cruris"],
+    ["Scalp","Tinea capitis"],
+    ["Nails, thickened/discolored","Onychomycosis"]
+   ],
+   management:[
+    {cause:"Localized tinea (pedis/corporis/cruris/versicolor)",cls:"Topical azole",example:"Clotrimazole (Canesten)",regimen:"1×2 for 2–6 weeks"},
+    {cause:"Tinea pedis, alternative",cls:"Topical allylamine",example:"Terbinafine (Lamisil)",regimen:"1×1–2 for 7 days"},
+    {cause:"Scalp / widespread / nail involvement",cls:"Systemic azole",example:"Itraconazole 100mg (Sporanox)",regimen:"100mg×2×7 (tinea)"},
+    {cause:"Onychomycosis",cls:"Systemic allylamine",example:"Terbinafine 250mg (Lamisil)",regimen:"1×1 — fingernails ≈6 months, toenails ≈9 months"}
+   ],
+   redFlags:[],
+   notes:["Simple/localized → topical only. Widespread, scalp, or nail involvement → systemic + topical combined.","Advise: keep area dry, avoid tight/occlusive clothing, don't share towels."]},
+
+  {id:"otc-foot",t:"Foot Problems",
+   ar:"مشاكل القدم بتتنوع بين فطريات وألم مفاصل وأوردة.",
+   dd:[
+    ["Bad odor + maceration + itching","Tinea pedis"],
+    ["Acute inflammation, big toe or ankle","Gout"],
+    ["Painful plantar black lesion","Plantar wart"],
+    ["Tortuous veins","Varicose veins"]
+   ],
+   management:[
+    {cause:"Tinea pedis",cls:"Topical allylamine",example:"Terbinafine (Lamisil)",regimen:"1×1–2 for 7 days"},
+    {cause:"Gout, acute attack",cls:"Anti-inflammatory",example:"Colchicine",regimen:"1×3 before meal"},
+    {cause:"Gout, chronic (between attacks)",cls:"Xanthine oxidase inhibitor",example:"Allopurinol (Zyloric)",regimen:"100–900mg/day"},
+    {cause:"Varicose veins",cls:"Venotonic",example:"Diosmin (Daflon)",regimen:"1×2×6 months"}
+   ],
+   redFlags:[],
+   notes:["Plantar wart is not covered with a specific drug in this course — refer for procedural treatment if diagnosis uncertain."]},
+
+  {id:"otc-oral",t:"Oral Problems",
+   ar:"مشاكل الفم بتشمل عدوى فيروسية وفطريات وقرح ونقص فيتامينات.",
+   dd:[
+    ["Vesicles on half of the lip, low immunity","Herpes simplex"],
+    ["White patch","Oral candidiasis"],
+    ["Painful ulcer","Oral sore (aphthous ulcer)"],
+    ["Cracked and dry lips","Scurvy (Vitamin C deficiency)"]
+   ],
+   management:[
+    {cause:"Oral sore / aphthous ulcer",cls:"Analgesic + Topical corticosteroid",example:"Dexamethasone ampoule content",regimen:"Dab on ulcer with cotton for ~1 minute, repeat until healed"},
+    {cause:"Oral candidiasis",cls:"Local antifungal",example:"Nystatin drops",regimen:"1×2 for 2–6 weeks"},
+    {cause:"Scurvy",cls:"Vitamin C supplement",example:"Ascorbic acid (C-Retard)",regimen:"Per label"},
+    {cause:"Herpes simplex",cls:"Supportive care",example:"—",regimen:"No specific antiviral covered in this course; refer if immunocompromised"}
+   ],
+   redFlags:[],
+   notes:[],
+   tables:[
+    {title:"🧾 Rx — Oral Sore / Aphthous Ulcer (3-step protocol)",cols:["Step","Type","Regimen"],rows:[
+     ["1","Analgesic","Topical oral analgesic (gel/spray), any available option"],
+     ["2","Antifungal","Local antifungal (e.g. Nystatin) if candidiasis suspected/co-existing"],
+     ["3","Topical corticosteroid — \"the magic trick\"","Empty ~1cm of a Dexamethasone ampoule onto a cotton swab, dab directly on the ulcer for ~1 minute, repeat until healed"]
+    ]}
+   ]},
+
+  {id:"otc-ear",t:"Ear Problems",
+   ar:"ألم الأذن ممكن يكون بعد نزلة برد أو بسبب المضغ أو فطريات أو شمع.",
+   dd:[
+    ["Ear pain after common cold","Otitis media"],
+    ["Ear pain with mastication","Otitis externa"],
+    ["Gradual decrease of hearing","Wax impaction"],
+    ["Itching + white scaling + swelling","Otomycosis"]
+   ],
+   management:[
+    {cause:"Otitis media",cls:"Antibiotic + Steroid ear drop",example:"Otal Dp",regimen:"4×4"},
+    {cause:"Otitis externa",cls:"Antibiotic + Steroid ear drop",example:"Viotic Dp",regimen:"3×2×7"},
+    {cause:"Wax impaction",cls:"Wax softener",example:"Remowax Dp",regimen:"3×3×3"},
+    {cause:"Otomycosis",cls:"Antifungal ear drop",example:"Batrafen Dp",regimen:"1×2"}
+   ],
+   redFlags:[],
+   notes:[]},
+
+  {id:"otc-eye",t:"Eye Problems",
+   ar:"مشاكل العين تتراوح بين التهاب بكتيري وحساسية وجفاف.",
+   dd:[
+    ["Inflammation + swelling + pus","Bacterial infection (Stye)"],
+    ["Redness + tearing + itching","Allergic or viral infection"],
+    ["Eye discomfort / awareness","Dry eye"]
+   ],
+   management:[
+    {cause:"Stye (bacterial)",cls:"Topical antibiotic",example:"Tobramycin (Tobrex)",regimen:"2×4–6"},
+    {cause:"Allergic / viral conjunctivitis",cls:"Anti-allergy drop",example:"Naphcon A",regimen:"2×3–4"},
+    {cause:"Dry eye",cls:"Artificial tears",example:"Systane",regimen:"3–4 daily"}
+   ],
+   redFlags:[],
+   notes:[]},
+
+  {id:"otc-back",t:"Back Pain",
+   ar:"ألم الظهر ممكن يكون بسبب شد عضلي أو التهاب مسالك أو انزلاق غضروفي.",
+   dd:[
+    ["After exercise / exertion","Muscle spasm"],
+    ["Flank pain + dysuria","UTI / Renal stone"],
+    ["Leg radiation + numbness","Sciatica"]
+   ],
+   management:[
+    {cause:"Muscle spasm",cls:"Muscle relaxant + NSAID",example:"Methocarbamol+Diclofenac (Dimra)",regimen:"1×3 + warm compresses"},
+    {cause:"UTI / Renal stone",cls:"Renal antiseptic",example:"Rowatinex",regimen:"1×3"},
+    {cause:"Sciatica",cls:"Neuropathic agent",example:"Pregabalin (Lyrica)",regimen:"Max 300mg/day; refer if motor weakness or bladder/bowel involvement"}
+   ],
+   redFlags:["Leg weakness, or loss of bladder/bowel control with back pain → urgent referral"],
+   notes:["Chronic/recurring: advise adequate rest, fiber intake, avoid excessive exertion."]}
+ ]}
+];
+
+/* ---------- DB: mutable working copy of DATA, persisted to localStorage ---------- */
+function loadDB(){
+  try{ const s=localStorage.getItem('pc_db'); if(s) return JSON.parse(s); }catch(e){}
+  return JSON.parse(JSON.stringify(DATA));
+}
+function saveDB(){ try{ localStorage.setItem('pc_db', JSON.stringify(DB)); }catch(e){} }
+function exportDB(){
+  const blob = new Blob([JSON.stringify(DB,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'pharmacore-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+function importDB(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      if(!Array.isArray(data)) throw new Error('bad format');
+      if(!confirm('Restore this backup? It will replace all current chapters/drugs/tables/notes.')) return;
+      DB = data; saveDB(); goto('home');
+    }catch(e){ alert('Could not read this backup file.'); }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+let DB = loadDB();
+let editMode = false;
+function toggleEditMode(){
+  editMode = !editMode;
+  document.getElementById('editModeBtn').classList.toggle('active', editMode);
+  document.body.classList.toggle('edit-mode', editMode);
+  if(state.screen==='home') renderHome();
+  if(state.screen==='session') renderSession();
+}
+function resetDB(){
+  if(!confirm('Reset ALL data to the original course content? Your added/edited entries will be lost.')) return;
+  localStorage.removeItem('pc_db');
+  DB = loadDB();
+  goto('home');
+}
+function uid(){ return 'u'+Date.now()+Math.random().toString(36).slice(2,7); }
+
+/* ---------- Generic modal ---------- */
+function openModal(title, bodyHtml, onSave){
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  document.getElementById('modalSaveBtn').onclick = onSave;
+  document.getElementById('editModal').classList.add('open');
+}
+function closeModal(){ document.getElementById('editModal').classList.remove('open'); }
+function refreshSessionIfOpen(chapterId){
+  if(state.sessionChapterId===chapterId){
+    const c = DB.find(x=>x.id===chapterId);
+    state.sessionCards = c? flattenCards(c) : [];
+  }
+}
+function val(id){ return document.getElementById(id).value; }
+
+/* ---------- Chapters ---------- */
+function addChapter(){
+  openModal('New Chapter', `
+    <div class="field-card"><div class="field-label">Chapter name</div><input id="mChapName" class="text-input" placeholder="e.g. Antihistamines"></div>
+  `, ()=>{
+    const name = val('mChapName').trim(); if(!name) return;
+    DB.push({id:uid(), name, color:'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'), type:'drug', drugs:[]});
+    saveDB(); closeModal(); renderHome();
+  });
+}
+function deleteChapter(id){
+  if(!confirm('Delete this chapter and everything in it?')) return;
+  DB = DB.filter(c=>c.id!==id); saveDB(); renderHome();
+}
+
+/* ---------- Drugs & brands ---------- */
+function openDrugModal(chapterId, idx){
+  const c = DB.find(x=>x.id===chapterId); if(!c) return;
+  const d = idx===null ? {g:'',info:'',group:'',brands:[]} : c.drugs[idx];
+  openModal(idx===null?'Add Drug':'Edit Drug', `
+    <div class="field-card"><div class="field-label">Generic name</div><input id="mDrugG" class="text-input" value="${d.g||''}" placeholder="e.g. Ibuprofen"></div>
+    <div class="field-card"><div class="field-label">Info (class · dose · notes)</div><textarea id="mDrugInfo" class="text-input">${d.info||''}</textarea></div>
+    <div class="field-card"><div class="field-label">Group / subcategory (optional)</div><input id="mDrugGroup" class="text-input" value="${d.group||''}" placeholder="e.g. Propionic Acid Derivatives"></div>
+    <div class="field-card"><div class="field-label">Brand names (comma separated)</div><input id="mDrugBrands" class="text-input" value="${(d.brands||[]).join(', ')}" placeholder="Brufen, Advil"></div>
+  `, ()=>{
+    const g = val('mDrugG').trim(); if(!g) return;
+    const info = val('mDrugInfo').trim();
+    const group = val('mDrugGroup').trim();
+    const brands = val('mDrugBrands').split(',').map(s=>s.trim()).filter(Boolean);
+    if(idx===null){ if(!c.drugs) c.drugs=[]; c.drugs.push({id:uid(), g, info, group, brands}); }
+    else { Object.assign(c.drugs[idx], {g, info, group, brands}); }
+    saveDB(); closeModal(); refreshSessionIfOpen(chapterId); renderSession();
+  });
+}
+function deleteDrug(chapterId, idx){
+  if(!confirm('Delete this drug entry?')) return;
+  const c = DB.find(x=>x.id===chapterId); if(!c) return;
+  c.drugs.splice(idx,1); saveDB(); refreshSessionIfOpen(chapterId); renderSession();
+}
+function addBrand(chapterId, idx){
+  const b = prompt('Brand name:'); if(!b) return;
+  const c = DB.find(x=>x.id===chapterId); if(!c) return;
+  const d = c.drugs[idx]; if(!d) return;
+  if(!d.brands) d.brands=[];
+  d.brands.push(b); saveDB(); refreshSessionIfOpen(chapterId); renderSession();
+}
+function deleteBrand(chapterId, idx, bi){
+  const c = DB.find(x=>x.id===chapterId); if(!c) return;
+  const d = c.drugs[idx]; if(!d) return;
+  d.brands.splice(bi,1); saveDB(); refreshSessionIfOpen(chapterId); renderSession();
+}
+
+/* ---------- Tables ---------- */
+function openTableModal(chapterId, tIdx){
+  const c = DB.find(x=>x.id===chapterId); if(!c) return;
+  const t = tIdx===null ? {title:'🧾 ', cols:[], rows:[]} : c.tables[tIdx];
+  const rowsText = (t.rows||[]).map(r=>r.join(' | ')).join('\n');
+  openModal(tIdx===null?'Add Table':'Edit Table', `
+    <div class="field-card"><div class="field-label">Table title</div><input id="mTabTitle" class="text-input" value="${t.title||''}" placeholder="e.g. 🧾 Rx — Gastritis"></div>
+    <div class="field-card"><div class="field-label">Columns (comma separated)</div><input id="mTabCols" class="text-input" value="${(t.cols||[]).join(', ')}" placeholder="Drug, Form, Dose, Notes"></div>
+    <div class="field-card"><div class="field-label">Rows — one per line, cells separated by |</div><textarea id="mTabRows" class="text-input" style="min-height:120px;">${rowsText}</textarea></div>
+    <div class="modal-hint">Example row: Antodine (Ranitidine) | Amp | — | Emergency injection</div>
+  `, ()=>{
+    const title = val('mTabTitle').trim(); if(!title) return;
+    const cols = val('mTabCols').split(',').map(s=>s.trim()).filter(Boolean);
+    const rows = val('mTabRows').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>l.split('|').map(s=>s.trim()));
+    if(!c.tables) c.tables=[];
+    if(tIdx===null) c.tables.push({title,cols,rows}); else c.tables[tIdx]={title,cols,rows};
+    saveDB(); closeModal(); refreshSessionIfOpen(chapterId); renderSession();
+  });
+}
+function deleteTable(chapterId, tIdx){
+  if(!confirm('Delete this table?')) return;
+  const c = DB.find(x=>x.id===chapterId); if(!c) return;
+  c.tables.splice(tIdx,1); saveDB(); refreshSessionIfOpen(chapterId); renderSession();
+}
+
+/* ---------- Notes ---------- */
+function openNotesModal(chapterId){
+  const c = DB.find(x=>x.id===chapterId); if(!c) return;
+  openModal('Edit Notes', `
+    <div class="field-card"><div class="field-label">One note per line</div><textarea id="mNotes" class="text-input" style="min-height:130px;">${(c.notes||[]).join('\n')}</textarea></div>
+  `, ()=>{
+    c.notes = val('mNotes').split('\n').map(l=>l.trim()).filter(Boolean);
+    saveDB(); closeModal(); refreshSessionIfOpen(chapterId); renderSession();
+  });
+}
+
+/* ---------- OTC topic-level tables / notes / topics ---------- */
+function findTopic(chapterId, topicId){
+  const c = DB.find(x=>x.id===chapterId); if(!c) return null;
+  return (c.topics||[]).find(t=>t.id===topicId) || null;
+}
+function refreshOtcDetailIfOpen(topicId){
+  if(state.screen==='otcdetail' && state.otcDetailId===topicId){
+    const t = findOtcTopic(topicId);
+    if(t) renderOtcDetail(t);
+  }
+}
+function openTopicTableModal(chapterId, topicId, tIdx){
+  const t = findTopic(chapterId, topicId); if(!t) return;
+  const tb = tIdx===null ? {title:'🧾 ', cols:[], rows:[]} : t.tables[tIdx];
+  const rowsText = (tb.rows||[]).map(r=>r.join(' | ')).join('\n');
+  openModal(tIdx===null?'Add Table':'Edit Table', `
+    <div class="field-card"><div class="field-label">Table title</div><input id="mTabTitle" class="text-input" value="${tb.title||''}" placeholder="e.g. 🧾 Rx — Gastritis"></div>
+    <div class="field-card"><div class="field-label">Columns (comma separated)</div><input id="mTabCols" class="text-input" value="${(tb.cols||[]).join(', ')}" placeholder="Drug, Form, Dose, Notes"></div>
+    <div class="field-card"><div class="field-label">Rows — one per line, cells separated by |</div><textarea id="mTabRows" class="text-input" style="min-height:120px;">${rowsText}</textarea></div>
+    <div class="modal-hint">Example row: Antodine (Ranitidine) | Amp | — | Emergency injection</div>
+  `, ()=>{
+    const title = val('mTabTitle').trim(); if(!title) return;
+    const cols = val('mTabCols').split(',').map(s=>s.trim()).filter(Boolean);
+    const rows = val('mTabRows').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>l.split('|').map(s=>s.trim()));
+    if(!t.tables) t.tables=[];
+    if(tIdx===null) t.tables.push({title,cols,rows}); else t.tables[tIdx]={title,cols,rows};
+    saveDB(); closeModal(); refreshOtcDetailIfOpen(topicId);
+  });
+}
+function deleteTopicTable(chapterId, topicId, tIdx){
+  if(!confirm('Delete this table?')) return;
+  const t = findTopic(chapterId, topicId); if(!t) return;
+  t.tables.splice(tIdx,1); saveDB(); refreshOtcDetailIfOpen(topicId);
+}
+function openTopicNotesModal(chapterId, topicId){
+  const t = findTopic(chapterId, topicId); if(!t) return;
+  openModal('Edit Clinical Notes', `
+    <div class="field-card"><div class="field-label">One note per line</div><textarea id="mNotes" class="text-input" style="min-height:130px;">${(t.notes||[]).join('\n')}</textarea></div>
+  `, ()=>{
+    t.notes = val('mNotes').split('\n').map(l=>l.trim()).filter(Boolean);
+    saveDB(); closeModal(); refreshOtcDetailIfOpen(topicId);
+  });
+}
+function openTopicModal(chapterId, topicId){
+  const c = DB.find(x=>x.id===chapterId); if(!c) return;
+  const t = topicId===null ? {t:'',ar:''} : findTopic(chapterId, topicId);
+  if(!t) return;
+  openModal(topicId===null?'Add OTC Topic':'Edit Topic', `
+    <div class="field-card"><div class="field-label">Topic title</div><input id="mTopicT" class="text-input" value="${t.t||''}" placeholder="e.g. Ear Pain"></div>
+    <div class="field-card"><div class="field-label">Arabic summary (optional)</div><textarea id="mTopicAr" class="text-input">${t.ar||''}</textarea></div>
+  `, ()=>{
+    const title = val('mTopicT').trim(); if(!title) return;
+    const ar = val('mTopicAr').trim();
+    if(topicId===null){
+      if(!c.topics) c.topics=[];
+      c.topics.push({id:uid(), t:title, ar, dd:[], management:[], redFlags:[], notes:[], tables:[]});
+    } else { t.t=title; t.ar=ar; }
+    saveDB(); closeModal();
+    if(topicId===null){ refreshSessionIfOpen(chapterId); renderSession(); }
+    else { refreshOtcDetailIfOpen(topicId); refreshSessionIfOpen(chapterId); }
+  });
+}
+function deleteTopic(chapterId, topicId){
+  if(!confirm('Delete this OTC topic and everything in it?')) return;
+  const c = DB.find(x=>x.id===chapterId); if(!c) return;
+  c.topics = c.topics.filter(t=>t.id!==topicId);
+  saveDB(); refreshSessionIfOpen(chapterId); renderSession();
+}
+
+/* =========================================================
+   STATE & RENDER LOGIC
+   ========================================================= */
+let state = { screen:'home', sessionCards:[], sessionChapterName:null, sessionChapterId:null, otcDetailId:null, otcReturnScreen:null };
+
+function flattenCards(chapter){
+  if(chapter.type==='otc'){
+    return chapter.topics.map(t=>({kind:'otc',cat:chapter.name,color:chapter.color,data:t,chapId:chapter.id}));
+  }
+  return (chapter.drugs||[]).map((d,idx)=>({kind:'drug',cat:chapter.name,color:chapter.color,data:d,chapId:chapter.id,idx}));
+}
+
+function allCards(){
+  let out=[];
+  DB.forEach(c=>out=out.concat(flattenCards(c)));
+  return out;
+}
+
+/* ---------- Sticky compact header (global, works for every .sess-header) ---------- */
+function updateTabbarHeightVar(){
+  const tb = document.querySelector('.tabbar');
+  if(tb) document.documentElement.style.setProperty('--tabbar-h', tb.offsetHeight+'px');
+}
+function updateCompactHeaders(){
+  const y = window.scrollY || document.documentElement.scrollTop || 0;
+  document.querySelectorAll('.screen.active .sess-header').forEach(h=>{
+    h.classList.toggle('compact', y > 24);
+  });
+  document.querySelectorAll('.dtable-wrap').forEach(w=>{
+    w.classList.toggle('scrollable', w.scrollWidth > w.clientWidth + 2);
+  });
+}
+window.addEventListener('resize', updateTabbarHeightVar);
+window.addEventListener('scroll', ()=>requestAnimationFrame(updateCompactHeaders), {passive:true});
+
+function goto(screen){
+  state.screen=screen;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
+  window.scrollTo(0,0);
+  const tabEl = document.getElementById('tab-'+screen);
+  if(tabEl) tabEl.classList.add('active');
+  if(screen==='home') renderHome();
+  if(screen==='setup') renderResults();
+  if(screen==='session') renderSession();
+  if(screen==='pediatric') renderPediatric();
+  if(screen==='pedcalc') renderPedCalc();
+  updateCompactHeaders();
+}
+
+/* ---------- OTC full-page detail ---------- */
+function findOtcTopic(id){
+  for(const c of DB){
+    if(c.type==='otc'){
+      const t = (c.topics||[]).find(x=>x.id===id);
+      if(t) return t;
+    }
+  }
+  return null;
+}
+function findOtcChapterId(topicId){
+  for(const c of DB){ if(c.type==='otc' && (c.topics||[]).some(x=>x.id===topicId)) return c.id; }
+  return null;
+}
+function openOtcDetail(id){
+  const topic = findOtcTopic(id);
+  if(!topic) return;
+  state.otcReturnScreen = state.screen==='otcdetail' ? (state.otcReturnScreen||'session') : state.screen;
+  state.otcDetailId = id;
+  goto('otcdetail');
+  renderOtcDetail(topic);
+  updateCompactHeaders();
+}
+function closeOtcDetail(){
+  goto(state.otcReturnScreen || 'session');
+}
+function renderOtcDetail(topic){
+  document.getElementById('otcDetName').textContent = topic.t;
+  const chapterId = findOtcChapterId(topic.id);
+
+  let html = '';
+  if(editMode && chapterId){
+    html += `<button class="pill-btn ghost" style="width:100%;margin-bottom:12px;" onclick="openTopicTableModal('${chapterId}','${topic.id}',null)">+ Add Table</button>`;
+  }
+  if(topic.ar){
+    html += `<div class="card acc-ar" style="margin-bottom:18px;">${topic.ar}</div>`;
+  }
+  if(topic.dd && topic.dd.length){
+    html += `<div class="detail-section"><div class="detail-section-title">🔍 Differential Diagnosis</div>
+      <div class="card dtable-wrap"><table class="dtable"><thead><tr><th>Sign / Trigger</th><th>Likely Cause</th></tr></thead><tbody>
+      ${topic.dd.map(r=>`<tr><td>${r[0]}</td><td class="strong">${r[1]}</td></tr>`).join('')}
+      </tbody></table></div></div>`;
+  }
+  if(topic.steps && topic.steps.length){
+    html += `<div class="detail-section"><div class="detail-section-title">📋 Approach Steps</div>
+      <div class="card notes-card"><ol class="step-list">${topic.steps.map(s=>`<li>${s}</li>`).join('')}</ol></div></div>`;
+  }
+  if(topic.management && topic.management.length){
+    html += `<div class="detail-section"><div class="detail-section-title">💊 Management by Cause</div>
+      <div class="card dtable-wrap"><table class="dtable"><thead><tr><th>Cause</th><th>Drug Class</th><th>Example</th><th>Regimen</th></tr></thead><tbody>
+      ${topic.management.map(m=>`<tr><td class="strong">${m.cause}</td><td>${m.cls}</td><td class="mono-cell">${m.example}</td><td>${m.regimen}</td></tr>`).join('')}
+      </tbody></table></div></div>`;
+  }
+  if(topic.tables && topic.tables.length){
+    html += renderDataTables(topic.tables, chapterId ? {kind:'topic', chapterId, topicId:topic.id} : null);
+  }
+  if(topic.redFlags && topic.redFlags.length){
+    html += `<div class="detail-section"><div class="card warn-card"><div class="detail-section-title">⚠️ Warnings / Red Flags</div>
+      <ul class="warn-list">${topic.redFlags.map(w=>`<li>${w}</li>`).join('')}</ul></div></div>`;
+  }
+  if(topic.notes && topic.notes.length){
+    html += `<div class="detail-section"><div class="detail-section-title">📌 Clinical Notes${(editMode&&chapterId)?` <span class="edit-inline" onclick="openTopicNotesModal('${chapterId}','${topic.id}')">✎ edit</span>`:''}</div>
+      <div class="card notes-card"><ul class="notes-list">${topic.notes.map(n=>`<li>${n}</li>`).join('')}</ul></div></div>`;
+  } else if(editMode && chapterId){
+    html += `<button class="pill-btn ghost" style="width:100%;margin-top:4px;" onclick="openTopicNotesModal('${chapterId}','${topic.id}')">+ Add Notes</button>`;
+  }
+  document.getElementById('otcDetArea').innerHTML = html;
+}
+
+/* ---------- HOME ---------- */
+function renderHome(){
+  const rdl = document.getElementById('resetDataLink'); if(rdl) rdl.style.display = editMode ? 'inline' : 'none';
+  const totalChapters = DB.length;
+  const totalDrugs = DB.reduce((n,c)=> n + (c.drugs? c.drugs.length : (c.topics?c.topics.length:0)),0);
+  const totalBrands = DB.reduce((n,c)=> n + (c.drugs? c.drugs.reduce((m,d)=>m+(d.brands?d.brands.length:0),0) : 0),0);
+
+  document.getElementById('progressPct').textContent = totalChapters+' chapters ready';
+  document.getElementById('progressFill').style.width = '100%';
+
+  const rings = [
+    {label:'Chapters', num:totalChapters, max:totalChapters, color:'#b3502c'},
+    {label:'Drug Entries', num:totalDrugs, max:totalDrugs, color:'#8c6a3f'},
+    {label:'Brand Names', num:totalBrands, max:totalBrands, color:'#9c6b12'}
+  ];
+  document.getElementById('ringRow').innerHTML = rings.map(r=>{
+    const R=24, C=2*Math.PI*R;
+    return `<div class="card ring-card">
+      <svg class="ring-svg" viewBox="0 0 60 60">
+        <circle class="ring-bg" cx="30" cy="30" r="${R}"/>
+        <circle class="ring-fg" cx="30" cy="30" r="${R}" stroke="${r.color}" stroke-dasharray="${C} ${C}" stroke-dashoffset="0"/>
+        <text x="30" y="34" text-anchor="middle" class="ring-num">${r.num}</text>
+      </svg>
+      <div class="ring-label">${r.label}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('chapterList').innerHTML =
+    `<div class="chapter-grid">` +
+    getChapterOrder().map((id,idx,arr)=>{
+      const c = DB.find(x=>x.id===id);
+      if(!c) return '';
+      const count = c.drugs? c.drugs.length : c.topics.length;
+      const delBtn = editMode ? `<button class="cc-del" onclick="event.stopPropagation();deleteChapter('${c.id}')">🗑</button>` : '';
+      return `<div class="card chapter-card" onclick="openChapter('${c.id}')">
+        <div class="cc-reorder" onclick="event.stopPropagation()">
+          <button ${idx===0?'disabled':''} onclick="moveChapter('${c.id}',-1)">▲</button>
+          <button ${idx===arr.length-1?'disabled':''} onclick="moveChapter('${c.id}',1)">▼</button>
+        </div>
+        ${delBtn}
+        <div class="cc-dot" style="background:${c.color};box-shadow:0 0 8px ${c.color}"></div>
+        <div class="cc-title">${c.name}</div>
+        <div class="cc-meta">${count} ${c.type==='otc'?'topics':'entries'}</div>
+      </div>`;
+    }).join('') +
+    (editMode ? `<div class="card chapter-card add-chapter-card" onclick="addChapter()">+ Add Chapter</div>` : '') +
+    `</div>`;
+}
+
+/* ---------- Home chapter ordering (persisted, user-reorderable) ---------- */
+function getChapterOrder(){
+  let order=[];
+  try{ order = JSON.parse(localStorage.getItem('pc_chapter_order')||'[]'); }catch(e){ order=[]; }
+  const validIds = DB.map(c=>c.id);
+  order = order.filter(id=>validIds.includes(id));
+  validIds.forEach(id=>{ if(!order.includes(id)) order.push(id); });
+  return order;
+}
+function saveChapterOrder(order){
+  try{ localStorage.setItem('pc_chapter_order', JSON.stringify(order)); }catch(e){}
+}
+function moveChapter(id, dir){
+  const order = getChapterOrder();
+  const i = order.indexOf(id);
+  const j = i+dir;
+  if(j<0 || j>=order.length) return;
+  [order[i],order[j]] = [order[j],order[i]];
+  saveChapterOrder(order);
+  renderHome();
+}
+function resetChapterOrder(){
+  try{ localStorage.removeItem('pc_chapter_order'); }catch(e){}
+  renderHome();
+}
+function hexA(hex,a){
+  const h=hex.replace('#','');
+  const r=parseInt(h.substring(0,2),16), g=parseInt(h.substring(2,4),16), b=parseInt(h.substring(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+/* ---------- shared accordion card renderers ---------- */
+function escAttr(s){ return String(s).replace(/'/g,"&#39;").replace(/"/g,"&quot;"); }
+
+function drugAccCard(d, color, uid, chapId, idx){
+  const editable = editMode && chapId!==undefined;
+  const brandChips = (d.brands||[]).map((b,bi)=>
+    `<div class="acc-brand-chip">${b}${editable?`<span class="chip-x" onclick="event.stopPropagation();deleteBrand('${chapId}',${idx},${bi})">×</span>`:''}</div>`
+  ).join('');
+  const addBrandChip = editable ? `<div class="acc-brand-chip add-chip" onclick="event.stopPropagation();addBrand('${chapId}',${idx})">+ Add brand</div>` : '';
+  const brandsHtml = (brandChips || addBrandChip)
+    ? `<div class="acc-brand-title">Brand Names</div><div class="acc-brand-grid">${brandChips}${addBrandChip}</div>`
+    : `<div class="acc-no-brand">No specific brand listed</div>`;
+  const brandCount = d.brands ? d.brands.length : 0;
+  const editBtns = editable ? `<div class="edit-btns" onclick="event.stopPropagation()">
+      <button onclick="event.stopPropagation();openDrugModal('${chapId}',${idx})">✎</button>
+      <button onclick="event.stopPropagation();deleteDrug('${chapId}',${idx})">🗑</button>
+    </div>` : '';
+  return `<div class="card acc-card" id="${uid}" onclick="toggleAcc(this,event)">
+    <div class="acc-head">
+      <div class="dot" style="color:${color};background:${color}"></div>
+      <div class="acc-head-info">
+        <div class="acc-head-name">${d.g}</div>
+        <div class="acc-head-preview">${d.info}</div>
+      </div>
+      ${brandCount ? `<div class="acc-head-brandcount">${brandCount} brand${brandCount>1?'s':''}</div>` : ''}
+      ${editBtns}
+      <svg class="acc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="acc-body"><div class="acc-body-inner">
+      <div class="acc-full-info">${d.info}</div>
+      ${brandsHtml}
+    </div></div>
+  </div>`;
+}
+
+function otcAccCard(t, color, uid, chapId){
+  const editBtns = (editMode && chapId) ? `<div class="edit-btns" onclick="event.stopPropagation()">
+      <button onclick="openTopicModal('${chapId}','${t.id}')">✎</button>
+      <button onclick="deleteTopic('${chapId}','${t.id}')">🗑</button>
+    </div>` : '';
+  return `<div class="card otc-link-row" id="${uid}" onclick="openOtcDetail('${t.id}')">
+    <div class="dot" style="color:${color};background:${color}"></div>
+    <div class="acc-head-info">
+      <div class="acc-head-name">${t.t}</div>
+      <div class="acc-head-preview">${(t.dd&&t.dd.length)? t.dd.length+' differential points · tap for full detail' : 'tap for full detail'}</div>
+    </div>
+    ${editBtns}
+    <svg class="otc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>
+  </div>`;
+}
+
+function renderCardList(cards, opts){
+  opts = opts || {};
+  let html = '', lastGroup = undefined;
+  cards.forEach((c,i)=>{
+    if(opts.grouped && c.kind==='drug'){
+      const grp = c.data.group;
+      if(grp && grp!==lastGroup) html += `<div class="group-header">${grp}</div>`;
+      lastGroup = grp || undefined;
+    }
+    const uid = (opts.prefix||'c')+'-'+i;
+    html += c.kind==='drug' ? drugAccCard(c.data, c.color, uid, c.chapId, c.idx) : otcAccCard(c.data, c.color, uid, c.chapId);
+  });
+  return html;
+}
+
+function toggleAcc(el, ev){
+  if(ev) ev.stopPropagation();
+  el.classList.toggle('open');
+}
+
+/* ---------- HOME chapter open -> lesson (stacked cards) ---------- */
+function openChapter(id){
+  const chapter = DB.find(c=>c.id===id);
+  state.sessionCards = flattenCards(chapter);
+  state.sessionChapterName = chapter.name;
+  state.sessionChapterId = id;
+  goto('session');
+}
+
+function renderDataTables(tables, ctx){
+  return tables.map((t,ti)=>{
+    let editHtml = '';
+    if(editMode && ctx){
+      const editCall = ctx.kind==='topic' ? `openTopicTableModal('${ctx.chapterId}','${ctx.topicId}',${ti})` : `openTableModal('${ctx.chapterId}',${ti})`;
+      const delCall = ctx.kind==='topic' ? `deleteTopicTable('${ctx.chapterId}','${ctx.topicId}',${ti})` : `deleteTable('${ctx.chapterId}',${ti})`;
+      editHtml = ` <span class="edit-inline" onclick="${editCall}">✎ edit</span> <span class="edit-inline" onclick="${delCall}">🗑</span>`;
+    }
+    return `
+    <div class="detail-section">
+      <div class="detail-section-title">${t.title}${editHtml}</div>
+      <div class="card dtable-wrap"><table class="dtable">
+        <thead><tr>${t.cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+        <tbody>${t.rows.map(r=>`<tr>${r.map((v,i)=>`<td class="${i===0?'strong':''}">${v}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table></div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- SESSION = lesson stacked-card view ---------- */
+function renderSession(){
+  const cards = state.sessionCards || [];
+  const total = cards.length;
+  const chapter = state.sessionChapterId ? DB.find(c=>c.id===state.sessionChapterId) : null;
+  const chapName = state.sessionChapterName || (cards[0] ? cards[0].cat : null);
+
+  document.getElementById('sessCat').textContent = chapName ? 'LESSON' : '—';
+  document.getElementById('sessName').textContent = chapName || 'Select a topic';
+  document.getElementById('sessProgressFill').style.width = total ? '100%' : '0%';
+  document.getElementById('lessonMeta').textContent = total ? (total+' item'+(total>1?'s':'')+' in this lesson') : '';
+
+  const area = document.getElementById('sessCardArea');
+  if(!total && !(editMode && chapter)){
+    area.innerHTML = `<div class="empty-hint">Pick a chapter from Home or search in Browse to open a lesson.</div>`;
+    return;
+  }
+  const notOtc = chapter && chapter.type!=='otc';
+  const tablesHtml = (notOtc && chapter.tables && chapter.tables.length) ? renderDataTables(chapter.tables, {kind:'chapter', chapterId:chapter.id}) : '';
+  const addTableBtn = (editMode && notOtc) ? `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="openTableModal('${chapter.id}',null)">+ Add Table</button>` : '';
+  const notesHtml = (notOtc && chapter.notes && chapter.notes.length) ?
+    `<div class="detail-section"><div class="card notes-card"><div class="detail-section-title">📝 Notes${editMode?` <span class="edit-inline" onclick="openNotesModal('${chapter.id}')">✎ edit</span>`:''}</div><ul class="notes-list">${chapter.notes.map(n=>`<li>${n}</li>`).join('')}</ul></div></div>` : '';
+  const addNotesBtn = (editMode && notOtc && !(chapter.notes&&chapter.notes.length)) ?
+    `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="openNotesModal('${chapter.id}')">+ Add Notes</button>` : '';
+  const addDrugBtn = (editMode && notOtc) ?
+    `<button class="pill-btn primary" style="width:100%;margin-bottom:14px;" onclick="openDrugModal('${chapter.id}',null)">+ Add Drug</button>` : '';
+  const addTopicBtn = (editMode && chapter && chapter.type==='otc') ?
+    `<button class="pill-btn primary" style="width:100%;margin-bottom:14px;" onclick="openTopicModal('${chapter.id}',null)">+ Add Topic</button>` : '';
+  const emptyHint = (!total && editMode) ? `<div class="empty-hint">No ${chapter && chapter.type==='otc'?'topics':'drugs'} yet — use "+ Add ${chapter && chapter.type==='otc'?'Topic':'Drug'}" above to start this chapter.</div>` : '';
+  area.innerHTML = addDrugBtn + addTopicBtn + addTableBtn + tablesHtml + addNotesBtn + notesHtml + emptyHint + renderCardList(cards, {prefix:'sess', grouped:true});
+}
+
+/* ---------- Quick review shortcut still opens a lesson-style stacked list ---------- */
+function startRandomSession(){
+  const cards = allCards().filter(c=>c.kind==='drug');
+  const shuffled = [...cards].sort(()=>Math.random()-0.5).slice(0,20);
+  state.sessionCards = shuffled;
+  state.sessionChapterName = 'Quick Review';
+  state.sessionChapterId = null;
+  goto('session');
+}
+
+
+/* ---------- BROWSE (search-only) ---------- */
+function renderResults(){
+  const q = (document.getElementById('searchInput')?.value||'').trim().toLowerCase();
+  const area = document.getElementById('resultsArea');
+  if(!q){
+    area.innerHTML = `<div class="empty-hint">Start typing to search.</div>`;
+    return;
+  }
+  const cards = allCards().filter(c=>{
+    if(c.kind==='drug'){
+      const brandStr = (c.data.brands||[]).join(' ').toLowerCase();
+      return c.data.g.toLowerCase().includes(q) || brandStr.includes(q) || c.cat.toLowerCase().includes(q) || (c.data.info||'').toLowerCase().includes(q);
+    }
+    const ddStr = (c.data.dd||[]).map(r=>r.join(' ')).join(' ').toLowerCase();
+    return c.data.t.toLowerCase().includes(q) || ddStr.includes(q) || c.cat.toLowerCase().includes(q);
+  });
+  if(!cards.length){
+    area.innerHTML = `<div class="empty-hint">No matches for "${q}".</div>`;
+    return;
+  }
+  area.innerHTML = renderCardList(cards.slice(0,80), {prefix:'res'});
+}
+
+/* ---------- PEDIATRIC DOSES (combined lesson: pediatric + fridge chapters) ---------- */
+function renderPediatric(){
+  const chapters = DB.filter(c=>c.id==='pediatric' || c.id==='fridge');
+  const cards = chapters.flatMap(c=>flattenCards(c));
+  const pedChapter = DB.find(c=>c.id==='pediatric');
+  const tablesHtml = (pedChapter && pedChapter.tables && pedChapter.tables.length) ? renderDataTables(pedChapter.tables) : '';
+  const notesHtml = (pedChapter && pedChapter.notes && pedChapter.notes.length) ?
+    `<div class="detail-section"><div class="card notes-card"><div class="detail-section-title">📝 Notes</div><ul class="notes-list">${pedChapter.notes.map(n=>`<li>${n}</li>`).join('')}</ul></div></div>` : '';
+  document.getElementById('pediatricArea').innerHTML = tablesHtml + notesHtml + renderCardList(cards, {prefix:'ped', grouped:true});
+}
+
+/* ---------- PEDI CALCULATOR (interactive tool — separate from the Pediatric Doses lesson) ---------- */
+function renderPedCalc(){
+  document.getElementById('pedcalcArea').innerHTML = `
+    <div class="card" style="padding:16px;">
+      <div class="detail-section-title">Step 1 — Estimate Weight <span style="font-weight:400;color:var(--muted);">(optional)</span></div>
+      <div class="field-card"><div class="field-label">Child's age</div>
+        <input type="number" min="0" step="0.5" id="pcAge" class="text-input" placeholder="e.g. 4">
+      </div>
+      <div class="unit-toggle">
+        <button id="pcUnitMonths" onclick="pcSetUnit('months')">Months (&lt; 1 year)</button>
+        <button id="pcUnitYears" class="active" onclick="pcSetUnit('years')">Years (1–11)</button>
+      </div>
+      <button class="pill-btn primary" style="width:100%;margin-top:12px;" onclick="pcEstimate()">Estimate Weight</button>
+      <div id="pcEstResult" class="pc-note"></div>
+    </div>
+
+    <div class="card" style="padding:16px;margin-top:14px;">
+      <div class="detail-section-title">Step 2 — Calculate Dose</div>
+      <div class="pc-row">
+        <div class="field-card"><div class="field-label">Weight (kg)</div><input type="number" min="0" step="0.1" id="pcWeight" class="text-input" placeholder="kg"></div>
+        <div class="field-card"><div class="field-label">Dose (mg/kg/day)</div><input type="number" min="0" step="0.1" id="pcDose" class="text-input" placeholder="mg/kg/day"></div>
+      </div>
+      <div class="pc-row" style="margin-top:8px;">
+        <div class="field-card"><div class="field-label">Concentration — mg</div><input type="number" min="0" step="0.1" id="pcConcMg" class="text-input" placeholder="e.g. 200"></div>
+        <div class="field-card"><div class="field-label">per how many ml</div><input type="number" min="0.1" step="0.1" id="pcConcMl" class="text-input" placeholder="e.g. 5"></div>
+      </div>
+      <div class="field-card" style="margin-top:8px;"><div class="field-label">Doses per day</div><input type="number" min="1" step="1" id="pcFreq" class="text-input" placeholder="e.g. 3" value="1"></div>
+      <button class="pill-btn primary" style="width:100%;margin-top:12px;" onclick="pcCalculate()">Calculate</button>
+      <div id="pcResult"></div>
+    </div>
+    <div class="pc-link" onclick="goto('pediatric')">View the Pediatric Doses reference lesson →</div>
+  `;
+  state.pcUnit = 'years';
+}
+function pcSetUnit(u){
+  state.pcUnit = u;
+  document.getElementById('pcUnitMonths').classList.toggle('active', u==='months');
+  document.getElementById('pcUnitYears').classList.toggle('active', u==='years');
+}
+function pcEstimate(){
+  const age = parseFloat(document.getElementById('pcAge').value);
+  const out = document.getElementById('pcEstResult');
+  if(isNaN(age) || age<0){ out.textContent = 'Enter a valid age first.'; return; }
+  let w=null, formula='';
+  if(state.pcUnit==='months'){
+    w = (age+9)/2;
+    formula = `(${age} + 9) ÷ 2`;
+  } else {
+    if(age>=1 && age<=8){ w = (age*2)+8; formula = `(${age} × 2) + 8`; }
+    else if(age>8 && age<=11){ w = (age*2)+9; formula = `(${age} × 2) + 9`; }
+    else { out.textContent = "This formula covers ages 0–11 years only. Use the child's actual measured weight for older children."; return; }
+  }
+  w = Math.round(w*10)/10;
+  out.innerHTML = `Estimated weight: <strong style="color:var(--accent);">${w} kg</strong> &nbsp;<span style="color:var(--muted);">(${formula})</span>`;
+  document.getElementById('pcWeight').value = w;
+}
+function pcCalculate(){
+  const weight = parseFloat(document.getElementById('pcWeight').value);
+  const dose = parseFloat(document.getElementById('pcDose').value);
+  const concMg = parseFloat(document.getElementById('pcConcMg').value);
+  const concMl = parseFloat(document.getElementById('pcConcMl').value);
+  const freq = parseFloat(document.getElementById('pcFreq').value) || 1;
+  const result = document.getElementById('pcResult');
+  if([weight,dose,concMg,concMl].some(v=>isNaN(v)||v<=0)){
+    result.innerHTML = `<div class="pc-note">Fill in weight, dose, and concentration to calculate.</div>`;
+    return;
+  }
+  const totalDailyMg = weight*dose;
+  const totalDailyMl = totalDailyMg / (concMg/concMl);
+  const mlPerDose = totalDailyMl/freq;
+  result.innerHTML = `<div class="pc-result">
+    <div class="pc-line"><span class="k">Total daily dose</span><span class="v">${totalDailyMg.toFixed(1)} mg</span></div>
+    <div class="pc-line"><span class="k">Total daily volume</span><span class="v">${totalDailyMl.toFixed(2)} ml</span></div>
+    <div class="pc-line"><span class="k">Volume per dose (÷${freq})</span><span class="v">${mlPerDose.toFixed(2)} ml</span></div>
+  </div>
+  <div class="pc-note">Always double-check against the max daily dose for the specific drug before dispensing.</div>`;
+}
+
+/* init */
+renderHome();
+updateTabbarHeightVar();
+updateCompactHeaders();
+window.addEventListener('beforeunload', saveDB);
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveDB(); });
+
+</script>
+</body>
+</html>
