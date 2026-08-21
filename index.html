@@ -366,19 +366,10 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
       </div>
     </div>
 
-    <div class="card progress-card">
-      <div class="progress-top">
-        <span class="label">Today's coverage</span>
-        <span class="value" id="progressPct">0%</span>
-      </div>
-      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-    </div>
-
     <div class="ring-row" id="ringRow"></div>
 
     <div class="pill-row">
-      <div class="pill-btn primary" onclick="goto('setup')">🔎 Search Drugs</div>
-      <div class="pill-btn ghost" onclick="startRandomSession()">⚡ Quick Review</div>
+      <div class="pill-btn primary" style="flex:1;" onclick="checkForUpdates()">🔄 Check for Updates</div>
     </div>
 
     <div class="pill-row">
@@ -1446,6 +1437,28 @@ function resetDB(){
 }
 function uid(){ return 'u'+Date.now()+Math.random().toString(36).slice(2,7); }
 
+/* ---------- Manual "check for updates" — forces a fresh pull of the app code ---------- */
+async function checkForUpdates(){
+  if(!('serviceWorker' in navigator)){
+    location.reload();
+    return;
+  }
+  try{
+    const reg = await navigator.serviceWorker.getRegistration();
+    if(reg){
+      await reg.update();
+      if(reg.waiting) reg.waiting.postMessage('skipWaiting');
+    }
+    if('caches' in window){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k=>caches.open(k).then(c=>{
+        c.delete('./'); c.delete('./index.html'); c.delete('./manifest.json');
+      })));
+    }
+  }catch(e){ /* ignore — reload will still fetch fresh over network if online */ }
+  location.reload();
+}
+
 /* ---------- Generic modal ---------- */
 function openModal(title, bodyHtml, onSave, saveLabel){
   document.getElementById('modalTitle').textContent = title;
@@ -1808,9 +1821,6 @@ function renderHome(){
   const totalDrugs = DB.reduce((n,c)=> n + (c.drugs? c.drugs.length : (c.topics?c.topics.length:0)),0);
   const totalBrands = DB.reduce((n,c)=> n + (c.drugs? c.drugs.reduce((m,d)=>m+(d.brands?d.brands.length:0),0) : 0),0);
 
-  document.getElementById('progressPct').textContent = totalChapters+' chapters ready';
-  document.getElementById('progressFill').style.width = '100%';
-
   const rings = [
     {label:'Chapters', num:totalChapters, max:totalChapters, color:'#b3502c'},
     {label:'Drug Entries', num:totalDrugs, max:totalDrugs, color:'#8c6a3f'},
@@ -2159,7 +2169,7 @@ function renderScan(){
     <div class="card" style="padding:16px;">
       <div class="detail-section-title">Take or upload a photo</div>
       <div class="modal-hint">Works best with the drug name(s) clearly visible. Multiple drugs on one prescription is fine — you'll review each one before anything is saved.</div>
-      <input type="file" id="scanFile" accept="image/*" capture="environment" style="display:none;" onchange="handleScanFile(this)">
+      <input type="file" id="scanFile" accept="image/*" style="display:none;" onchange="handleScanFile(this)">
       <button class="pill-btn primary" style="width:100%;" onclick="document.getElementById('scanFile').click()">📷 Open Camera / Choose Photo</button>
     </div>
     <div class="pc-link" onclick="renderScanSettingsOnly()">⚙️ Change AI provider / key (using ${cfg.provider})</div>
@@ -2260,7 +2270,7 @@ async function callOpenAI(key, b64, mime){
   return data.choices[0].message.content;
 }
 async function callGemini(key, b64, mime){
-  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key='+key, {
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key, {
     method:'POST',
     headers:{ 'Content-Type':'application/json' },
     body: JSON.stringify({
@@ -2338,6 +2348,7 @@ function renderScanResults(items){
 
 function commitScanResults(items){
   let added=0, updated=0, newChapters=0;
+  const newChapterCache = {}; // reuse one new chapter across multiple drugs sharing the same suggested name
   items.forEach((it,i)=>{
     const inc = document.getElementById('si_inc_'+i);
     if(!inc || !inc.checked) return;
@@ -2348,9 +2359,17 @@ function commitScanResults(items){
 
     let chapter;
     if(chapSel==='__new__'){
-      const name = (items[i].suggestedChapter || prompt('New category name:')) || 'New Category';
-      chapter = {id:uid(), name, color:'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'), type:'drug', drugs:[]};
-      DB.push(chapter); newChapters++;
+      const name = (items[i].suggestedChapter || 'New Category').trim();
+      const key = name.toLowerCase();
+      const existingByName = DB.find(c=>c.name.toLowerCase()===key);
+      if(existingByName){
+        chapter = existingByName;
+      } else if(newChapterCache[key]){
+        chapter = newChapterCache[key];
+      } else {
+        chapter = {id:uid(), name, color:'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'), type:'drug', drugs:[]};
+        DB.push(chapter); newChapterCache[key] = chapter; newChapters++;
+      }
     } else {
       chapter = DB.find(c=>c.id===chapSel);
     }
