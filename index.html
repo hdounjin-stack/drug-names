@@ -9,6 +9,13 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{ /* no server / not https — app still runs, just not offline-cached */ });
+  });
+}
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -279,6 +286,8 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .pc-result .pc-line .v{font-size:15px;font-weight:700;color:var(--accent);}
 .pc-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;}
 .pc-link{font-size:12px;color:var(--accent);text-decoration:underline;cursor:pointer;text-align:center;margin-top:18px;}
+.beta-tag{font-size:9px;font-weight:700;text-transform:uppercase;background:var(--accent);color:#fff;padding:2px 6px;border-radius:20px;margin-left:6px;vertical-align:middle;}
+.scan-item{border:1px solid var(--line-strong);}
 
 /* ---------- Edit mode ---------- */
 .edit-toggle{margin-left:auto;font-size:15px;padding:4px 8px;border-radius:8px;}
@@ -307,6 +316,13 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .modal-row{display:flex;gap:8px;}
 .modal-row .field-card{flex:1;}
 .modal-hint{font-size:10.5px;color:var(--muted);margin:-6px 0 12px;line-height:1.5;}
+.share-toggle-row{display:flex;gap:14px;margin-bottom:10px;}
+.share-list{max-height:280px;overflow-y:auto;border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:4px 12px;}
+.share-row{display:flex;align-items:center;gap:9px;padding:9px 0;font-size:13px;border-bottom:1px solid var(--line);}
+.share-row:last-child{border-bottom:none;}
+.share-row input{width:16px;height:16px;accent-color:var(--accent);flex-shrink:0;}
+.share-row span:first-of-type{flex:1;}
+.share-count{font-size:10.5px;color:var(--muted);background:var(--paper);padding:2px 7px;border-radius:20px;}
 
 /* ---------- iOS Home Screen / standalone safe-area fix ---------- */
 @media (display-mode: standalone){
@@ -369,8 +385,14 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
       <div class="pill-btn ghost" onclick="exportDB()">💾 Backup my data</div>
       <div class="pill-btn ghost" onclick="document.getElementById('importFile').click()">📂 Restore backup</div>
     </div>
+    <div class="pill-row">
+      <div class="pill-btn primary" style="flex:1;" onclick="openShareModal()">🔗 Share Library With Someone</div>
+    </div>
+    <div class="pill-row">
+      <div class="pill-btn ghost scan-btn" style="flex:1;" onclick="goto('scan')">📷 Scan Prescription <span class="beta-tag">new</span></div>
+    </div>
     <input type="file" id="importFile" accept="application/json" style="display:none;" onchange="importDB(this)">
-    <div class="backup-hint">Your added/edited content auto-saves on this device. Download a backup occasionally so nothing is lost if you switch devices or clear browser data.</div>
+    <div class="backup-hint">Your added/edited content auto-saves on this device. Download a backup occasionally so nothing is lost if you switch devices or clear browser data. Share sends chapters you pick to anyone — they merge it in without losing their own.</div>
 
     <div class="section-title"><h3>Course Chapters</h3><span><span class="reset-order-link" onclick="resetChapterOrder()">Reset order</span><span id="resetDataLink" class="reset-order-link" style="margin-left:10px;display:none;" onclick="resetDB()">Reset data</span></span></div>
     <div id="chapterList"></div>
@@ -443,6 +465,18 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
       <p>Estimate weight and calculate dose volume.</p>
     </div>
     <div id="pedcalcArea"></div>
+  </section>
+
+  <!-- ================= SCREEN 7 : SCAN PRESCRIPTION (AI-assisted add) ================= -->
+  <section class="screen" id="screen-scan">
+    <div class="sess-header">
+      <button class="sess-back" onclick="goto('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+      <div class="sess-title"><div class="cat">AI TOOL · BETA</div><div class="name">Scan Prescription</div></div>
+      <div style="width:34px;"></div>
+    </div>
+    <div id="scanArea"></div>
   </section>
 
 </div>
@@ -1329,12 +1363,39 @@ function loadDB(){
 }
 function saveDB(){ try{ localStorage.setItem('pc_db', JSON.stringify(DB)); }catch(e){} }
 function exportDB(){
-  const blob = new Blob([JSON.stringify(DB,null,2)], {type:'application/json'});
+  shareOrDownload(DB, 'pharmacore-backup-'+new Date().toISOString().slice(0,10)+'.json', 'PharmaCore — full backup');
+}
+async function shareOrDownload(dataArr, filename, shareText){
+  const blob = new Blob([JSON.stringify(dataArr,null,2)], {type:'application/json'});
+  const file = new File([blob], filename, {type:'application/json'});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:'PharmaCore', text:shareText}); return; }catch(e){ /* cancelled — fall back to download */ }
+  }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'pharmacore-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.href = url; a.download = filename;
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
+}
+function openShareModal(){
+  const rows = DB.map(c=>{
+    const count = c.drugs ? c.drugs.length : (c.topics?c.topics.length:0);
+    return `<label class="share-row"><input type="checkbox" class="share-chk" value="${c.id}" checked> <span>${c.name}</span> <span class="share-count">${count}</span></label>`;
+  }).join('');
+  openModal('Share Library', `
+    <div class="modal-hint">Pick what to send. The other person opens it with "Restore backup" and can merge it into their own library — nothing of theirs gets erased.</div>
+    <div class="share-toggle-row">
+      <span class="edit-inline" onclick="document.querySelectorAll('.share-chk').forEach(c=>c.checked=true)">Select all</span>
+      <span class="edit-inline" onclick="document.querySelectorAll('.share-chk').forEach(c=>c.checked=false)">Select none</span>
+    </div>
+    <div class="share-list">${rows}</div>
+  `, ()=>{
+    const ids = [...document.querySelectorAll('.share-chk:checked')].map(c=>c.value);
+    if(!ids.length){ alert('Pick at least one chapter to share.'); return; }
+    const subset = DB.filter(c=>ids.includes(c.id));
+    closeModal();
+    shareOrDownload(subset, 'pharmacore-share-'+new Date().toISOString().slice(0,10)+'.json', 'PharmaCore library share — open with the app\'s Restore button.');
+  }, 'Share');
 }
 function importDB(input){
   const file = input.files[0]; if(!file) return;
@@ -1343,12 +1404,30 @@ function importDB(input){
     try{
       const data = JSON.parse(reader.result);
       if(!Array.isArray(data)) throw new Error('bad format');
-      if(!confirm('Restore this backup? It will replace all current chapters/drugs/tables/notes.')) return;
-      DB = data; saveDB(); goto('home');
-    }catch(e){ alert('Could not read this backup file.'); }
+      openModal('Import '+data.length+' Chapter'+(data.length>1?'s':''), `
+        <div class="modal-hint">How do you want to add this?</div>
+        <button class="pill-btn primary" style="width:100%;margin-bottom:10px;" onclick="applyImport('merge')">🔀 Merge into my library</button>
+        <div class="modal-hint" style="margin:-4px 0 14px;">Adds new chapters and updates matching ones by ID. Everything else you have stays untouched.</div>
+        <button class="pill-btn ghost" style="width:100%;" onclick="applyImport('replace')">⚠️ Replace my entire library</button>
+      `, null);
+      window._importPending = data;
+    }catch(e){ alert('Could not read this file.'); }
     input.value = '';
   };
   reader.readAsText(file);
+}
+function applyImport(mode){
+  const data = window._importPending; if(!data) return;
+  if(mode==='replace'){
+    if(!confirm('Replace your entire library with this file? Your current chapters/drugs will be lost.')) return;
+    DB = data;
+  } else {
+    data.forEach(c=>{
+      const i = DB.findIndex(x=>x.id===c.id);
+      if(i>-1) DB[i]=c; else DB.push(c);
+    });
+  }
+  saveDB(); window._importPending=null; closeModal(); goto('home');
 }
 let DB = loadDB();
 let editMode = false;
@@ -1368,10 +1447,12 @@ function resetDB(){
 function uid(){ return 'u'+Date.now()+Math.random().toString(36).slice(2,7); }
 
 /* ---------- Generic modal ---------- */
-function openModal(title, bodyHtml, onSave){
+function openModal(title, bodyHtml, onSave, saveLabel){
   document.getElementById('modalTitle').textContent = title;
   document.getElementById('modalBody').innerHTML = bodyHtml;
-  document.getElementById('modalSaveBtn').onclick = onSave;
+  const btn = document.getElementById('modalSaveBtn');
+  if(onSave){ btn.style.display=''; btn.onclick = onSave; btn.textContent = saveLabel || 'Save'; }
+  else { btn.style.display='none'; }
   document.getElementById('editModal').classList.add('open');
 }
 function closeModal(){ document.getElementById('editModal').classList.remove('open'); }
@@ -1514,6 +1595,58 @@ function openTopicNotesModal(chapterId, topicId){
     saveDB(); closeModal(); refreshOtcDetailIfOpen(topicId);
   });
 }
+function openTopicArModal(chapterId, topicId){
+  const t = findTopic(chapterId, topicId); if(!t) return;
+  openModal('Edit Arabic Summary', `
+    <div class="field-card"><div class="field-label">Summary text</div><textarea id="mAr" class="text-input" style="min-height:90px;">${t.ar||''}</textarea></div>
+  `, ()=>{
+    t.ar = val('mAr').trim();
+    saveDB(); closeModal(); refreshOtcDetailIfOpen(topicId);
+  });
+}
+function openTopicStepsModal(chapterId, topicId){
+  const t = findTopic(chapterId, topicId); if(!t) return;
+  openModal('Edit Approach Steps', `
+    <div class="field-card"><div class="field-label">One step per line, in order</div><textarea id="mSteps" class="text-input" style="min-height:130px;">${(t.steps||[]).join('\n')}</textarea></div>
+  `, ()=>{
+    t.steps = val('mSteps').split('\n').map(l=>l.trim()).filter(Boolean);
+    saveDB(); closeModal(); refreshOtcDetailIfOpen(topicId);
+  });
+}
+function openTopicRedFlagsModal(chapterId, topicId){
+  const t = findTopic(chapterId, topicId); if(!t) return;
+  openModal('Edit Red Flags', `
+    <div class="field-card"><div class="field-label">One red flag per line</div><textarea id="mRed" class="text-input" style="min-height:110px;">${(t.redFlags||[]).join('\n')}</textarea></div>
+  `, ()=>{
+    t.redFlags = val('mRed').split('\n').map(l=>l.trim()).filter(Boolean);
+    saveDB(); closeModal(); refreshOtcDetailIfOpen(topicId);
+  });
+}
+function openTopicDdModal(chapterId, topicId){
+  const t = findTopic(chapterId, topicId); if(!t) return;
+  const text = (t.dd||[]).map(r=>r.join(' | ')).join('\n');
+  openModal('Edit Differential Diagnosis', `
+    <div class="field-card"><div class="field-label">One row per line: Sign/Trigger | Likely Cause</div><textarea id="mDd" class="text-input" style="min-height:140px;">${text}</textarea></div>
+    <div class="modal-hint">Example: Epigastric pain + heartburn | Gastritis / MI</div>
+  `, ()=>{
+    t.dd = val('mDd').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>l.split('|').map(s=>s.trim()));
+    saveDB(); closeModal(); refreshOtcDetailIfOpen(topicId);
+  });
+}
+function openTopicMgmtModal(chapterId, topicId){
+  const t = findTopic(chapterId, topicId); if(!t) return;
+  const text = (t.management||[]).map(m=>[m.cause,m.cls,m.example,m.regimen].join(' | ')).join('\n');
+  openModal('Edit Management by Cause', `
+    <div class="field-card"><div class="field-label">One row per line: Cause | Drug Class | Example | Regimen</div><textarea id="mMgmt" class="text-input" style="min-height:150px;">${text}</textarea></div>
+    <div class="modal-hint">Example: Gastritis | PPI + Mucosal protective | Omeprazole (Gasec) | 4–8 weeks</div>
+  `, ()=>{
+    t.management = val('mMgmt').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+      const p = l.split('|').map(s=>s.trim());
+      return {cause:p[0]||'', cls:p[1]||'', example:p[2]||'', regimen:p[3]||''};
+    });
+    saveDB(); closeModal(); refreshOtcDetailIfOpen(topicId);
+  });
+}
 function openTopicModal(chapterId, topicId){
   const c = DB.find(x=>x.id===chapterId); if(!c) return;
   const t = topicId===null ? {t:'',ar:''} : findTopic(chapterId, topicId);
@@ -1588,6 +1721,7 @@ function goto(screen){
   if(screen==='session') renderSession();
   if(screen==='pediatric') renderPediatric();
   if(screen==='pedcalc') renderPedCalc();
+  if(screen==='scan') renderScan();
   updateCompactHeaders();
 }
 
@@ -1620,43 +1754,50 @@ function closeOtcDetail(){
 function renderOtcDetail(topic){
   document.getElementById('otcDetName').textContent = topic.t;
   const chapterId = findOtcChapterId(topic.id);
+  const ed = editMode && chapterId;
+  const editLink = (fn) => ed ? ` <span class="edit-inline" onclick="${fn}">✎ edit</span>` : '';
+  const addBtn = (label, fn) => ed ? `<button class="pill-btn ghost" style="width:100%;margin:4px 0 10px;" onclick="${fn}">+ Add ${label}</button>` : '';
 
   let html = '';
-  if(editMode && chapterId){
-    html += `<button class="pill-btn ghost" style="width:100%;margin-bottom:12px;" onclick="openTopicTableModal('${chapterId}','${topic.id}',null)">+ Add Table</button>`;
+  if(ed){
+    html += `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="openTopicTableModal('${chapterId}','${topic.id}',null)">+ Add Table</button>`;
   }
   if(topic.ar){
-    html += `<div class="card acc-ar" style="margin-bottom:18px;">${topic.ar}</div>`;
-  }
+    html += `<div class="card acc-ar" style="margin-bottom:10px;">${topic.ar}${editLink(`openTopicArModal('${chapterId}','${topic.id}')`)}</div>`;
+  } else { html += addBtn('Arabic Summary', `openTopicArModal('${chapterId}','${topic.id}')`); }
+
   if(topic.dd && topic.dd.length){
-    html += `<div class="detail-section"><div class="detail-section-title">🔍 Differential Diagnosis</div>
+    html += `<div class="detail-section"><div class="detail-section-title">🔍 Differential Diagnosis${editLink(`openTopicDdModal('${chapterId}','${topic.id}')`)}</div>
       <div class="card dtable-wrap"><table class="dtable"><thead><tr><th>Sign / Trigger</th><th>Likely Cause</th></tr></thead><tbody>
       ${topic.dd.map(r=>`<tr><td>${r[0]}</td><td class="strong">${r[1]}</td></tr>`).join('')}
       </tbody></table></div></div>`;
-  }
+  } else { html += addBtn('Differential Diagnosis', `openTopicDdModal('${chapterId}','${topic.id}')`); }
+
   if(topic.steps && topic.steps.length){
-    html += `<div class="detail-section"><div class="detail-section-title">📋 Approach Steps</div>
+    html += `<div class="detail-section"><div class="detail-section-title">📋 Approach Steps${editLink(`openTopicStepsModal('${chapterId}','${topic.id}')`)}</div>
       <div class="card notes-card"><ol class="step-list">${topic.steps.map(s=>`<li>${s}</li>`).join('')}</ol></div></div>`;
-  }
+  } else { html += addBtn('Steps', `openTopicStepsModal('${chapterId}','${topic.id}')`); }
+
   if(topic.management && topic.management.length){
-    html += `<div class="detail-section"><div class="detail-section-title">💊 Management by Cause</div>
+    html += `<div class="detail-section"><div class="detail-section-title">💊 Management by Cause${editLink(`openTopicMgmtModal('${chapterId}','${topic.id}')`)}</div>
       <div class="card dtable-wrap"><table class="dtable"><thead><tr><th>Cause</th><th>Drug Class</th><th>Example</th><th>Regimen</th></tr></thead><tbody>
       ${topic.management.map(m=>`<tr><td class="strong">${m.cause}</td><td>${m.cls}</td><td class="mono-cell">${m.example}</td><td>${m.regimen}</td></tr>`).join('')}
       </tbody></table></div></div>`;
-  }
+  } else { html += addBtn('Management by Cause', `openTopicMgmtModal('${chapterId}','${topic.id}')`); }
+
   if(topic.tables && topic.tables.length){
     html += renderDataTables(topic.tables, chapterId ? {kind:'topic', chapterId, topicId:topic.id} : null);
   }
   if(topic.redFlags && topic.redFlags.length){
-    html += `<div class="detail-section"><div class="card warn-card"><div class="detail-section-title">⚠️ Warnings / Red Flags</div>
+    html += `<div class="detail-section"><div class="card warn-card"><div class="detail-section-title">⚠️ Warnings / Red Flags${editLink(`openTopicRedFlagsModal('${chapterId}','${topic.id}')`)}</div>
       <ul class="warn-list">${topic.redFlags.map(w=>`<li>${w}</li>`).join('')}</ul></div></div>`;
-  }
+  } else { html += addBtn('Red Flags', `openTopicRedFlagsModal('${chapterId}','${topic.id}')`); }
+
   if(topic.notes && topic.notes.length){
-    html += `<div class="detail-section"><div class="detail-section-title">📌 Clinical Notes${(editMode&&chapterId)?` <span class="edit-inline" onclick="openTopicNotesModal('${chapterId}','${topic.id}')">✎ edit</span>`:''}</div>
+    html += `<div class="detail-section"><div class="detail-section-title">📌 Clinical Notes${editLink(`openTopicNotesModal('${chapterId}','${topic.id}')`)}</div>
       <div class="card notes-card"><ul class="notes-list">${topic.notes.map(n=>`<li>${n}</li>`).join('')}</ul></div></div>`;
-  } else if(editMode && chapterId){
-    html += `<button class="pill-btn ghost" style="width:100%;margin-top:4px;" onclick="openTopicNotesModal('${chapterId}','${topic.id}')">+ Add Notes</button>`;
-  }
+  } else { html += addBtn('Notes', `openTopicNotesModal('${chapterId}','${topic.id}')`); }
+
   document.getElementById('otcDetArea').innerHTML = html;
 }
 
@@ -1868,7 +2009,8 @@ function renderSession(){
   const addTopicBtn = (editMode && chapter && chapter.type==='otc') ?
     `<button class="pill-btn primary" style="width:100%;margin-bottom:14px;" onclick="openTopicModal('${chapter.id}',null)">+ Add Topic</button>` : '';
   const emptyHint = (!total && editMode) ? `<div class="empty-hint">No ${chapter && chapter.type==='otc'?'topics':'drugs'} yet — use "+ Add ${chapter && chapter.type==='otc'?'Topic':'Drug'}" above to start this chapter.</div>` : '';
-  area.innerHTML = addDrugBtn + addTopicBtn + addTableBtn + tablesHtml + addNotesBtn + notesHtml + emptyHint + renderCardList(cards, {prefix:'sess', grouped:true});
+  const shareBtn = chapter ? `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="shareOrDownload([DB.find(c=>c.id==='${chapter.id}')],'pharmacore-${chapter.id}.json','PharmaCore — ${chapter.name} chapter')">🔗 Share This Chapter</button>` : '';
+  area.innerHTML = shareBtn + addDrugBtn + addTopicBtn + addTableBtn + tablesHtml + addNotesBtn + notesHtml + emptyHint + renderCardList(cards, {prefix:'sess', grouped:true});
 }
 
 /* ---------- Quick review shortcut still opens a lesson-style stacked list ---------- */
@@ -1992,6 +2134,242 @@ function pcCalculate(){
     <div class="pc-line"><span class="k">Volume per dose (÷${freq})</span><span class="v">${mlPerDose.toFixed(2)} ml</span></div>
   </div>
   <div class="pc-note">Always double-check against the max daily dose for the specific drug before dispensing.</div>`;
+}
+
+/* =========================================================
+   PHASE 2 — Scan Prescription (BYOK: user's own AI API key)
+   Nothing here ever runs automatically; every extracted drug
+   is shown for review and must be explicitly confirmed before
+   it touches DB. Key + provider live only in localStorage.
+   ========================================================= */
+function loadAiConfig(){
+  try{ return JSON.parse(localStorage.getItem('pc_ai_cfg')||'null') || {provider:'claude', key:''}; }
+  catch(e){ return {provider:'claude', key:''}; }
+}
+function saveAiConfig(cfg){ try{ localStorage.setItem('pc_ai_cfg', JSON.stringify(cfg)); }catch(e){} }
+
+function renderScan(){
+  const cfg = loadAiConfig();
+  const area = document.getElementById('scanArea');
+  if(!cfg.key){
+    area.innerHTML = scanSettingsHtml(cfg);
+    return;
+  }
+  area.innerHTML = `
+    <div class="card" style="padding:16px;">
+      <div class="detail-section-title">Take or upload a photo</div>
+      <div class="modal-hint">Works best with the drug name(s) clearly visible. Multiple drugs on one prescription is fine — you'll review each one before anything is saved.</div>
+      <input type="file" id="scanFile" accept="image/*" capture="environment" style="display:none;" onchange="handleScanFile(this)">
+      <button class="pill-btn primary" style="width:100%;" onclick="document.getElementById('scanFile').click()">📷 Open Camera / Choose Photo</button>
+    </div>
+    <div class="pc-link" onclick="renderScanSettingsOnly()">⚙️ Change AI provider / key (using ${cfg.provider})</div>
+    <div id="scanResultArea"></div>
+  `;
+}
+function renderScanSettingsOnly(){
+  document.getElementById('scanArea').innerHTML = scanSettingsHtml(loadAiConfig(), true);
+}
+function scanSettingsHtml(cfg, isChange){
+  const providers = [
+    {id:'claude', name:'Claude (Anthropic)'},
+    {id:'openai', name:'GPT-4o (OpenAI)'},
+    {id:'gemini', name:'Gemini (Google)'}
+  ];
+  return `
+    <div class="card" style="padding:16px;">
+      <div class="detail-section-title">${isChange?'Change your AI provider':'Connect your AI to scan prescriptions'}</div>
+      <div class="modal-hint">Your key stays on this device only — it's never shared, never sent anywhere except directly to your chosen AI provider. You'll need your own API key from that provider's website.</div>
+      <div class="field-card"><div class="field-label">Provider</div>
+        <select id="scanProvider" class="text-input">
+          ${providers.map(p=>`<option value="${p.id}" ${cfg.provider===p.id?'selected':''}>${p.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field-card"><div class="field-label">API Key</div>
+        <input type="password" id="scanKey" class="text-input" value="${cfg.key||''}" placeholder="sk-... / your API key">
+      </div>
+      <button class="pill-btn primary" style="width:100%;" onclick="saveScanSettings()">Save & Continue</button>
+      ${isChange?`<div class="pc-link" onclick="goto('scan')">← Back to scanning</div>`:''}
+    </div>`;
+}
+function saveScanSettings(){
+  const provider = document.getElementById('scanProvider').value;
+  const key = document.getElementById('scanKey').value.trim();
+  if(!key){ alert('Paste an API key first.'); return; }
+  saveAiConfig({provider, key});
+  goto('scan');
+}
+
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = ()=>resolve(r.result.split(',')[1]);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+function scanPrompt(){
+  const chapters = DB.map(c=>c.name).join(', ');
+  return `You are reading a photo of a medical prescription (may be handwritten, may mix Arabic and English, may use medical shorthand like "1x3" for dose frequency). Extract every distinct medication you can identify.
+
+Existing library categories: ${chapters}
+
+Respond with ONLY a JSON array, no markdown fences, no explanation, in exactly this shape:
+[{"generic":"","brands":["..."],"info":"class / dose / frequency if visible","suggestedChapter":"one of the existing categories, as close a match as possible","isNewChapter":false}]
+
+If nothing on the category list fits well, set "isNewChapter":true and put a short new category name in "suggestedChapter". If you cannot read anything reliably, return [].`;
+}
+
+async function callClaude(key, b64, mime){
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key': key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body: JSON.stringify({
+      model:'claude-sonnet-4-5',
+      max_tokens: 1500,
+      messages:[{role:'user', content:[
+        {type:'image', source:{type:'base64', media_type:mime, data:b64}},
+        {type:'text', text: scanPrompt()}
+      ]}]
+    })
+  });
+  if(!res.ok) throw new Error('Claude API error: '+res.status+' '+(await res.text()).slice(0,200));
+  const data = await res.json();
+  return data.content.map(c=>c.text||'').join('');
+}
+async function callOpenAI(key, b64, mime){
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+key },
+    body: JSON.stringify({
+      model:'gpt-4o',
+      max_tokens: 1500,
+      messages:[{role:'user', content:[
+        {type:'text', text: scanPrompt()},
+        {type:'image_url', image_url:{url:'data:'+mime+';base64,'+b64}}
+      ]}]
+    })
+  });
+  if(!res.ok) throw new Error('OpenAI API error: '+res.status+' '+(await res.text()).slice(0,200));
+  const data = await res.json();
+  return data.choices[0].message.content;
+}
+async function callGemini(key, b64, mime){
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({
+      contents:[{parts:[
+        {text: scanPrompt()},
+        {inline_data:{mime_type:mime, data:b64}}
+      ]}]
+    })
+  });
+  if(!res.ok) throw new Error('Gemini API error: '+res.status+' '+(await res.text()).slice(0,200));
+  const data = await res.json();
+  return data.candidates[0].content.parts.map(p=>p.text||'').join('');
+}
+
+function parseAiJson(text){
+  const cleaned = text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+  const start = cleaned.indexOf('['), end = cleaned.lastIndexOf(']');
+  if(start<0 || end<0) throw new Error('No JSON array found in AI response');
+  return JSON.parse(cleaned.slice(start, end+1));
+}
+
+async function handleScanFile(input){
+  const file = input.files[0]; if(!file) return;
+  const cfg = loadAiConfig();
+  const resultArea = document.getElementById('scanResultArea');
+  resultArea.innerHTML = `<div class="card" style="padding:20px;text-align:center;"><div class="detail-section-title" style="justify-content:center;">Reading prescription…</div><div class="modal-hint">Sending photo to ${cfg.provider}. This can take a few seconds.</div></div>`;
+  try{
+    const b64 = await fileToBase64(file);
+    const mime = file.type || 'image/jpeg';
+    let raw;
+    if(cfg.provider==='claude') raw = await callClaude(cfg.key, b64, mime);
+    else if(cfg.provider==='openai') raw = await callOpenAI(cfg.key, b64, mime);
+    else raw = await callGemini(cfg.key, b64, mime);
+    const items = parseAiJson(raw);
+    renderScanResults(items);
+  }catch(e){
+    resultArea.innerHTML = `<div class="card warn-card" style="padding:16px;"><div class="detail-section-title">⚠️ Couldn't read that</div><div class="modal-hint">${(e.message||e).toString().slice(0,300)}</div></div>`;
+  }
+  input.value = '';
+}
+
+function renderScanResults(items){
+  const resultArea = document.getElementById('scanResultArea');
+  if(!items.length){
+    resultArea.innerHTML = `<div class="card notes-card" style="padding:16px;">No medications could be confidently read from that photo. Try a clearer, closer photo of just the drug names.</div>`;
+    return;
+  }
+  const chapterOptions = DB.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  resultArea.innerHTML = `<div class="modal-hint" style="margin-top:16px;">Found ${items.length} item${items.length>1?'s':''}. Review and edit before adding — nothing is saved yet.</div>` +
+    items.map((it,i)=>{
+      const dup = DB.flatMap(c=>(c.drugs||[]).map(d=>({...d,chapId:c.id}))).find(d=>d.g && d.g.toLowerCase().trim()===((it.generic||'').toLowerCase().trim()));
+      return `<div class="card scan-item" style="padding:14px 16px;margin-bottom:10px;" id="scanItem${i}">
+        ${dup?`<div class="modal-hint" style="color:var(--accent);">⚠ "${it.generic}" already exists in your library — saving will add these brands to it instead of duplicating.</div>`:''}
+        <div class="field-card"><div class="field-label">Generic name</div><input class="text-input" id="si_g_${i}" value="${(it.generic||'').replace(/"/g,'&quot;')}"></div>
+        <div class="field-card"><div class="field-label">Info / dose / class</div><input class="text-input" id="si_info_${i}" value="${(it.info||'').replace(/"/g,'&quot;')}"></div>
+        <div class="field-card"><div class="field-label">Brand names (comma separated)</div><input class="text-input" id="si_b_${i}" value="${(it.brands||[]).join(', ')}"></div>
+        <div class="field-card"><div class="field-label">Category</div>
+          <select class="text-input" id="si_chap_${i}">
+            ${chapterOptions}
+            <option value="__new__" ${it.isNewChapter?'selected':''}>➕ New category: ${it.suggestedChapter||''}</option>
+          </select>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;margin-top:6px;"><input type="checkbox" id="si_inc_${i}" checked style="width:16px;height:16px;accent-color:var(--accent);"> Include this one</label>
+      </div>`;
+    }).join('') +
+    `<button class="pill-btn primary" style="width:100%;margin-top:6px;" onclick='commitScanResults(${JSON.stringify(items).replace(/'/g,"&apos;")})'>✅ Add Selected to Library</button>`;
+  // pre-select AI-suggested existing chapter by name match
+  items.forEach((it,i)=>{
+    if(!it.isNewChapter){
+      const match = DB.find(c=>c.name.toLowerCase()===((it.suggestedChapter||'').toLowerCase()));
+      if(match) document.getElementById('si_chap_'+i).value = match.id;
+    }
+  });
+}
+
+function commitScanResults(items){
+  let added=0, updated=0, newChapters=0;
+  items.forEach((it,i)=>{
+    const inc = document.getElementById('si_inc_'+i);
+    if(!inc || !inc.checked) return;
+    const g = document.getElementById('si_g_'+i).value.trim(); if(!g) return;
+    const info = document.getElementById('si_info_'+i).value.trim();
+    const brands = document.getElementById('si_b_'+i).value.split(',').map(s=>s.trim()).filter(Boolean);
+    const chapSel = document.getElementById('si_chap_'+i).value;
+
+    let chapter;
+    if(chapSel==='__new__'){
+      const name = (items[i].suggestedChapter || prompt('New category name:')) || 'New Category';
+      chapter = {id:uid(), name, color:'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'), type:'drug', drugs:[]};
+      DB.push(chapter); newChapters++;
+    } else {
+      chapter = DB.find(c=>c.id===chapSel);
+    }
+    if(!chapter) return;
+    if(!chapter.drugs) chapter.drugs=[];
+    const existing = chapter.drugs.find(d=>d.g && d.g.toLowerCase().trim()===g.toLowerCase());
+    if(existing){
+      existing.brands = Array.from(new Set([...(existing.brands||[]), ...brands]));
+      if(!existing.info) existing.info = info;
+      updated++;
+    } else {
+      chapter.drugs.push({id:uid(), g, info, brands});
+      added++;
+    }
+  });
+  saveDB();
+  document.getElementById('scanResultArea').innerHTML = `<div class="card notes-card" style="padding:16px;">✅ Done — ${added} added, ${updated} merged into existing drugs${newChapters?`, ${newChapters} new categor${newChapters>1?'ies':'y'} created`:''}.</div>
+    <button class="pill-btn ghost" style="width:100%;margin-top:10px;" onclick="renderScan()">Scan another</button>
+    <button class="pill-btn primary" style="width:100%;margin-top:8px;" onclick="goto('home')">Back to Home</button>`;
 }
 
 /* init */
