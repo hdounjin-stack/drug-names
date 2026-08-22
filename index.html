@@ -2153,10 +2153,13 @@ function pcCalculate(){
    it touches DB. Key + provider live only in localStorage.
    ========================================================= */
 function loadAiConfig(){
-  try{ return JSON.parse(localStorage.getItem('pc_ai_cfg')||'null') || {provider:'claude', key:''}; }
-  catch(e){ return {provider:'claude', key:''}; }
+  try{ return JSON.parse(localStorage.getItem('pc_ai_cfg')||'null') || {provider:'claude', key:'', model:''}; }
+  catch(e){ return {provider:'claude', key:'', model:''}; }
 }
 function saveAiConfig(cfg){ try{ localStorage.setItem('pc_ai_cfg', JSON.stringify(cfg)); }catch(e){} }
+function defaultModelFor(provider){
+  return {claude:'claude-sonnet-4-5', openai:'gpt-4o', gemini:'gemini-3.6-flash'}[provider] || '';
+}
 
 function renderScan(){
   const cfg = loadAiConfig();
@@ -2172,12 +2175,17 @@ function renderScan(){
       <input type="file" id="scanFile" accept="image/*" style="display:none;" onchange="handleScanFile(this)">
       <button class="pill-btn primary" style="width:100%;" onclick="document.getElementById('scanFile').click()">📷 Open Camera / Choose Photo</button>
     </div>
-    <div class="pc-link" onclick="renderScanSettingsOnly()">⚙️ Change AI provider / key (using ${cfg.provider})</div>
+    <div class="pc-link" onclick="renderScanSettingsOnly()">⚙️ Change AI provider / key / model (using ${cfg.provider} · ${cfg.model||defaultModelFor(cfg.provider)})</div>
     <div id="scanResultArea"></div>
   `;
 }
 function renderScanSettingsOnly(){
   document.getElementById('scanArea').innerHTML = scanSettingsHtml(loadAiConfig(), true);
+}
+function onScanProviderChange(){
+  const p = document.getElementById('scanProvider').value;
+  const modelField = document.getElementById('scanModel');
+  if(modelField && !modelField.dataset.touched) modelField.value = defaultModelFor(p);
 }
 function scanSettingsHtml(cfg, isChange){
   const providers = [
@@ -2190,13 +2198,17 @@ function scanSettingsHtml(cfg, isChange){
       <div class="detail-section-title">${isChange?'Change your AI provider':'Connect your AI to scan prescriptions'}</div>
       <div class="modal-hint">Your key stays on this device only — it's never shared, never sent anywhere except directly to your chosen AI provider. You'll need your own API key from that provider's website.</div>
       <div class="field-card"><div class="field-label">Provider</div>
-        <select id="scanProvider" class="text-input">
+        <select id="scanProvider" class="text-input" onchange="onScanProviderChange()">
           ${providers.map(p=>`<option value="${p.id}" ${cfg.provider===p.id?'selected':''}>${p.name}</option>`).join('')}
         </select>
       </div>
       <div class="field-card"><div class="field-label">API Key</div>
         <input type="password" id="scanKey" class="text-input" value="${cfg.key||''}" placeholder="sk-... / your API key">
       </div>
+      <div class="field-card"><div class="field-label">Model</div>
+        <input type="text" id="scanModel" class="text-input" value="${cfg.model || defaultModelFor(cfg.provider)}" oninput="this.dataset.touched='1'" placeholder="${defaultModelFor(cfg.provider)}">
+      </div>
+      <div class="modal-hint" style="margin-top:-8px;">Pre-filled with today's default, but model names change over time — check your provider's docs and type the current one here whenever you want to switch (e.g. a newer Gemini/Claude/GPT version).</div>
       <button class="pill-btn primary" style="width:100%;" onclick="saveScanSettings()">Save & Continue</button>
       ${isChange?`<div class="pc-link" onclick="goto('scan')">← Back to scanning</div>`:''}
     </div>`;
@@ -2204,33 +2216,57 @@ function scanSettingsHtml(cfg, isChange){
 function saveScanSettings(){
   const provider = document.getElementById('scanProvider').value;
   const key = document.getElementById('scanKey').value.trim();
+  const model = document.getElementById('scanModel').value.trim() || defaultModelFor(provider);
   if(!key){ alert('Paste an API key first.'); return; }
-  saveAiConfig({provider, key});
+  saveAiConfig({provider, key, model});
   goto('scan');
 }
 
-function fileToBase64(file){
-  return new Promise((resolve,reject)=>{
-    const r = new FileReader();
-    r.onload = ()=>resolve(r.result.split(',')[1]);
-    r.onerror = reject;
-    r.readAsDataURL(file);
+/* Normalize any photo (including iPhone's default HEIC format, which most
+   vision APIs reject outright — a likely cause of bad reads) to a
+   reasonably-sized JPEG before sending. Safari decodes HEIC into <img>
+   natively, so drawing it to canvas and re-exporting as JPEG works even
+   though the AI API itself could never read the original HEIC bytes. */
+function preprocessImage(file, maxDim, quality){
+  maxDim = maxDim || 1600; quality = quality || 0.9;
+  return new Promise((resolve, reject)=>{
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>{
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if(w > h && w > maxDim){ h = Math.round(h * maxDim/w); w = maxDim; }
+      else if(h >= w && h > maxDim){ w = Math.round(w * maxDim/h); h = maxDim; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob=>{
+        if(!blob){ reject(new Error('Could not process this image format.')); return; }
+        const r = new FileReader();
+        r.onload = ()=>resolve({b64: r.result.split(',')[1], mime:'image/jpeg'});
+        r.onerror = reject;
+        r.readAsDataURL(blob);
+      }, 'image/jpeg', quality);
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error('This photo format could not be read. Try a different photo.')); };
+    img.src = url;
   });
 }
 
 function scanPrompt(){
   const chapters = DB.map(c=>c.name).join(', ');
-  return `You are reading a photo of a medical prescription (may be handwritten, may mix Arabic and English, may use medical shorthand like "1x3" for dose frequency). Extract every distinct medication you can identify.
+  return `You are reading a photo of a medical prescription. It may be handwritten (doctor's handwriting can be messy — take your time), may mix Arabic and English, and may use medical shorthand like "1x3" (once, 3 times daily) or "(Cat:B)" for pregnancy category. Look carefully at each line before deciding. Extract every distinct medication you can identify.
 
 Existing library categories: ${chapters}
 
 Respond with ONLY a JSON array, no markdown fences, no explanation, in exactly this shape:
-[{"generic":"","brands":["..."],"info":"class / dose / frequency if visible","suggestedChapter":"one of the existing categories, as close a match as possible","isNewChapter":false}]
+[{"generic":"","brands":["..."],"info":"class / dose / frequency if visible","pregnancyCategory":"A, B, C, D, or X — FDA pregnancy risk category for this drug, leave empty string if genuinely unknown","suggestedChapter":"one of the existing categories, as close a match as possible","isNewChapter":false}]
 
-If nothing on the category list fits well, set "isNewChapter":true and put a short new category name in "suggestedChapter". If you cannot read anything reliably, return [].`;
+Use your own pharmacological knowledge for pregnancyCategory even if it is not written on the prescription itself — most standard drugs have a well-established category. Only leave it empty if you truly cannot determine it.
+If nothing on the category list fits well, set "isNewChapter":true and put a short new category name in "suggestedChapter". Read every line of the image before responding — do not skip drugs because handwriting is imperfect, give your best reading instead. If you genuinely cannot read anything reliably, return [].`;
 }
 
-async function callClaude(key, b64, mime){
+async function callClaude(key, b64, mime, model){
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method:'POST',
     headers:{
@@ -2240,8 +2276,8 @@ async function callClaude(key, b64, mime){
       'anthropic-dangerous-direct-browser-access':'true'
     },
     body: JSON.stringify({
-      model:'claude-sonnet-4-5',
-      max_tokens: 1500,
+      model: model || defaultModelFor('claude'),
+      max_tokens: 2000,
       messages:[{role:'user', content:[
         {type:'image', source:{type:'base64', media_type:mime, data:b64}},
         {type:'text', text: scanPrompt()}
@@ -2252,13 +2288,13 @@ async function callClaude(key, b64, mime){
   const data = await res.json();
   return data.content.map(c=>c.text||'').join('');
 }
-async function callOpenAI(key, b64, mime){
+async function callOpenAI(key, b64, mime, model){
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method:'POST',
     headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+key },
     body: JSON.stringify({
-      model:'gpt-4o',
-      max_tokens: 1500,
+      model: model || defaultModelFor('openai'),
+      max_tokens: 2000,
       messages:[{role:'user', content:[
         {type:'text', text: scanPrompt()},
         {type:'image_url', image_url:{url:'data:'+mime+';base64,'+b64}}
@@ -2269,8 +2305,9 @@ async function callOpenAI(key, b64, mime){
   const data = await res.json();
   return data.choices[0].message.content;
 }
-async function callGemini(key, b64, mime){
-  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key='+key, {
+async function callGemini(key, b64, mime, model){
+  const m = model || defaultModelFor('gemini');
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(m)+':generateContent?key='+key, {
     method:'POST',
     headers:{ 'Content-Type':'application/json' },
     body: JSON.stringify({
@@ -2295,19 +2332,19 @@ function parseAiJson(text){
 async function handleScanFile(input){
   const file = input.files[0]; if(!file) return;
   const cfg = loadAiConfig();
+  const model = cfg.model || defaultModelFor(cfg.provider);
   const resultArea = document.getElementById('scanResultArea');
-  resultArea.innerHTML = `<div class="card" style="padding:20px;text-align:center;"><div class="detail-section-title" style="justify-content:center;">Reading prescription…</div><div class="modal-hint">Sending photo to ${cfg.provider}. This can take a few seconds.</div></div>`;
+  resultArea.innerHTML = `<div class="card" style="padding:20px;text-align:center;"><div class="detail-section-title" style="justify-content:center;">Reading prescription…</div><div class="modal-hint">Sending photo to ${cfg.provider} (${model}). This can take a few seconds.</div></div>`;
   try{
-    const b64 = await fileToBase64(file);
-    const mime = file.type || 'image/jpeg';
+    const {b64, mime} = await preprocessImage(file);
     let raw;
-    if(cfg.provider==='claude') raw = await callClaude(cfg.key, b64, mime);
-    else if(cfg.provider==='openai') raw = await callOpenAI(cfg.key, b64, mime);
-    else raw = await callGemini(cfg.key, b64, mime);
+    if(cfg.provider==='claude') raw = await callClaude(cfg.key, b64, mime, model);
+    else if(cfg.provider==='openai') raw = await callOpenAI(cfg.key, b64, mime, model);
+    else raw = await callGemini(cfg.key, b64, mime, model);
     const items = parseAiJson(raw);
     renderScanResults(items);
   }catch(e){
-    resultArea.innerHTML = `<div class="card warn-card" style="padding:16px;"><div class="detail-section-title">⚠️ Couldn't read that</div><div class="modal-hint">${(e.message||e).toString().slice(0,300)}</div></div>`;
+    resultArea.innerHTML = `<div class="card warn-card" style="padding:16px;"><div class="detail-section-title">⚠️ Couldn't read that</div><div class="modal-hint">${(e.message||e).toString().slice(0,300)}</div></div><div class="pc-link" onclick="renderScanSettingsOnly()">⚙️ Check provider / model / key</div>`;
   }
   input.value = '';
 }
@@ -2326,6 +2363,7 @@ function renderScanResults(items){
         ${dup?`<div class="modal-hint" style="color:var(--accent);">⚠ "${it.generic}" already exists in your library — saving will add these brands to it instead of duplicating.</div>`:''}
         <div class="field-card"><div class="field-label">Generic name</div><input class="text-input" id="si_g_${i}" value="${(it.generic||'').replace(/"/g,'&quot;')}"></div>
         <div class="field-card"><div class="field-label">Info / dose / class</div><input class="text-input" id="si_info_${i}" value="${(it.info||'').replace(/"/g,'&quot;')}"></div>
+        <div class="field-card"><div class="field-label">Pregnancy category</div><input class="text-input" id="si_preg_${i}" value="${(it.pregnancyCategory||'').replace(/"/g,'&quot;')}" placeholder="A / B / C / D / X" style="max-width:110px;"></div>
         <div class="field-card"><div class="field-label">Brand names (comma separated)</div><input class="text-input" id="si_b_${i}" value="${(it.brands||[]).join(', ')}"></div>
         <div class="field-card"><div class="field-label">Category</div>
           <select class="text-input" id="si_chap_${i}">
@@ -2353,7 +2391,11 @@ function commitScanResults(items){
     const inc = document.getElementById('si_inc_'+i);
     if(!inc || !inc.checked) return;
     const g = document.getElementById('si_g_'+i).value.trim(); if(!g) return;
-    const info = document.getElementById('si_info_'+i).value.trim();
+    let info = document.getElementById('si_info_'+i).value.trim();
+    const preg = document.getElementById('si_preg_'+i).value.trim().toUpperCase();
+    if(preg && !/cat[:\s]*[abcdx]/i.test(info)){
+      info = info ? `${info} (Cat:${preg})` : `(Cat:${preg})`;
+    }
     const brands = document.getElementById('si_b_'+i).value.split(',').map(s=>s.trim()).filter(Boolean);
     const chapSel = document.getElementById('si_chap_'+i).value;
 
