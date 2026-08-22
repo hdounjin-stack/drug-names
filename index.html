@@ -1428,6 +1428,11 @@ function toggleEditMode(){
   document.body.classList.toggle('edit-mode', editMode);
   if(state.screen==='home') renderHome();
   if(state.screen==='session') renderSession();
+  if(state.screen==='otcdetail' && state.otcDetailId){
+    const t = findOtcTopic(state.otcDetailId);
+    if(t) renderOtcDetail(t);
+  }
+  if(state.screen==='pediatric') renderPediatric();
 }
 function resetDB(){
   if(!confirm('Reset ALL data to the original course content? Your added/edited entries will be lost.')) return;
@@ -1675,8 +1680,9 @@ function openTopicModal(chapterId, topicId){
       c.topics.push({id:uid(), t:title, ar, dd:[], management:[], redFlags:[], notes:[], tables:[]});
     } else { t.t=title; t.ar=ar; }
     saveDB(); closeModal();
-    if(topicId===null){ refreshSessionIfOpen(chapterId); renderSession(); }
-    else { refreshOtcDetailIfOpen(topicId); refreshSessionIfOpen(chapterId); }
+    refreshSessionIfOpen(chapterId);
+    renderSession();
+    if(topicId!==null) refreshOtcDetailIfOpen(topicId);
   });
 }
 function deleteTopic(chapterId, topicId){
