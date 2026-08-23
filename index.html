@@ -1501,10 +1501,15 @@ function deleteChapter(id){
 function openDrugModal(chapterId, idx){
   const c = DB.find(x=>x.id===chapterId); if(!c) return;
   const d = idx===null ? {g:'',info:'',group:'',brands:[]} : c.drugs[idx];
+  const groups = Array.from(new Set((c.drugs||[]).map(x=>x.group).filter(Boolean)));
   openModal(idx===null?'Add Drug':'Edit Drug', `
     <div class="field-card"><div class="field-label">Generic name</div><input id="mDrugG" class="text-input" value="${d.g||''}" placeholder="e.g. Ibuprofen"></div>
     <div class="field-card"><div class="field-label">Info (class · dose · notes)</div><textarea id="mDrugInfo" class="text-input">${d.info||''}</textarea></div>
-    <div class="field-card"><div class="field-label">Group / subcategory (optional)</div><input id="mDrugGroup" class="text-input" value="${d.group||''}" placeholder="e.g. Propionic Acid Derivatives"></div>
+    <div class="field-card"><div class="field-label">Group / subcategory (optional)</div>
+      <input id="mDrugGroup" class="text-input" list="mDrugGroupList" value="${d.group||''}" placeholder="e.g. Salicylates">
+      <datalist id="mDrugGroupList">${groups.map(g=>`<option value="${g}">`).join('')}</datalist>
+    </div>
+    <div class="modal-hint">Pick an existing group to add this drug under it, or type a new name to start a fresh section.</div>
     <div class="field-card"><div class="field-label">Brand names (comma separated)</div><input id="mDrugBrands" class="text-input" value="${(d.brands||[]).join(', ')}" placeholder="Brufen, Advil"></div>
   `, ()=>{
     const g = val('mDrugG').trim(); if(!g) return;
@@ -1950,6 +1955,11 @@ function otcAccCard(t, color, uid, chapId){
 
 function renderCardList(cards, opts){
   opts = opts || {};
+  if(opts.grouped){
+    const order = [];
+    cards.forEach(c=>{ const g=(c.kind==='drug'?c.data.group:null)||''; if(!order.includes(g)) order.push(g); });
+    cards = cards.slice().sort((a,b)=>order.indexOf((a.kind==='drug'?a.data.group:null)||'') - order.indexOf((b.kind==='drug'?b.data.group:null)||''));
+  }
   let html = '', lastGroup = undefined;
   cards.forEach((c,i)=>{
     if(opts.grouped && c.kind==='drug'){
@@ -2405,6 +2415,21 @@ function commitScanResults(items){
     const brands = document.getElementById('si_b_'+i).value.split(',').map(s=>s.trim()).filter(Boolean);
     const chapSel = document.getElementById('si_chap_'+i).value;
 
+    // Global duplicate check FIRST, across the whole library — wins over
+    // whatever chapter is selected, so the drug always merges into wherever
+    // it already lives instead of getting a second copy in a new category.
+    let existing = null;
+    for(const ch of DB){
+      const found = (ch.drugs||[]).find(d=>d.g && d.g.toLowerCase().trim()===g.toLowerCase());
+      if(found){ existing = found; break; }
+    }
+    if(existing){
+      existing.brands = Array.from(new Set([...(existing.brands||[]), ...brands]));
+      if(!existing.info) existing.info = info;
+      updated++;
+      return;
+    }
+
     let chapter;
     if(chapSel==='__new__'){
       const name = (items[i].suggestedChapter || 'New Category').trim();
@@ -2423,15 +2448,8 @@ function commitScanResults(items){
     }
     if(!chapter) return;
     if(!chapter.drugs) chapter.drugs=[];
-    const existing = chapter.drugs.find(d=>d.g && d.g.toLowerCase().trim()===g.toLowerCase());
-    if(existing){
-      existing.brands = Array.from(new Set([...(existing.brands||[]), ...brands]));
-      if(!existing.info) existing.info = info;
-      updated++;
-    } else {
-      chapter.drugs.push({id:uid(), g, info, brands});
-      added++;
-    }
+    chapter.drugs.push({id:uid(), g, info, brands});
+    added++;
   });
   saveDB();
   document.getElementById('scanResultArea').innerHTML = `<div class="card notes-card" style="padding:16px;">✅ Done — ${added} added, ${updated} merged into existing drugs${newChapters?`, ${newChapters} new categor${newChapters>1?'ies':'y'} created`:''}.</div>
