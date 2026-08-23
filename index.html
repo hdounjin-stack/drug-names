@@ -285,6 +285,12 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .pc-result .pc-line .k{font-size:12px;color:var(--ink-soft);}
 .pc-result .pc-line .v{font-size:15px;font-weight:700;color:var(--accent);}
 .pc-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;}
+.chat-log{margin-top:12px;display:flex;flex-direction:column;gap:10px;max-height:52vh;overflow-y:auto;}
+.chat-msg{padding:10px 13px;border-radius:14px;font-size:12.5px;line-height:1.55;max-width:88%;white-space:pre-wrap;word-break:break-word;}
+.chat-msg.user{align-self:flex-end;background:var(--ink);color:var(--paper);border-bottom-right-radius:4px;}
+.chat-msg.assistant{align-self:flex-start;background:var(--paper);border:1px solid var(--line-strong);border-bottom-left-radius:4px;}
+.chat-input-row{display:none;gap:8px;margin-top:12px;}
+.chat-input-row .text-input{flex:1;margin-bottom:0;}
 .pc-link{font-size:12px;color:var(--accent);text-decoration:underline;cursor:pointer;text-align:center;margin-top:18px;}
 .beta-tag{font-size:9px;font-weight:700;text-transform:uppercase;background:var(--accent);color:#fff;padding:2px 6px;border-radius:20px;margin-left:6px;vertical-align:middle;}
 .scan-item{border:1px solid var(--line-strong);}
@@ -2101,22 +2107,19 @@ function renderPedCalc(){
     </div>
 
     <div class="card" style="padding:16px;margin-top:14px;">
-      <div class="detail-section-title">Step 2 — Calculate Dose</div>
-      <div class="pc-row">
-        <div class="field-card"><div class="field-label">Weight (kg)</div><input type="number" min="0" step="0.1" id="pcWeight" class="text-input" placeholder="kg"></div>
-        <div class="field-card"><div class="field-label">Dose (mg/kg/day)</div><input type="number" min="0" step="0.1" id="pcDose" class="text-input" placeholder="mg/kg/day"></div>
+      <div class="detail-section-title">🩺 Clinical Scenarios <span class="beta-tag">new</span></div>
+      <div class="modal-hint">AI-generated cases — emergencies and everyday internal medicine — for practicing preliminary diagnosis and writing a prescription per current clinical guidelines. Uses the same AI key as Scan Prescription.</div>
+      <button class="pill-btn primary" style="width:100%;" onclick="startNewScenario()">🎲 New Scenario</button>
+      <div id="scenarioChatLog" class="chat-log"></div>
+      <div class="chat-input-row" id="scenarioInputRow" style="display:none;">
+        <input type="text" id="scenarioInput" class="text-input" placeholder="Your diagnosis / plan / answer..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendScenarioMessage();}">
+        <button class="pill-btn primary" onclick="sendScenarioMessage()">Send</button>
       </div>
-      <div class="pc-row" style="margin-top:8px;">
-        <div class="field-card"><div class="field-label">Concentration — mg</div><input type="number" min="0" step="0.1" id="pcConcMg" class="text-input" placeholder="e.g. 200"></div>
-        <div class="field-card"><div class="field-label">per how many ml</div><input type="number" min="0.1" step="0.1" id="pcConcMl" class="text-input" placeholder="e.g. 5"></div>
-      </div>
-      <div class="field-card" style="margin-top:8px;"><div class="field-label">Doses per day</div><input type="number" min="1" step="1" id="pcFreq" class="text-input" placeholder="e.g. 3" value="1"></div>
-      <button class="pill-btn primary" style="width:100%;margin-top:12px;" onclick="pcCalculate()">Calculate</button>
-      <div id="pcResult"></div>
     </div>
     <div class="pc-link" onclick="goto('pediatric')">View the Pediatric Doses reference lesson →</div>
   `;
   state.pcUnit = 'years';
+  renderScenarioChat();
 }
 function pcSetUnit(u){
   state.pcUnit = u;
@@ -2138,28 +2141,83 @@ function pcEstimate(){
   }
   w = Math.round(w*10)/10;
   out.innerHTML = `Estimated weight: <strong style="color:var(--accent);">${w} kg</strong> &nbsp;<span style="color:var(--muted);">(${formula})</span>`;
-  document.getElementById('pcWeight').value = w;
 }
-function pcCalculate(){
-  const weight = parseFloat(document.getElementById('pcWeight').value);
-  const dose = parseFloat(document.getElementById('pcDose').value);
-  const concMg = parseFloat(document.getElementById('pcConcMg').value);
-  const concMl = parseFloat(document.getElementById('pcConcMl').value);
-  const freq = parseFloat(document.getElementById('pcFreq').value) || 1;
-  const result = document.getElementById('pcResult');
-  if([weight,dose,concMg,concMl].some(v=>isNaN(v)||v<=0)){
-    result.innerHTML = `<div class="pc-note">Fill in weight, dose, and concentration to calculate.</div>`;
-    return;
+/* ---------- Clinical Scenarios chat (uses same BYOK config as Scan Prescription) ---------- */
+let scenarioMessages = [];
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function clinicalScenarioSystemPrompt(){
+  const chapters = DB.map(c=>c.name).join(', ');
+  return `You are a clinical case tutor for a pharmacy/medicine student, working from a course covering: ${chapters}. Generate realistic clinical scenarios one at a time — mix emergencies (e.g. anaphylaxis, MI, DKA, status asthmaticus, acute stroke, severe hypoglycemia) with everyday internal medicine / OTC cases (e.g. hypertension follow-up, GERD, UTI, diabetes management, common cold, gastroenteritis).
+
+For each scenario: briefly describe the patient (age, relevant history, chief complaint, key vitals/exam findings) realistically, then STOP and ask the learner for (1) their preliminary diagnosis and (2) their initial drug plan (basic drug names, form, dose). Do not reveal the answer yet.
+
+When the learner responds, give short constructive feedback on their diagnosis and plan, then show the recommended approach as an actual written prescription (Rx format: Drug — Form — Dose/Frequency), reflecting current clinical guidelines. Keep responses concise and conversational. If asked for a new scenario, start a fresh one in the same style.`;
+}
+async function callAiChat(cfg, messages){
+  const model = cfg.model || defaultModelFor(cfg.provider);
+  const sys = clinicalScenarioSystemPrompt();
+  if(cfg.provider==='claude'){
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':cfg.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model, max_tokens:1200, system:sys, messages: messages.map(m=>({role:m.role, content:m.text}))})
+    });
+    if(!res.ok) throw new Error('Claude error: '+res.status+' '+(await res.text()).slice(0,200));
+    const data = await res.json();
+    return data.content.map(c=>c.text||'').join('');
   }
-  const totalDailyMg = weight*dose;
-  const totalDailyMl = totalDailyMg / (concMg/concMl);
-  const mlPerDose = totalDailyMl/freq;
-  result.innerHTML = `<div class="pc-result">
-    <div class="pc-line"><span class="k">Total daily dose</span><span class="v">${totalDailyMg.toFixed(1)} mg</span></div>
-    <div class="pc-line"><span class="k">Total daily volume</span><span class="v">${totalDailyMl.toFixed(2)} ml</span></div>
-    <div class="pc-line"><span class="k">Volume per dose (÷${freq})</span><span class="v">${mlPerDose.toFixed(2)} ml</span></div>
-  </div>
-  <div class="pc-note">Always double-check against the max daily dose for the specific drug before dispensing.</div>`;
+  if(cfg.provider==='openai'){
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
+      body: JSON.stringify({model, max_tokens:1200, messages:[{role:'system',content:sys}, ...messages.map(m=>({role:m.role, content:m.text}))]})
+    });
+    if(!res.ok) throw new Error('OpenAI error: '+res.status+' '+(await res.text()).slice(0,200));
+    const data = await res.json();
+    return data.choices[0].message.content;
+  }
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+cfg.key, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({system_instruction:{parts:[{text:sys}]}, contents: messages.map(m=>({role: m.role==='assistant'?'model':'user', parts:[{text:m.text}]}))})
+  });
+  if(!res.ok) throw new Error('Gemini error: '+res.status+' '+(await res.text()).slice(0,200));
+  const data = await res.json();
+  return data.candidates[0].content.parts.map(p=>p.text||'').join('');
+}
+function renderScenarioChat(){
+  const log = document.getElementById('scenarioChatLog'); if(!log) return;
+  log.innerHTML = scenarioMessages.map(m=>`<div class="chat-msg ${m.role==='user'?'user':'assistant'}">${escapeHtml(m.text)}</div>`).join('');
+  log.scrollTop = log.scrollHeight;
+  const row = document.getElementById('scenarioInputRow');
+  if(row) row.style.display = scenarioMessages.length ? 'flex' : 'none';
+}
+async function pushScenarioTurn(){
+  const cfg = loadAiConfig();
+  const log = document.getElementById('scenarioChatLog');
+  log.insertAdjacentHTML('beforeend', `<div class="chat-msg assistant" id="scenarioLoading">…thinking</div>`);
+  log.scrollTop = log.scrollHeight;
+  try{
+    const reply = await callAiChat(cfg, scenarioMessages);
+    scenarioMessages.push({role:'assistant', text:reply});
+  }catch(e){
+    scenarioMessages.push({role:'assistant', text:'⚠️ '+(e.message||e).toString().slice(0,300)});
+  }
+  renderScenarioChat();
+}
+function startNewScenario(){
+  const cfg = loadAiConfig();
+  if(!cfg.key){ goto('scan'); return; }
+  scenarioMessages = [{role:'user', text:'Start a new clinical scenario.'}];
+  renderScenarioChat();
+  pushScenarioTurn();
+}
+function sendScenarioMessage(){
+  const input = document.getElementById('scenarioInput');
+  const text = input.value.trim(); if(!text) return;
+  scenarioMessages.push({role:'user', text});
+  input.value = '';
+  renderScenarioChat();
+  pushScenarioTurn();
 }
 
 /* =========================================================
