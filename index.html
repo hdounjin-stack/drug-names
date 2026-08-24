@@ -329,6 +329,21 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .scen-entry .se-sub,.mcq-entry .se-sub{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.5;}
 .scen-entry .se-arrow,.mcq-entry .se-arrow{flex:none;color:var(--accent);}
 .mcq-entry{background:linear-gradient(135deg,rgba(156,107,18,0.10),rgba(179,80,44,0.07) 55%,var(--card) 100%);}
+.scen-entry .se-icon svg,.mcq-entry .se-icon svg,.scan-entry .se-icon svg{width:26px;height:26px;color:var(--accent);}
+.avatar svg{color:var(--card);}
+.scan-entry{background:linear-gradient(135deg,rgba(179,80,44,0.15),rgba(156,107,18,0.06) 55%,var(--card) 100%);}
+/* home utility tiles row */
+.util-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 18px;}
+.util-tile{
+  background:var(--card);border:1px solid var(--line-strong);border-radius:var(--radius-md);
+  padding:11px 4px 9px;display:flex;flex-direction:column;align-items:center;gap:6px;
+  cursor:pointer;transition:border-color .18s, transform .12s;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) both;
+}
+.util-tile:nth-child(2){animation-delay:.05s}.util-tile:nth-child(3){animation-delay:.1s}.util-tile:nth-child(4){animation-delay:.15s}
+.util-tile:active{transform:scale(.94);}
+.util-tile:hover{border-color:var(--accent-line);}
+.util-tile svg{width:19px;height:19px;color:var(--accent);}
+.util-tile span{font-size:10px;font-weight:700;color:var(--ink-soft);letter-spacing:.02em;}
 
 /* ---------- MCQ Practice ---------- */
 .mcq-qcard{padding:15px 16px;margin-bottom:10px;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) both;}
@@ -432,6 +447,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
       Browse
     </button>
     <button class="tabbtn" id="tab-pedcalc" onclick="goto('pedcalc')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="2.5" width="16" height="19" rx="3"/><path d="M8 7h8M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01"/></svg>
       Pedi Calc
     </button>
     <button class="tabbtn edit-toggle" id="editModeBtn" onclick="toggleEditMode()" title="Edit content">✎</button>
@@ -441,7 +457,9 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
   <section class="screen active" id="screen-home">
     <div class="greet-row">
       <div class="greet-left">
-        <div class="avatar">💊</div>
+        <div class="avatar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 20.5l-7-7a5 5 0 017-7l7 7a5 5 0 01-7 7z"/><path d="M8.5 8.5l7 7" transform="rotate(-45 12 12)"/></svg>
+        </div>
         <div>
           <div class="greet-sub">Welcome back</div>
           <div class="greet-name">PharmaCore</div>
@@ -454,22 +472,38 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 
     <div class="ring-row" id="ringRow"></div>
 
-    <div class="pill-row">
-      <div class="pill-btn primary" style="flex:1;" onclick="checkForUpdates()">🔄 Check for Updates</div>
+    <div class="util-grid">
+      <div class="util-tile" onclick="checkForUpdates()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-2.6-6.4"/><path d="M21 3v6h-6"/></svg>
+        <span>Updates</span>
+      </div>
+      <div class="util-tile" onclick="exportDB()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>
+        <span>Backup</span>
+      </div>
+      <div class="util-tile" onclick="document.getElementById('importFile').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M4 19h16"/></svg>
+        <span>Restore</span>
+      </div>
+      <div class="util-tile" onclick="openShareModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6"/></svg>
+        <span>Share</span>
+      </div>
     </div>
 
-    <div class="pill-row">
-      <div class="pill-btn ghost" onclick="exportDB()">💾 Backup my data</div>
-      <div class="pill-btn ghost" onclick="document.getElementById('importFile').click()">📂 Restore backup</div>
+    <div class="scan-entry scen-entry" onclick="goto('scan')">
+      <div class="se-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8V5a2 2 0 012-2h3M16 3h3a2 2 0 012 2v3M21 16v3a2 2 0 01-2 2h-3M8 21H5a2 2 0 01-2-2v-3"/><path d="M7 12h10"/></svg>
+      </div>
+      <div class="se-text">
+        <div class="se-title">Scan Prescription</div>
+        <div class="se-sub">Point your camera at an Rx — AI adds the drugs for you</div>
+      </div>
+      <svg class="se-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
     </div>
-    <div class="pill-row">
-      <div class="pill-btn primary" style="flex:1;" onclick="openShareModal()">🔗 Share Library With Someone</div>
-    </div>
-    <div class="pill-row">
-      <div class="pill-btn ghost scan-btn" style="flex:1;" onclick="goto('scan')">📷 Scan Prescription <span class="beta-tag">new</span></div>
-    </div>
+
     <input type="file" id="importFile" accept="application/json" style="display:none;" onchange="importDB(this)">
-    <div class="backup-hint">Your added/edited content auto-saves on this device. Download a backup occasionally so nothing is lost if you switch devices or clear browser data. Share sends chapters you pick to anyone — they merge it in without losing their own.</div>
+    <div class="backup-hint">Your added/edited content auto-saves on this device. Download a backup occasionally so nothing is lost if you switch devices or clear browser data.</div>
 
     <div class="section-title"><h3>Course Chapters</h3><span><span class="reset-order-link" onclick="resetChapterOrder()">Reset order</span><span id="resetDataLink" class="reset-order-link" style="margin-left:10px;display:none;" onclick="resetDB()">Reset data</span></span></div>
     <div id="chapterList"></div>
@@ -1915,7 +1949,7 @@ function renderOtcDetail(topic){
   } else { html += addBtn('Steps', `openTopicStepsModal('${chapterId}','${topic.id}')`); }
 
   if(topic.management && topic.management.length){
-    html += `<div class="detail-section"><div class="detail-section-title">💊 Management by Cause${editLink(`openTopicMgmtModal('${chapterId}','${topic.id}')`)}</div>
+    html += `<div class="detail-section"><div class="detail-section-title">Management by Cause${editLink(`openTopicMgmtModal('${chapterId}','${topic.id}')`)}</div>
       <div class="card dtable-wrap"><table class="dtable"><thead><tr><th>Cause</th><th>Drug Class</th><th>Example</th><th>Regimen</th></tr></thead><tbody>
       ${topic.management.map(m=>`<tr><td class="strong">${m.cause}</td><td>${m.cls}</td><td class="mono-cell">${m.example}</td><td>${m.regimen}</td></tr>`).join('')}
       </tbody></table></div></div>`;
@@ -2147,7 +2181,7 @@ function renderSession(){
   const addTopicBtn = (editMode && chapter && chapter.type==='otc') ?
     `<button class="pill-btn primary" style="width:100%;margin-bottom:14px;" onclick="openTopicModal('${chapter.id}',null)">+ Add Topic</button>` : '';
   const emptyHint = (!total && editMode) ? `<div class="empty-hint">No ${chapter && chapter.type==='otc'?'topics':'drugs'} yet — use "+ Add ${chapter && chapter.type==='otc'?'Topic':'Drug'}" above to start this chapter.</div>` : '';
-  const shareBtn = chapter ? `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="shareOrDownload([DB.find(c=>c.id==='${chapter.id}')],'pharmacore-${chapter.id}.json','PharmaCore — ${chapter.name} chapter')">🔗 Share This Chapter</button>` : '';
+  const shareBtn = chapter ? `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="shareOrDownload([DB.find(c=>c.id==='${chapter.id}')],'pharmacore-${chapter.id}.json','PharmaCore — ${chapter.name} chapter')">Share This Chapter</button>` : '';
   area.innerHTML = shareBtn + addDrugBtn + addTopicBtn + addTableBtn + tablesHtml + addNotesBtn + notesHtml + emptyHint + renderCardList(cards, {prefix:'sess', grouped:true});
 }
 
@@ -2213,7 +2247,9 @@ function renderPedCalc(){
     </div>
 
     <div class="mcq-entry" onclick="goto('mcq')">
-      <div class="se-icon">🧠</div>
+      <div class="se-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3a6 6 0 00-6 6c0 2.2 1.2 3.6 2.3 4.8.8.9 1.7 1.9 1.7 3.2v.5a1.5 1.5 0 001.5 1.5h1a1.5 1.5 0 001.5-1.5v-.5c0-1.3.9-2.3 1.7-3.2C16.8 12.6 18 11.2 18 9a6 6 0 00-6-6z"/><path d="M10 21h4"/></svg>
+      </div>
       <div class="se-text">
         <div class="se-title">Drug MCQ Practice</div>
         <div class="se-sub">Quick-fire quiz from your library — contraindications, antidotes & more</div>
@@ -2221,7 +2257,9 @@ function renderPedCalc(){
       <svg class="se-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
     </div>
     <div class="scen-entry" onclick="goto('scen')">
-      <div class="se-icon">🩺</div>
+      <div class="se-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4.8 3.5c1.6-.9 3.6-.4 4.6 1.1l1.7 2.6c.8 1.2.6 2.8-.4 3.8l-1 1c.5 1.2 1.9 2.9 3.2 3.7l1.1-1c1-1 2.6-1.2 3.8-.4l2.6 1.7c1.5 1 2 3 1.1 4.6-.7 1.2-2 2-3.4 2C10.6 22.5 1.5 13.4 1.5 5.9c0-1 .5-2 1.7-2.4z" transform="rotate(90 12 12)"/><path d="M12 7v3m0 2v.01" transform="rotate(90 12 12)"/></svg>
+      </div>
       <div class="se-text">
         <div class="se-title">Clinical Scenarios</div>
         <div class="se-sub">AI case tutor — diagnose, prescribe & learn</div>
@@ -2560,7 +2598,7 @@ function startMcq(){
   const playArea=document.getElementById('mcqPlayArea'), setup=document.getElementById('mcqSetup');
   setup.style.display='none'; playArea.style.display='block';
   mcqQuiz = {qs:null, i:0, correct:0, answered:0};
-  playArea.innerHTML = `<div class="card mcq-qcard"><div class="modal-hint" style="margin:0;">🧠 Generating ${n} questions from ${focus.length} drugs in your library…</div></div>`;
+  playArea.innerHTML = `<div class="card mcq-qcard"><div class="modal-hint" style="margin:0;">Generating ${n} questions from ${focus.length} drugs in your library…</div></div>`;
   callAiJson(cfg, `Drugs from my library:\n${listing}\n\nWrite ${n} single-best-answer MCQs testing these drugs. Mix categories: contraindications, side effects, antidotes, interactions, pregnancy safety, emergency/best-drug vignettes. Return ONLY the JSON array.`)
     .then(raw=>{
       let arr;
@@ -2652,7 +2690,7 @@ function finishMcq(){
       <span class="mcq-done-emoji">${emoji}</span>
       <div class="mcq-done-title">${qz.correct} / ${qz.qs.length} correct · ${pct}%</div>
       <div class="mcq-done-sub">${msg}</div>
-      <button class="pill-btn primary" style="width:100%;" onclick="retryMcq()">🔄 Try again</button>
+      <button class="pill-btn primary" style="width:100%;" onclick="retryMcq()">Try again</button>
       <button class="pill-btn ghost" style="width:100%;margin-top:8px;" onclick="exitMcq()">Change settings</button>
     </div>`;
 }
@@ -2731,7 +2769,7 @@ function renderScan(){
       <div class="detail-section-title">Take or upload a photo</div>
       <div class="modal-hint">Works best with the drug name(s) clearly visible. Multiple drugs on one prescription is fine — you'll review each one before anything is saved.</div>
       <input type="file" id="scanFile" accept="image/*" style="display:none;" onchange="handleScanFile(this)">
-      <button class="pill-btn primary" style="width:100%;" onclick="document.getElementById('scanFile').click()">📷 Open Camera / Choose Photo</button>
+      <button class="pill-btn primary" style="width:100%;" onclick="document.getElementById('scanFile').click()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z"/><circle cx="12" cy="13" r="3.5"/></svg> Open Camera / Choose Photo</button>
     </div>
     <div class="pc-link" onclick="renderScanSettingsOnly()">⚙️ Change AI provider / key / model (using ${cfg.provider} · ${cfg.model||defaultModelFor(cfg.provider)})</div>
     <div id="scanResultArea"></div>
