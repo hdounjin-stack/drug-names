@@ -285,12 +285,6 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .pc-result .pc-line .k{font-size:12px;color:var(--ink-soft);}
 .pc-result .pc-line .v{font-size:15px;font-weight:700;color:var(--accent);}
 .pc-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;}
-.chat-log{margin-top:12px;display:flex;flex-direction:column;gap:10px;max-height:52vh;overflow-y:auto;}
-.chat-msg{padding:10px 13px;border-radius:14px;font-size:12.5px;line-height:1.55;max-width:88%;white-space:pre-wrap;word-break:break-word;}
-.chat-msg.user{align-self:flex-end;background:var(--ink);color:var(--paper);border-bottom-right-radius:4px;}
-.chat-msg.assistant{align-self:flex-start;background:var(--paper);border:1px solid var(--line-strong);border-bottom-left-radius:4px;}
-.chat-input-row{display:none;gap:8px;margin-top:12px;}
-.chat-input-row .text-input{flex:1;margin-bottom:0;}
 .pc-link{font-size:12px;color:var(--accent);text-decoration:underline;cursor:pointer;text-align:center;margin-top:18px;}
 .beta-tag{font-size:9px;font-weight:700;text-transform:uppercase;background:var(--accent);color:#fff;padding:2px 6px;border-radius:20px;margin-left:6px;vertical-align:middle;}
 .scan-item{border:1px solid var(--line-strong);}
@@ -1434,11 +1428,6 @@ function toggleEditMode(){
   document.body.classList.toggle('edit-mode', editMode);
   if(state.screen==='home') renderHome();
   if(state.screen==='session') renderSession();
-  if(state.screen==='otcdetail' && state.otcDetailId){
-    const t = findOtcTopic(state.otcDetailId);
-    if(t) renderOtcDetail(t);
-  }
-  if(state.screen==='pediatric') renderPediatric();
 }
 function resetDB(){
   if(!confirm('Reset ALL data to the original course content? Your added/edited entries will be lost.')) return;
@@ -1507,15 +1496,10 @@ function deleteChapter(id){
 function openDrugModal(chapterId, idx){
   const c = DB.find(x=>x.id===chapterId); if(!c) return;
   const d = idx===null ? {g:'',info:'',group:'',brands:[]} : c.drugs[idx];
-  const groups = Array.from(new Set((c.drugs||[]).map(x=>x.group).filter(Boolean)));
   openModal(idx===null?'Add Drug':'Edit Drug', `
     <div class="field-card"><div class="field-label">Generic name</div><input id="mDrugG" class="text-input" value="${d.g||''}" placeholder="e.g. Ibuprofen"></div>
     <div class="field-card"><div class="field-label">Info (class · dose · notes)</div><textarea id="mDrugInfo" class="text-input">${d.info||''}</textarea></div>
-    <div class="field-card"><div class="field-label">Group / subcategory (optional)</div>
-      <input id="mDrugGroup" class="text-input" list="mDrugGroupList" value="${d.group||''}" placeholder="e.g. Salicylates">
-      <datalist id="mDrugGroupList">${groups.map(g=>`<option value="${g}">`).join('')}</datalist>
-    </div>
-    <div class="modal-hint">Pick an existing group to add this drug under it, or type a new name to start a fresh section.</div>
+    <div class="field-card"><div class="field-label">Group / subcategory (optional)</div><input id="mDrugGroup" class="text-input" value="${d.group||''}" placeholder="e.g. Propionic Acid Derivatives"></div>
     <div class="field-card"><div class="field-label">Brand names (comma separated)</div><input id="mDrugBrands" class="text-input" value="${(d.brands||[]).join(', ')}" placeholder="Brufen, Advil"></div>
   `, ()=>{
     const g = val('mDrugG').trim(); if(!g) return;
@@ -1691,9 +1675,8 @@ function openTopicModal(chapterId, topicId){
       c.topics.push({id:uid(), t:title, ar, dd:[], management:[], redFlags:[], notes:[], tables:[]});
     } else { t.t=title; t.ar=ar; }
     saveDB(); closeModal();
-    refreshSessionIfOpen(chapterId);
-    renderSession();
-    if(topicId!==null) refreshOtcDetailIfOpen(topicId);
+    if(topicId===null){ refreshSessionIfOpen(chapterId); renderSession(); }
+    else { refreshOtcDetailIfOpen(topicId); refreshSessionIfOpen(chapterId); }
   });
 }
 function deleteTopic(chapterId, topicId){
@@ -1961,11 +1944,6 @@ function otcAccCard(t, color, uid, chapId){
 
 function renderCardList(cards, opts){
   opts = opts || {};
-  if(opts.grouped){
-    const order = [];
-    cards.forEach(c=>{ const g=(c.kind==='drug'?c.data.group:null)||''; if(!order.includes(g)) order.push(g); });
-    cards = cards.slice().sort((a,b)=>order.indexOf((a.kind==='drug'?a.data.group:null)||'') - order.indexOf((b.kind==='drug'?b.data.group:null)||''));
-  }
   let html = '', lastGroup = undefined;
   cards.forEach((c,i)=>{
     if(opts.grouped && c.kind==='drug'){
@@ -2107,19 +2085,22 @@ function renderPedCalc(){
     </div>
 
     <div class="card" style="padding:16px;margin-top:14px;">
-      <div class="detail-section-title">🩺 Clinical Scenarios <span class="beta-tag">new</span></div>
-      <div class="modal-hint">AI-generated cases — emergencies and everyday internal medicine — for practicing preliminary diagnosis and writing a prescription per current clinical guidelines. Uses the same AI key as Scan Prescription.</div>
-      <button class="pill-btn primary" style="width:100%;" onclick="startNewScenario()">🎲 New Scenario</button>
-      <div id="scenarioChatLog" class="chat-log"></div>
-      <div class="chat-input-row" id="scenarioInputRow" style="display:none;">
-        <input type="text" id="scenarioInput" class="text-input" placeholder="Your diagnosis / plan / answer..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendScenarioMessage();}">
-        <button class="pill-btn primary" onclick="sendScenarioMessage()">Send</button>
+      <div class="detail-section-title">Step 2 — Calculate Dose</div>
+      <div class="pc-row">
+        <div class="field-card"><div class="field-label">Weight (kg)</div><input type="number" min="0" step="0.1" id="pcWeight" class="text-input" placeholder="kg"></div>
+        <div class="field-card"><div class="field-label">Dose (mg/kg/day)</div><input type="number" min="0" step="0.1" id="pcDose" class="text-input" placeholder="mg/kg/day"></div>
       </div>
+      <div class="pc-row" style="margin-top:8px;">
+        <div class="field-card"><div class="field-label">Concentration — mg</div><input type="number" min="0" step="0.1" id="pcConcMg" class="text-input" placeholder="e.g. 200"></div>
+        <div class="field-card"><div class="field-label">per how many ml</div><input type="number" min="0.1" step="0.1" id="pcConcMl" class="text-input" placeholder="e.g. 5"></div>
+      </div>
+      <div class="field-card" style="margin-top:8px;"><div class="field-label">Doses per day</div><input type="number" min="1" step="1" id="pcFreq" class="text-input" placeholder="e.g. 3" value="1"></div>
+      <button class="pill-btn primary" style="width:100%;margin-top:12px;" onclick="pcCalculate()">Calculate</button>
+      <div id="pcResult"></div>
     </div>
     <div class="pc-link" onclick="goto('pediatric')">View the Pediatric Doses reference lesson →</div>
   `;
   state.pcUnit = 'years';
-  renderScenarioChat();
 }
 function pcSetUnit(u){
   state.pcUnit = u;
@@ -2141,83 +2122,28 @@ function pcEstimate(){
   }
   w = Math.round(w*10)/10;
   out.innerHTML = `Estimated weight: <strong style="color:var(--accent);">${w} kg</strong> &nbsp;<span style="color:var(--muted);">(${formula})</span>`;
+  document.getElementById('pcWeight').value = w;
 }
-/* ---------- Clinical Scenarios chat (uses same BYOK config as Scan Prescription) ---------- */
-let scenarioMessages = [];
-function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
-function clinicalScenarioSystemPrompt(){
-  const chapters = DB.map(c=>c.name).join(', ');
-  return `You are a clinical case tutor for a pharmacy/medicine student, working from a course covering: ${chapters}. Generate realistic clinical scenarios one at a time — mix emergencies (e.g. anaphylaxis, MI, DKA, status asthmaticus, acute stroke, severe hypoglycemia) with everyday internal medicine / OTC cases (e.g. hypertension follow-up, GERD, UTI, diabetes management, common cold, gastroenteritis).
-
-For each scenario: briefly describe the patient (age, relevant history, chief complaint, key vitals/exam findings) realistically, then STOP and ask the learner for (1) their preliminary diagnosis and (2) their initial drug plan (basic drug names, form, dose). Do not reveal the answer yet.
-
-When the learner responds, give short constructive feedback on their diagnosis and plan, then show the recommended approach as an actual written prescription (Rx format: Drug — Form — Dose/Frequency), reflecting current clinical guidelines. Keep responses concise and conversational. If asked for a new scenario, start a fresh one in the same style.`;
-}
-async function callAiChat(cfg, messages){
-  const model = cfg.model || defaultModelFor(cfg.provider);
-  const sys = clinicalScenarioSystemPrompt();
-  if(cfg.provider==='claude'){
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':cfg.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body: JSON.stringify({model, max_tokens:1200, system:sys, messages: messages.map(m=>({role:m.role, content:m.text}))})
-    });
-    if(!res.ok) throw new Error('Claude error: '+res.status+' '+(await res.text()).slice(0,200));
-    const data = await res.json();
-    return data.content.map(c=>c.text||'').join('');
+function pcCalculate(){
+  const weight = parseFloat(document.getElementById('pcWeight').value);
+  const dose = parseFloat(document.getElementById('pcDose').value);
+  const concMg = parseFloat(document.getElementById('pcConcMg').value);
+  const concMl = parseFloat(document.getElementById('pcConcMl').value);
+  const freq = parseFloat(document.getElementById('pcFreq').value) || 1;
+  const result = document.getElementById('pcResult');
+  if([weight,dose,concMg,concMl].some(v=>isNaN(v)||v<=0)){
+    result.innerHTML = `<div class="pc-note">Fill in weight, dose, and concentration to calculate.</div>`;
+    return;
   }
-  if(cfg.provider==='openai'){
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
-      body: JSON.stringify({model, max_tokens:1200, messages:[{role:'system',content:sys}, ...messages.map(m=>({role:m.role, content:m.text}))]})
-    });
-    if(!res.ok) throw new Error('OpenAI error: '+res.status+' '+(await res.text()).slice(0,200));
-    const data = await res.json();
-    return data.choices[0].message.content;
-  }
-  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+cfg.key, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({system_instruction:{parts:[{text:sys}]}, contents: messages.map(m=>({role: m.role==='assistant'?'model':'user', parts:[{text:m.text}]}))})
-  });
-  if(!res.ok) throw new Error('Gemini error: '+res.status+' '+(await res.text()).slice(0,200));
-  const data = await res.json();
-  return data.candidates[0].content.parts.map(p=>p.text||'').join('');
-}
-function renderScenarioChat(){
-  const log = document.getElementById('scenarioChatLog'); if(!log) return;
-  log.innerHTML = scenarioMessages.map(m=>`<div class="chat-msg ${m.role==='user'?'user':'assistant'}">${escapeHtml(m.text)}</div>`).join('');
-  log.scrollTop = log.scrollHeight;
-  const row = document.getElementById('scenarioInputRow');
-  if(row) row.style.display = scenarioMessages.length ? 'flex' : 'none';
-}
-async function pushScenarioTurn(){
-  const cfg = loadAiConfig();
-  const log = document.getElementById('scenarioChatLog');
-  log.insertAdjacentHTML('beforeend', `<div class="chat-msg assistant" id="scenarioLoading">…thinking</div>`);
-  log.scrollTop = log.scrollHeight;
-  try{
-    const reply = await callAiChat(cfg, scenarioMessages);
-    scenarioMessages.push({role:'assistant', text:reply});
-  }catch(e){
-    scenarioMessages.push({role:'assistant', text:'⚠️ '+(e.message||e).toString().slice(0,300)});
-  }
-  renderScenarioChat();
-}
-function startNewScenario(){
-  const cfg = loadAiConfig();
-  if(!cfg.key){ goto('scan'); return; }
-  scenarioMessages = [{role:'user', text:'Start a new clinical scenario.'}];
-  renderScenarioChat();
-  pushScenarioTurn();
-}
-function sendScenarioMessage(){
-  const input = document.getElementById('scenarioInput');
-  const text = input.value.trim(); if(!text) return;
-  scenarioMessages.push({role:'user', text});
-  input.value = '';
-  renderScenarioChat();
-  pushScenarioTurn();
+  const totalDailyMg = weight*dose;
+  const totalDailyMl = totalDailyMg / (concMg/concMl);
+  const mlPerDose = totalDailyMl/freq;
+  result.innerHTML = `<div class="pc-result">
+    <div class="pc-line"><span class="k">Total daily dose</span><span class="v">${totalDailyMg.toFixed(1)} mg</span></div>
+    <div class="pc-line"><span class="k">Total daily volume</span><span class="v">${totalDailyMl.toFixed(2)} ml</span></div>
+    <div class="pc-line"><span class="k">Volume per dose (÷${freq})</span><span class="v">${mlPerDose.toFixed(2)} ml</span></div>
+  </div>
+  <div class="pc-note">Always double-check against the max daily dose for the specific drug before dispensing.</div>`;
 }
 
 /* =========================================================
@@ -2227,13 +2153,10 @@ function sendScenarioMessage(){
    it touches DB. Key + provider live only in localStorage.
    ========================================================= */
 function loadAiConfig(){
-  try{ return JSON.parse(localStorage.getItem('pc_ai_cfg')||'null') || {provider:'claude', key:'', model:''}; }
-  catch(e){ return {provider:'claude', key:'', model:''}; }
+  try{ return JSON.parse(localStorage.getItem('pc_ai_cfg')||'null') || {provider:'claude', key:''}; }
+  catch(e){ return {provider:'claude', key:''}; }
 }
 function saveAiConfig(cfg){ try{ localStorage.setItem('pc_ai_cfg', JSON.stringify(cfg)); }catch(e){} }
-function defaultModelFor(provider){
-  return {claude:'claude-sonnet-4-5', openai:'gpt-4o', gemini:'gemini-3.6-flash'}[provider] || '';
-}
 
 function renderScan(){
   const cfg = loadAiConfig();
@@ -2249,17 +2172,12 @@ function renderScan(){
       <input type="file" id="scanFile" accept="image/*" style="display:none;" onchange="handleScanFile(this)">
       <button class="pill-btn primary" style="width:100%;" onclick="document.getElementById('scanFile').click()">📷 Open Camera / Choose Photo</button>
     </div>
-    <div class="pc-link" onclick="renderScanSettingsOnly()">⚙️ Change AI provider / key / model (using ${cfg.provider} · ${cfg.model||defaultModelFor(cfg.provider)})</div>
+    <div class="pc-link" onclick="renderScanSettingsOnly()">⚙️ Change AI provider / key (using ${cfg.provider})</div>
     <div id="scanResultArea"></div>
   `;
 }
 function renderScanSettingsOnly(){
   document.getElementById('scanArea').innerHTML = scanSettingsHtml(loadAiConfig(), true);
-}
-function onScanProviderChange(){
-  const p = document.getElementById('scanProvider').value;
-  const modelField = document.getElementById('scanModel');
-  if(modelField && !modelField.dataset.touched) modelField.value = defaultModelFor(p);
 }
 function scanSettingsHtml(cfg, isChange){
   const providers = [
@@ -2272,17 +2190,13 @@ function scanSettingsHtml(cfg, isChange){
       <div class="detail-section-title">${isChange?'Change your AI provider':'Connect your AI to scan prescriptions'}</div>
       <div class="modal-hint">Your key stays on this device only — it's never shared, never sent anywhere except directly to your chosen AI provider. You'll need your own API key from that provider's website.</div>
       <div class="field-card"><div class="field-label">Provider</div>
-        <select id="scanProvider" class="text-input" onchange="onScanProviderChange()">
+        <select id="scanProvider" class="text-input">
           ${providers.map(p=>`<option value="${p.id}" ${cfg.provider===p.id?'selected':''}>${p.name}</option>`).join('')}
         </select>
       </div>
       <div class="field-card"><div class="field-label">API Key</div>
         <input type="password" id="scanKey" class="text-input" value="${cfg.key||''}" placeholder="sk-... / your API key">
       </div>
-      <div class="field-card"><div class="field-label">Model</div>
-        <input type="text" id="scanModel" class="text-input" value="${cfg.model || defaultModelFor(cfg.provider)}" oninput="this.dataset.touched='1'" placeholder="${defaultModelFor(cfg.provider)}">
-      </div>
-      <div class="modal-hint" style="margin-top:-8px;">Pre-filled with today's default, but model names change over time — check your provider's docs and type the current one here whenever you want to switch (e.g. a newer Gemini/Claude/GPT version).</div>
       <button class="pill-btn primary" style="width:100%;" onclick="saveScanSettings()">Save & Continue</button>
       ${isChange?`<div class="pc-link" onclick="goto('scan')">← Back to scanning</div>`:''}
     </div>`;
@@ -2290,57 +2204,33 @@ function scanSettingsHtml(cfg, isChange){
 function saveScanSettings(){
   const provider = document.getElementById('scanProvider').value;
   const key = document.getElementById('scanKey').value.trim();
-  const model = document.getElementById('scanModel').value.trim() || defaultModelFor(provider);
   if(!key){ alert('Paste an API key first.'); return; }
-  saveAiConfig({provider, key, model});
+  saveAiConfig({provider, key});
   goto('scan');
 }
 
-/* Normalize any photo (including iPhone's default HEIC format, which most
-   vision APIs reject outright — a likely cause of bad reads) to a
-   reasonably-sized JPEG before sending. Safari decodes HEIC into <img>
-   natively, so drawing it to canvas and re-exporting as JPEG works even
-   though the AI API itself could never read the original HEIC bytes. */
-function preprocessImage(file, maxDim, quality){
-  maxDim = maxDim || 1600; quality = quality || 0.9;
-  return new Promise((resolve, reject)=>{
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = ()=>{
-      let w = img.naturalWidth, h = img.naturalHeight;
-      if(w > h && w > maxDim){ h = Math.round(h * maxDim/w); w = maxDim; }
-      else if(h >= w && h > maxDim){ w = Math.round(w * maxDim/h); h = maxDim; }
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      URL.revokeObjectURL(url);
-      canvas.toBlob(blob=>{
-        if(!blob){ reject(new Error('Could not process this image format.')); return; }
-        const r = new FileReader();
-        r.onload = ()=>resolve({b64: r.result.split(',')[1], mime:'image/jpeg'});
-        r.onerror = reject;
-        r.readAsDataURL(blob);
-      }, 'image/jpeg', quality);
-    };
-    img.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error('This photo format could not be read. Try a different photo.')); };
-    img.src = url;
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = ()=>resolve(r.result.split(',')[1]);
+    r.onerror = reject;
+    r.readAsDataURL(file);
   });
 }
 
 function scanPrompt(){
   const chapters = DB.map(c=>c.name).join(', ');
-  return `You are reading a photo of a medical prescription. It may be handwritten (doctor's handwriting can be messy — take your time), may mix Arabic and English, and may use medical shorthand like "1x3" (once, 3 times daily) or "(Cat:B)" for pregnancy category. Look carefully at each line before deciding. Extract every distinct medication you can identify.
+  return `You are reading a photo of a medical prescription (may be handwritten, may mix Arabic and English, may use medical shorthand like "1x3" for dose frequency). Extract every distinct medication you can identify.
 
 Existing library categories: ${chapters}
 
 Respond with ONLY a JSON array, no markdown fences, no explanation, in exactly this shape:
-[{"generic":"","brands":["..."],"info":"class / dose / frequency if visible","pregnancyCategory":"A, B, C, D, or X — FDA pregnancy risk category for this drug, leave empty string if genuinely unknown","suggestedChapter":"one of the existing categories, as close a match as possible","isNewChapter":false}]
+[{"generic":"","brands":["..."],"info":"class / dose / frequency if visible","suggestedChapter":"one of the existing categories, as close a match as possible","isNewChapter":false}]
 
-Use your own pharmacological knowledge for pregnancyCategory even if it is not written on the prescription itself — most standard drugs have a well-established category. Only leave it empty if you truly cannot determine it.
-If nothing on the category list fits well, set "isNewChapter":true and put a short new category name in "suggestedChapter". Read every line of the image before responding — do not skip drugs because handwriting is imperfect, give your best reading instead. If you genuinely cannot read anything reliably, return [].`;
+If nothing on the category list fits well, set "isNewChapter":true and put a short new category name in "suggestedChapter". If you cannot read anything reliably, return [].`;
 }
 
-async function callClaude(key, b64, mime, model){
+async function callClaude(key, b64, mime){
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method:'POST',
     headers:{
@@ -2350,8 +2240,8 @@ async function callClaude(key, b64, mime, model){
       'anthropic-dangerous-direct-browser-access':'true'
     },
     body: JSON.stringify({
-      model: model || defaultModelFor('claude'),
-      max_tokens: 2000,
+      model:'claude-sonnet-4-5',
+      max_tokens: 1500,
       messages:[{role:'user', content:[
         {type:'image', source:{type:'base64', media_type:mime, data:b64}},
         {type:'text', text: scanPrompt()}
@@ -2362,13 +2252,13 @@ async function callClaude(key, b64, mime, model){
   const data = await res.json();
   return data.content.map(c=>c.text||'').join('');
 }
-async function callOpenAI(key, b64, mime, model){
+async function callOpenAI(key, b64, mime){
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method:'POST',
     headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+key },
     body: JSON.stringify({
-      model: model || defaultModelFor('openai'),
-      max_tokens: 2000,
+      model:'gpt-4o',
+      max_tokens: 1500,
       messages:[{role:'user', content:[
         {type:'text', text: scanPrompt()},
         {type:'image_url', image_url:{url:'data:'+mime+';base64,'+b64}}
@@ -2379,9 +2269,8 @@ async function callOpenAI(key, b64, mime, model){
   const data = await res.json();
   return data.choices[0].message.content;
 }
-async function callGemini(key, b64, mime, model){
-  const m = model || defaultModelFor('gemini');
-  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(m)+':generateContent?key='+key, {
+async function callGemini(key, b64, mime){
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key, {
     method:'POST',
     headers:{ 'Content-Type':'application/json' },
     body: JSON.stringify({
@@ -2406,21 +2295,63 @@ function parseAiJson(text){
 async function handleScanFile(input){
   const file = input.files[0]; if(!file) return;
   const cfg = loadAiConfig();
-  const model = cfg.model || defaultModelFor(cfg.provider);
   const resultArea = document.getElementById('scanResultArea');
-  resultArea.innerHTML = `<div class="card" style="padding:20px;text-align:center;"><div class="detail-section-title" style="justify-content:center;">Reading prescription…</div><div class="modal-hint">Sending photo to ${cfg.provider} (${model}). This can take a few seconds.</div></div>`;
+  resultArea.innerHTML = `<div class="card" style="padding:20px;text-align:center;"><div class="detail-section-title" style="justify-content:center;">Reading prescription…</div><div class="modal-hint">Sending photo to ${cfg.provider}. This can take a few seconds.</div></div>`;
   try{
-    const {b64, mime} = await preprocessImage(file);
+    const b64 = await fileToBase64(file);
+    const mime = file.type || 'image/jpeg';
     let raw;
-    if(cfg.provider==='claude') raw = await callClaude(cfg.key, b64, mime, model);
-    else if(cfg.provider==='openai') raw = await callOpenAI(cfg.key, b64, mime, model);
-    else raw = await callGemini(cfg.key, b64, mime, model);
+    if(cfg.provider==='claude') raw = await callClaude(cfg.key, b64, mime);
+    else if(cfg.provider==='openai') raw = await callOpenAI(cfg.key, b64, mime);
+    else raw = await callGemini(cfg.key, b64, mime);
     const items = parseAiJson(raw);
     renderScanResults(items);
   }catch(e){
-    resultArea.innerHTML = `<div class="card warn-card" style="padding:16px;"><div class="detail-section-title">⚠️ Couldn't read that</div><div class="modal-hint">${(e.message||e).toString().slice(0,300)}</div></div><div class="pc-link" onclick="renderScanSettingsOnly()">⚙️ Check provider / model / key</div>`;
+    resultArea.innerHTML = `<div class="card warn-card" style="padding:16px;"><div class="detail-section-title">⚠️ Couldn't read that</div><div class="modal-hint">${(e.message||e).toString().slice(0,300)}</div></div>`;
   }
   input.value = '';
+}
+
+/* ---- smart drug matching: tolerant of doses, typos, brand-vs-generic ---- */
+function normName(s){
+  return (s||'').toLowerCase()
+    .replace(/\b\d+([.,]\d+)?\s*(mg|mcg|g|gm|ml|iu|unit|units|tab|tabs|cap|caps)\b/gi,' ')
+    .replace(/[^a-z\u0600-\u06ff ]/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+function lev(a,b){
+  if(Math.abs(a.length-b.length)>3) return 99;
+  const m=a.length,n=b.length,d=[];
+  for(let i=0;i<=m;i++){ d.push([i]); for(let j=1;j<=n;j++) d[i][j]= i===0 ? j : 0; }
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
+    d[i][j]=Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return d[m][n];
+}
+function sameName(a,b){
+  a=normName(a); b=normName(b);
+  if(!a||!b) return false;
+  if(a===b) return true;
+  const ta=a.split(' '), tb=b.split(' ');
+  // same words with a 1-char typo tolerance per word ("amoxycillin" vs "amoxicillin")
+  if(ta.length===tb.length && ta.every((t,i)=>t===tb[i]||lev(t,tb[i])<=(t.length>4?1:0))) return true;
+  // one name's words all appear in the other ("amoxicillin" vs "amoxicillin clavulanate")
+  const sh = ta.length<=tb.length?ta:tb, lg = ta.length<=tb.length?tb:ta;
+  if(sh.length && sh.every(t=>lg.includes(t))) return true;
+  // close overall spelling for single-word generics
+  if(!a.includes(' ')&&!b.includes(' ')&&a.length>5&&b.length>5&&lev(a,b)<=2) return true;
+  return false;
+}
+function findExistingDrug(generic,brands){
+  const cands=[(generic||'').trim(), ...(brands||[]).map(s=>s.trim())].filter(Boolean);
+  for(const c of DB){
+    for(const d of (c.drugs||[])){
+      const have=[(d.g||'').trim(), ...(d.brands||[]).map(s=>s.trim())].filter(Boolean);
+      for(const y of cands){
+        if(have.some(x=>sameName(x,y))) return {drug:d, chapter:c, matchedOn:y};
+      }
+    }
+  }
+  return null;
 }
 
 function renderScanResults(items){
@@ -2432,12 +2363,12 @@ function renderScanResults(items){
   const chapterOptions = DB.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
   resultArea.innerHTML = `<div class="modal-hint" style="margin-top:16px;">Found ${items.length} item${items.length>1?'s':''}. Review and edit before adding — nothing is saved yet.</div>` +
     items.map((it,i)=>{
-      const dup = DB.flatMap(c=>(c.drugs||[]).map(d=>({...d,chapId:c.id}))).find(d=>d.g && d.g.toLowerCase().trim()===((it.generic||'').toLowerCase().trim()));
-      return `<div class="card scan-item" style="padding:14px 16px;margin-bottom:10px;" id="scanItem${i}">
-        ${dup?`<div class="modal-hint" style="color:var(--accent);">⚠ "${it.generic}" already exists in your library — saving will add these brands to it instead of duplicating.</div>`:''}
+      const dup = findExistingDrug(it.generic, it.brands);
+      if(dup) it._dupId = dup.drug.id; // remember for commit
+      return `<div class="card scan-item" style="padding:14px 16px;margin-bottom:10px;${dup?'border-color:var(--accent-line);':''}" id="scanItem${i}">
+        ${dup?`<div class="modal-hint" style="color:var(--accent);">⚠ "<b>${it.generic||''}</b>" looks like <b>${dup.drug.g}</b> already in your library (in "${dup.chapter.name}")${dup.matchedOn&&(dup.matchedOn.toLowerCase()!==(it.generic||'').toLowerCase())?` — matched via "${dup.matchedOn}"`:''}. Saving will merge brands into it instead of duplicating.</div>`:''}
         <div class="field-card"><div class="field-label">Generic name</div><input class="text-input" id="si_g_${i}" value="${(it.generic||'').replace(/"/g,'&quot;')}"></div>
         <div class="field-card"><div class="field-label">Info / dose / class</div><input class="text-input" id="si_info_${i}" value="${(it.info||'').replace(/"/g,'&quot;')}"></div>
-        <div class="field-card"><div class="field-label">Pregnancy category</div><input class="text-input" id="si_preg_${i}" value="${(it.pregnancyCategory||'').replace(/"/g,'&quot;')}" placeholder="A / B / C / D / X" style="max-width:110px;"></div>
         <div class="field-card"><div class="field-label">Brand names (comma separated)</div><input class="text-input" id="si_b_${i}" value="${(it.brands||[]).join(', ')}"></div>
         <div class="field-card"><div class="field-label">Category</div>
           <select class="text-input" id="si_chap_${i}">
@@ -2465,28 +2396,9 @@ function commitScanResults(items){
     const inc = document.getElementById('si_inc_'+i);
     if(!inc || !inc.checked) return;
     const g = document.getElementById('si_g_'+i).value.trim(); if(!g) return;
-    let info = document.getElementById('si_info_'+i).value.trim();
-    const preg = document.getElementById('si_preg_'+i).value.trim().toUpperCase();
-    if(preg && !/cat[:\s]*[abcdx]/i.test(info)){
-      info = info ? `${info} (Cat:${preg})` : `(Cat:${preg})`;
-    }
+    const info = document.getElementById('si_info_'+i).value.trim();
     const brands = document.getElementById('si_b_'+i).value.split(',').map(s=>s.trim()).filter(Boolean);
     const chapSel = document.getElementById('si_chap_'+i).value;
-
-    // Global duplicate check FIRST, across the whole library — wins over
-    // whatever chapter is selected, so the drug always merges into wherever
-    // it already lives instead of getting a second copy in a new category.
-    let existing = null;
-    for(const ch of DB){
-      const found = (ch.drugs||[]).find(d=>d.g && d.g.toLowerCase().trim()===g.toLowerCase());
-      if(found){ existing = found; break; }
-    }
-    if(existing){
-      existing.brands = Array.from(new Set([...(existing.brands||[]), ...brands]));
-      if(!existing.info) existing.info = info;
-      updated++;
-      return;
-    }
 
     let chapter;
     if(chapSel==='__new__'){
@@ -2506,8 +2418,24 @@ function commitScanResults(items){
     }
     if(!chapter) return;
     if(!chapter.drugs) chapter.drugs=[];
-    chapter.drugs.push({id:uid(), g, info, brands});
-    added++;
+    // search the WHOLE library (not just the chosen chapter) so a drug you added
+    // from an earlier prescription is never re-added as a duplicate copy
+    const hit = findExistingDrug(g, brands);
+    const existing = hit ? hit.drug : null;
+    let target=null;
+    if(existing){
+      target=existing;
+      const home = DB.find(c=>(c.drugs||[]).includes(existing));
+      if(home && home!==chapter){ chapter = home; } // merge into where it actually lives
+    }
+    if(target){
+      target.brands = Array.from(new Set([...(target.brands||[]), ...brands]));
+      if(info && (!target.info || target.info.trim().length < info.trim().length)) target.info = info;
+      updated++;
+    } else {
+      chapter.drugs.push({id:uid(), g, info, brands});
+      added++;
+    }
   });
   saveDB();
   document.getElementById('scanResultArea').innerHTML = `<div class="card notes-card" style="padding:16px;">✅ Done — ${added} added, ${updated} merged into existing drugs${newChapters?`, ${newChapters} new categor${newChapters>1?'ies':'y'} created`:''}.</div>
