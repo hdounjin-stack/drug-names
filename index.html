@@ -310,6 +310,46 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .scen-font-btns button{background:var(--card);border:1px solid var(--line-strong);border-radius:8px;color:var(--ink-soft);font-weight:700;cursor:pointer;padding:4px 10px;font-family:'Work Sans',sans-serif;}
 .scen-font-btns button:active{transform:scale(.96);}
 .scen-font-label{font-size:10.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:700;}
+
+/* ---------- MCQ Practice ---------- */
+.mcq-qcard{padding:15px 16px;margin-bottom:10px;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) both;}
+@keyframes mcqIn{from{opacity:0;transform:translateY(10px) scale(.985);}to{opacity:1;transform:none;}}
+.mcq-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:9px;}
+.mcq-chip{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:20px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line);}
+.mcq-chip.topic{background:rgba(156,107,18,0.09);color:var(--amber);border-color:rgba(156,107,18,0.3);}
+.mcq-qtext{font-size:13px;font-weight:600;line-height:1.55;}
+.mcq-opts{display:flex;flex-direction:column;gap:7px;margin-top:11px;}
+.mcq-opt{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:var(--paper);border:1px solid var(--line-strong);border-radius:var(--radius-md);padding:9px 12px;font-family:'Work Sans',sans-serif;font-size:12.5px;color:var(--ink-soft);cursor:pointer;transition:border-color .18s, background .18s, transform .18s, color .18s;animation:optIn .3s ease both;}
+.mcq-opt > span:last-child{flex:1;}
+.mcq-opt > span:last-child p{margin:0;}
+.mcq-opt:nth-child(1){animation-delay:.04s}.mcq-opt:nth-child(2){animation-delay:.1s}
+.mcq-opt:nth-child(3){animation-delay:.16s}.mcq-opt:nth-child(4){animation-delay:.22s}
+.mcq-opt:nth-child(5){animation-delay:.28s}
+@keyframes optIn{from{opacity:0;transform:translateX(-7px);}to{opacity:1;transform:none;}}
+.mcq-opt:active{transform:scale(.985);}
+.mcq-key{flex:none;width:21px;height:21px;border-radius:7px;border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10.5px;color:var(--muted);transition:inherit;}
+.mcq-opt.sel-correct{background:rgba(52,168,83,0.10);border-color:rgba(52,140,63,0.65);color:var(--ink);}
+.mcq-opt.sel-correct .mcq-key{background:#2f8c3f;border-color:#2f8c3f;color:#fff;}
+.mcq-opt.sel-wrong{background:rgba(179,60,44,0.08);border-color:rgba(179,60,44,0.6);}
+.mcq-opt.sel-wrong .mcq-key{background:var(--accent);border-color:var(--accent);color:#fff;}
+.mcq-opt.reveal-correct{background:rgba(52,168,83,0.07);border-color:rgba(52,140,63,0.45);}
+.mcq-opt.reveal-correct .mcq-key{background:#2f8c3f;border-color:#2f8c3f;color:#fff;}
+.mcq-opt.dim{opacity:.42;pointer-events:none;}
+.mcq-opt.shake{animation:mcqShake .38s ease;}
+@keyframes mcqShake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}50%{transform:translateX(4px);}75%{transform:translateX(-2px);}}
+.mcq-expl{margin-top:11px;padding:10px 12px;border-radius:var(--radius-md);background:var(--paper-2);border:1px dashed var(--line-strong);font-size:12px;line-height:1.6;color:var(--ink-soft);animation:mcqIn .32s ease both;}
+.mcq-expl b,.mcq-expl strong{color:var(--ink);}
+.mcq-expl .rx-line{background:var(--card);}
+.mcq-score-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 12px;}
+.mcq-score-num{font-family:'Fraunces',serif;font-weight:700;font-size:17px;color:var(--ink);}
+.mcq-score-num small{font-size:11px;color:var(--muted);font-family:'Work Sans',sans-serif;font-weight:600;}
+.mcq-progress{flex:1;height:6px;border-radius:6px;background:var(--paper-2);border:1px solid var(--line);overflow:hidden;}
+.mcq-progress-fill{height:100%;width:0%;border-radius:6px;background:linear-gradient(90deg,var(--accent),#d4794e);transition:width .45s cubic-bezier(.2,.8,.3,1);}
+.mcq-done-card{text-align:center;padding:26px 18px !important;animation:mcqIn .4s cubic-bezier(.2,.8,.3,1) both;}
+.mcq-done-emoji{font-size:34px;display:block;margin-bottom:6px;animation:popIn .45s cubic-bezier(.2,1.4,.4,1) both .15s;}
+@keyframes popIn{from{opacity:0;transform:scale(.4);}to{opacity:1;transform:scale(1);}}
+.mcq-done-title{font-family:'Fraunces',serif;font-size:17px;font-weight:700;margin-bottom:4px;}
+.mcq-done-sub{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6;}
 .chat-input-row{display:none;gap:8px;margin-top:12px;}
 .chat-input-row .text-input{flex:1;margin-bottom:0;}
 .pc-link{font-size:12px;color:var(--accent);text-decoration:underline;cursor:pointer;text-align:center;margin-top:18px;}
@@ -2144,10 +2184,28 @@ function renderPedCalc(){
         <button class="pill-btn primary" onclick="sendScenarioMessage()">Send</button>
       </div>
     </div>
+    <div class="card" style="padding:16px;margin-top:14px;">
+      <div class="detail-section-title">🧠 Drug MCQ Practice <span class="beta-tag">new</span></div>
+      <div class="modal-hint">Quick-fire multiple-choice questions built from your own library — contraindications, side effects, antidotes, interactions & emergency drug choice. Uses the same AI key as Scan Prescription.</div>
+      <div id="mcqSetup">
+        <div class="field-card"><div class="field-label">Scope</div>
+          <select id="mcqScope" class="text-input" onchange="renderMcqTopics()"><option value="all">📚 Whole library</option>${DB.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}</select>
+        </div>
+        <div id="mcqTopicRow"></div>
+        <div class="field-card"><div class="field-label">Number of questions</div>
+          <select id="mcqCount" class="text-input">
+            <option value="5">5 questions</option><option value="10" selected>10 questions</option><option value="15">15 questions</option>
+          </select>
+        </div>
+        <button class="pill-btn primary" style="width:100%;margin-top:12px;" onclick="startMcq()">⚡ Start Quiz</button>
+      </div>
+      <div id="mcqPlayArea" style="display:none;"></div>
+    </div>
     <div class="pc-link" onclick="goto('pediatric')">View the Pediatric Doses reference lesson →</div>
   `;
   state.pcUnit = 'years';
   renderScenarioChat();
+  renderMcqTopics();
 }
 function pcSetUnit(u){
   state.pcUnit = u;
@@ -2292,6 +2350,168 @@ function renderScenarioChat(){
   log.scrollTop = log.scrollHeight;
   const row = document.getElementById('scenarioInputRow');
   if(row) row.style.display = scenarioMessages.length ? 'flex' : 'none';
+}
+
+/* =========================================================
+   PHASE 2 — Drug MCQ Practice (BYOK, from your own library)
+   ========================================================= */
+let mcqQuiz = null; // {qs:[], i, correct, answered}
+function mcqTopicsFor(scope){
+  if(scope==='all') return DB.flatMap(c=>(c.drugs||[]).map(d=>({name:d.g, chapter:c.name, info:d.info||'', brands:(d.brands||[]).join(', ')})));
+  const c = DB.find(x=>x.id===scope); if(!c) return [];
+  return (c.drugs||[]).map(d=>({name:d.g, chapter:c.name, info:d.info||'', brands:(d.brands||[]).join(', ')}));
+}
+function renderMcqTopics(){
+  const row=document.getElementById('mcqTopicRow'); if(!row) return;
+  const scope=document.getElementById('mcqScope').value;
+  if(scope==='all'){ row.innerHTML=''; return; }
+  const topics=mcqTopicsFor(scope);
+  row.innerHTML=`<div class="field-card"><div class="field-label">Focus on one drug <span style="color:var(--muted);">(optional)</span></div>
+    <select id="mcqTopicSel" class="text-input"><option value="">🎲 Mixed — all drugs in this chapter</option>${topics.map(t=>`<option value="${escapeHtml(t.name)}">${escapeHtml(t.name)}</option>`).join('')}</select></div>`;
+}
+function mcqSystemPrompt(){
+  const chapters = DB.map(c=>c.name).join(', ');
+  return `You are a pharmacology MCQ generator for a pharmacy student. You will receive a list of drugs (with notes/brands) from the student's own course library. Write exam-style single-best-answer MCQs that test practical judgment: contraindications, side effects, antidotes, drug interactions, pregnancy safety, and best/emergency drug choice for a short clinical vignette.
+Rules:
+- One question per line of thought; 4 options (A-D), exactly one correct.
+- Distractors must be plausible — same-class alternatives, common confusions.
+- Test recall + application, never trivia about the list itself.
+- Vary the tested category across questions (don't make all of them interactions).
+- Output ONLY a JSON array, no prose around it. Each item: {"q": string, "opts": [4 strings], "answer": "A"|"B"|"C"|"D", "expl": short explanation naming the drug and the key fact}.`;
+}
+async function callAiJson(cfg, userPrompt, maxTokens){
+  const model = cfg.model || defaultModelFor(cfg.provider);
+  const wantJsonHeader = {'anthropic-version':'2023-06-01','x-api-key':cfg.key,'anthropic-dangerous-direct-browser-access':'true','Content-Type':'application/json'};
+  if(cfg.provider==='claude'){
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:wantJsonHeader,
+      body: JSON.stringify({model, max_tokens:maxTokens||4000, system:mcqSystemPrompt(), messages:[{role:'user',content:userPrompt}]})
+    });
+    if(!res.ok) throw new Error('Claude error: '+res.status+' '+(await res.text()).slice(0,200));
+    const data = await res.json();
+    return data.content.map(c=>c.text||'').join('');
+  }
+  if(cfg.provider==='openai'){
+    const res = await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
+      body: JSON.stringify({model, max_tokens:maxTokens||4000, response_format:{type:'json_object'}, messages:[{role:'system',content:mcqSystemPrompt()},{role:'user',content:userPrompt}]})
+    });
+    if(!res.ok) throw new Error('OpenAI error: '+res.status+' '+(await res.text()).slice(0,200));
+    return (await res.json()).choices[0].message.content;
+  }
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+cfg.key,{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({system_instruction:{parts:[{text:mcqSystemPrompt()}]}, contents:[{role:'user',parts:[{text:userPrompt}]}], generationConfig:{responseMimeType:'application/json'}})
+  });
+  if(!res.ok) throw new Error('Gemini error: '+res.status+' '+(await res.text()).slice(0,200));
+  return (await res.json()).candidates[0].content.parts.map(p=>p.text||'').join('');
+}
+function startMcq(){
+  const cfg = loadAiConfig();
+  if(!cfg.key){ goto('scan'); return; }
+  const scope = document.getElementById('mcqScope').value;
+  let topics = mcqTopicsFor(scope);
+  const topicSel = document.getElementById('mcqTopicSel');
+  if(topicSel && topicSel.value){ topics = topics.filter(t=>t.name===topicSel.value); }
+  const n = parseInt(document.getElementById('mcqCount').value)||10;
+  if(topics.length<2){ alert('Not enough drugs in this scope yet — add more or widen the scope.'); return; }
+  // sample drugs to test so the quiz reflects YOUR library, then ask AI
+  const shuffled=[...topics].sort(()=>Math.random()-0.5);
+  const focus = shuffled.slice(0, Math.min(n*2, 40));
+  const listing = focus.map(t=>`- ${t.name}${t.info?` (${t.info})`:''}${t.brands?` [brands: ${t.brands}]`:''} — chapter: ${t.chapter}`).join('\n');
+  const playArea=document.getElementById('mcqPlayArea'), setup=document.getElementById('mcqSetup');
+  setup.style.display='none'; playArea.style.display='block';
+  mcqQuiz = {qs:null, i:0, correct:0, answered:0};
+  playArea.innerHTML = `<div class="card mcq-qcard"><div class="modal-hint" style="margin:0;">🧠 Generating ${n} questions from ${focus.length} drugs in your library…</div></div>`;
+  callAiJson(cfg, `Drugs from my library:\n${listing}\n\nWrite ${n} single-best-answer MCQs testing these drugs. Mix categories: contraindications, side effects, antidotes, interactions, pregnancy safety, emergency/best-drug vignettes. Return ONLY the JSON array.`)
+    .then(raw=>{
+      let arr;
+      const cleaned = raw.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+      try{
+        const s=cleaned.indexOf('['), e=cleaned.lastIndexOf(']');
+        arr = JSON.parse(s>=0&&e>s ? cleaned.slice(s,e+1) : cleaned);
+      }catch(e2){
+        // model wrapped it in an object — try common keys
+        try{ const obj=JSON.parse(cleaned.slice(cleaned.indexOf('{'), cleaned.lastIndexOf('}')+1)); arr=obj.questions||obj.items; }catch(_e){}
+      }
+      if(!Array.isArray(arr) || !arr.length) throw new Error('Could not parse questions from AI reply.');
+      mcqQuiz.qs = arr.filter(q=>q&&q.q&&Array.isArray(q.opts)&&q.opts.length>=2).map(q=>({
+        q:String(q.q), opts:q.opts.map(o=>String(o)), answer:String(q.answer||'A').trim().toUpperCase().charAt(0),
+        expl:String(q.expl||''), topic:String(q.topic||'')
+      })).filter(q=>q.opts.every(o=>o.length<=220)).slice(0,n);
+      if(!mcqQuiz.qs.length) throw new Error('AI returned no usable questions.');
+      renderMcqQuestion();
+    })
+    .catch(e=>{
+      playArea.innerHTML = `<div class="card mcq-qcard"><div class="modal-hint" style="color:var(--accent);margin:0;">⚠️ ${(e.message||e).toString().slice(0,300)}</div>
+        <button class="pill-btn ghost" style="width:100%;margin-top:10px;" onclick="renderPedCalc()">← Back</button></div>`;
+    });
+}
+function mcqLetter(i){ return 'ABCD'[i] || String(i+1); }
+function renderMcqQuestion(){
+  const qz = mcqQuiz, area = document.getElementById('mcqPlayArea');
+  const q = qz.qs[qz.i];
+  area.innerHTML = `
+    <div class="mcq-score-row">
+      <div class="mcq-score-num">${qz.correct}<small> / ${qz.answered} correct</small></div>
+      <div class="mcq-progress"><div class="mcq-progress-fill" style="width:${Math.round(qz.i/qz.qs.length*100)}%"></div></div>
+      <span class="mono" style="font-size:11px;color:var(--muted);">${qz.i+1}/${qz.qs.length}</span>
+    </div>
+    <div class="card mcq-qcard">
+      <div class="mcq-meta"><span class="mcq-chip">Q${qz.i+1}</span>${q.topic?`<span class="mcq-chip topic">${escapeHtml(q.topic)}</span>`:''}</div>
+      <div class="mcq-qtext">${mdToHtml(q.q)}</div>
+      <div class="mcq-opts" id="mcqOpts">
+        ${q.opts.map((o,oi)=>`<button class="mcq-opt" id="mcqOpt${oi}" onclick="answerMcq(${oi})"><span class="mcq-key">${mcqLetter(oi)}</span><span>${mdToHtml(o)}</span></button>`).join('')}
+      </div>
+      <div id="mcqExpl"></div>
+    </div>`;
+}
+function answerMcq(pick){
+  const qz = mcqQuiz; if(!qz || qz.answered > qz.i) return;
+  const q = qz.qs[qz.i];
+  const correctIdx = Math.max(0, q.answer ? 'ABCD'.indexOf(q.answer) : 0);
+  const opts=[...document.querySelectorAll('#mcqOpts .mcq-opt')];
+  qz.answered++;
+  const isRight = pick===correctIdx;
+  if(isRight) qz.correct++; else {
+    const el=document.getElementById('mcqOpt'+pick);
+    if(el) el.classList.add('shake');
+  }
+  opts.forEach((el,oi)=>{
+    el.onclick=null;
+    if(oi===pick && isRight) el.classList.add('sel-correct');
+    else if(oi===pick) el.classList.add('sel-wrong');
+    else if(oi===correctIdx) el.classList.add('reveal-correct');
+    else el.classList.add('dim');
+  });
+  document.getElementById('mcqExpl').innerHTML =
+    `<div class="mcq-expl">${isRight?'✅ <b>Correct!</b> ':'❌ <b>Not quite.</b> '}${mdToHtml(q.expl||'')}</div>`;
+  const nextWrap=document.createElement('div');
+  nextWrap.innerHTML = (qz.i+1<qz.qs.length)
+    ? `<button class="pill-btn primary" style="width:100%;margin-top:12px;" onclick="nextMcq()">Next question →</button>`
+    : `<button class="pill-btn primary" style="width:100%;margin-top:12px;" onclick="finishMcq()">See results 🏁</button>`;
+  document.querySelector('.mcq-qcard .mcq-opts').insertAdjacentElement('afterend', nextWrap.firstElementChild);
+}
+function nextMcq(){ mcqQuiz.i++; renderMcqQuestion(); }
+function finishMcq(){
+  const qz=mcqQuiz, pct=qz.qs.length?Math.round(qz.correct/qz.qs.length*100):0;
+  const emoji = pct>=80?'🏆':pct>=60?'💪':'📚';
+  const msg = pct>=80?'Excellent — exam ready!':pct>=60?'Solid — review the misses and go again.':'Keep at it — reread the chapter cards, then retry.';
+  document.getElementById('mcqPlayArea').innerHTML = `
+    <div class="card mcq-done-card">
+      <span class="mcq-done-emoji">${emoji}</span>
+      <div class="mcq-done-title">${qz.correct} / ${qz.qs.length} correct · ${pct}%</div>
+      <div class="mcq-done-sub">${msg}</div>
+      <button class="pill-btn primary" style="width:100%;" onclick="retryMcq()">🔄 Try again</button>
+      <button class="pill-btn ghost" style="width:100%;margin-top:8px;" onclick="exitMcq()">Change settings</button>
+    </div>`;
+}
+function retryMcq(){ exitMcq(); setTimeout(()=>startMcq(), 60); }
+function exitMcq(){
+  mcqQuiz=null;
+  document.getElementById('mcqSetup').style.display='block';
+  document.getElementById('mcqPlayArea').style.display='none';
+  document.getElementById('mcqPlayArea').innerHTML='';
 }
 async function pushScenarioTurn(){
   const cfg = loadAiConfig();
