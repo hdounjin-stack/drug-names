@@ -310,17 +310,25 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .scen-font-btns button{background:var(--card);border:1px solid var(--line-strong);border-radius:8px;color:var(--ink-soft);font-weight:700;cursor:pointer;padding:4px 10px;font-family:'Work Sans',sans-serif;}
 .scen-font-btns button:active{transform:scale(.96);}
 .scen-font-label{font-size:10.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:700;}
-/* floating "ask about selection" pill */
+/* full-height chat: the scenarios screen fills the viewport, log scrolls, input pinned */
+#screen-scen.active,#screen-mcq.active{display:flex;flex-direction:column;height:calc(100dvh - var(--tabbar-h,56px));padding-bottom:env(safe-area-inset-bottom,0px);}
+#screen-scen .sess-header,#screen-mcq .sess-header{flex:none;}
+#screen-scen #scenArea,#screen-mcq #mcqArea{display:flex;flex-direction:column;flex:1;min-height:0;padding-bottom:10px;}
+.scen-chat-card{display:flex;flex-direction:column;flex:1;min-height:0;padding:14px 16px;}
+.scen-chat-card .chat-log{flex:1;min-height:0;max-height:none;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.scen-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex:none;}
+.scen-toolbar .pill-btn{width:auto;padding:9px 16px;font-size:12.5px;}
 #scenAskSelBtn{position:fixed;z-index:999;display:none;align-items:center;gap:6px;background:var(--ink);color:var(--paper);border:none;border-radius:20px;padding:8px 14px;font-size:12.5px;font-weight:600;font-family:'Work Sans',sans-serif;box-shadow:0 6px 18px -6px rgba(33,26,19,.45);cursor:pointer;animation:popIn .2s ease both;}
 #scenAskSelBtn:active{transform:scale(.96);}
 /* big entry card for Clinical Scenarios */
-.scen-entry{display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:16px;border-radius:var(--radius-lg);background:linear-gradient(135deg,rgba(179,80,44,0.10),rgba(156,107,18,0.08) 55%,var(--card) 100%);border:1px solid var(--accent-line);box-shadow:0 2px 0 rgba(179,80,44,0.05), 0 12px 26px -20px rgba(33,26,19,0.4);cursor:pointer;transition:transform .15s, box-shadow .15s, border-color .2s;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) both;}
-.scen-entry:active{transform:scale(.98);}
-.scen-entry .se-icon{flex:none;width:52px;height:52px;border-radius:16px;background:var(--card);border:1px solid var(--accent-line);box-shadow:inset 0 0 0 3px var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:26px;}
-.scen-entry .se-text{flex:1;min-width:0;}
-.scen-entry .se-title{font-family:'Fraunces',serif;font-weight:700;font-size:16.5px;color:var(--ink);}
-.scen-entry .se-sub{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.5;}
-.scen-entry .se-arrow{flex:none;color:var(--accent);}
+.scen-entry,.mcq-entry{display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:16px;border-radius:var(--radius-lg);background:linear-gradient(135deg,rgba(179,80,44,0.10),rgba(156,107,18,0.08) 55%,var(--card) 100%);border:1px solid var(--accent-line);box-shadow:0 2px 0 rgba(179,80,44,0.05), 0 12px 26px -20px rgba(33,26,19,0.4);cursor:pointer;transition:transform .15s, box-shadow .15s, border-color .2s;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) both;}
+.scen-entry:active,.mcq-entry:active{transform:scale(.98);}
+.scen-entry .se-icon,.mcq-entry .se-icon{flex:none;width:52px;height:52px;border-radius:16px;background:var(--card);border:1px solid var(--accent-line);box-shadow:inset 0 0 0 3px var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:26px;}
+.scen-entry .se-text,.mcq-entry .se-text{flex:1;min-width:0;}
+.scen-entry .se-title,.mcq-entry .se-title{font-family:'Fraunces',serif;font-weight:700;font-size:16.5px;color:var(--ink);}
+.scen-entry .se-sub,.mcq-entry .se-sub{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.5;}
+.scen-entry .se-arrow,.mcq-entry .se-arrow{flex:none;color:var(--accent);}
+.mcq-entry{background:linear-gradient(135deg,rgba(156,107,18,0.10),rgba(179,80,44,0.07) 55%,var(--card) 100%);}
 
 /* ---------- MCQ Practice ---------- */
 .mcq-qcard{padding:15px 16px;margin-bottom:10px;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) both;}
@@ -558,6 +566,18 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
       <div style="width:34px;"></div>
     </div>
     <div id="scenArea"></div>
+  </section>
+
+  <!-- ================= SCREEN 9 : DRUG MCQ PRACTICE (full page) ================= -->
+  <section class="screen" id="screen-mcq">
+    <div class="sess-header">
+      <button class="sess-back" onclick="exitMcqToPedcalc()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+      <div class="sess-title"><div class="cat">AI QUIZ · BETA</div><div class="name">Drug MCQ Practice</div></div>
+      <div style="width:34px;"></div>
+    </div>
+    <div id="mcqArea"></div>
   </section>
 
 </div>
@@ -1837,6 +1857,7 @@ function goto(screen){
   if(screen==='pedcalc') renderPedCalc();
   if(screen==='scan') renderScan();
   if(screen==='scen') renderScenScreen();
+  if(screen==='mcq') renderMcqScreen();
   updateCompactHeaders();
 }
 
@@ -2191,9 +2212,33 @@ function renderPedCalc(){
       <div id="pcEstResult" class="pc-note"></div>
     </div>
 
-    <div class="card" style="padding:16px;margin-top:14px;">
-      <div class="detail-section-title">🧠 Drug MCQ Practice <span class="beta-tag">new</span></div>
-      <div class="modal-hint">Quick-fire multiple-choice questions built from your own library — contraindications, side effects, antidotes, interactions & emergency drug choice. Uses the same AI key as Scan Prescription.</div>
+    <div class="mcq-entry" onclick="goto('mcq')">
+      <div class="se-icon">🧠</div>
+      <div class="se-text">
+        <div class="se-title">Drug MCQ Practice</div>
+        <div class="se-sub">Quick-fire quiz from your library — contraindications, antidotes & more</div>
+      </div>
+      <svg class="se-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+    <div class="scen-entry" onclick="goto('scen')">
+      <div class="se-icon">🩺</div>
+      <div class="se-text">
+        <div class="se-title">Clinical Scenarios</div>
+        <div class="se-sub">AI case tutor — diagnose, prescribe & learn</div>
+      </div>
+      <svg class="se-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+  `;
+  state.pcUnit = 'years';
+}
+
+/* ---------- Drug MCQ: dedicated full-page screen (setup + play) ---------- */
+function renderMcqScreen(){
+  const area = document.getElementById('mcqArea');
+  if(!area) return;
+  if(mcqQuiz){ renderMcqQuestion(); return; } // resume an in-progress quiz
+  area.innerHTML = `
+    <div class="card" style="padding:16px;">
       <div id="mcqSetup">
         <div class="field-card"><div class="field-label">Scope</div>
           <select id="mcqScope" class="text-input" onchange="renderMcqTopics()"><option value="all">📚 Whole library</option>${DB.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}</select>
@@ -2207,17 +2252,7 @@ function renderPedCalc(){
         <button class="pill-btn primary" style="width:100%;margin-top:12px;" onclick="startMcq()">⚡ Start Quiz</button>
       </div>
       <div id="mcqPlayArea" style="display:none;"></div>
-    </div>
-    <div class="scen-entry" onclick="goto('scen')">
-      <div class="se-icon">🩺</div>
-      <div class="se-text">
-        <div class="se-title">Clinical Scenarios</div>
-        <div class="se-sub">AI case tutor — diagnose, prescribe & learn</div>
-      </div>
-      <svg class="se-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
-    </div>
-  `;
-  state.pcUnit = 'years';
+    </div>`;
   renderMcqTopics();
 }
 
@@ -2226,22 +2261,24 @@ function renderScenScreen(){
   const area = document.getElementById('scenArea');
   if(!area) return;
   area.innerHTML = `
-    <div class="card" style="padding:16px;">
-      <div class="scen-font-row" style="margin-bottom:12px;">
+    <div class="card scen-chat-card">
+      <div class="scen-toolbar">
         <span class="scen-font-label">Text size</span>
-        <div class="scen-font-btns">
-          <button onclick="changeChatFont(-1)" title="Smaller text" style="font-size:13px;">A−</button>
-          <button onclick="changeChatFont(1)" title="Larger text" style="font-size:16px;">A+</button>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="scen-font-btns">
+            <button onclick="changeChatFont(-1)" title="Smaller text" style="font-size:13px;">A−</button>
+            <button onclick="changeChatFont(1)" title="Larger text" style="font-size:16px;">A+</button>
+          </div>
+          <button class="pill-btn primary" onclick="startNewScenario()">🎲 New Scenario</button>
         </div>
       </div>
-      <button class="pill-btn primary" style="width:100%;" onclick="startNewScenario()">🎲 New Scenario</button>
       <div id="scenarioChatLog" class="chat-log"></div>
       <div class="chat-input-row" id="scenarioInputRow" style="display:none;">
         <input type="text" id="scenarioInput" class="text-input" placeholder="Your diagnosis / plan / answer..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendScenarioMessage();}">
         <button class="pill-btn primary" onclick="sendScenarioMessage()">Send</button>
       </div>
     </div>
-    <button id="scenAskSelBtn" onclick="askScenAboutSelection()">❓ Ask about this</button>`;
+    <button id="scenAskSelBtn" onpointerdown="event.preventDefault();askScenAboutSelection()">❓ Ask about this</button>`;
   renderScenarioChat();
   initScenSelection();
 }
@@ -2340,13 +2377,15 @@ function clinicalScenarioSystemPrompt(){
   const chapters = DB.map(c=>c.name).join(', ');
   // randomize the flavor each time so scenarios never repeat
   const settings = [
-    ['hospital ER night shift','busy outpatient clinic','small-town pharmacy counter','ambulance / pre-hospital','university health clinic','rural health unit','ICU rounds'],
-    ['a 20s adult','a middle-aged patient','an elderly patient on polypharmacy','a young athlete','a pregnant patient (choose trimester carefully)','a pediatric case','a patient with chronic kidney disease'],
-    ['dramatic and urgent','subtle — diagnosis hides in routine vitals','classic textbook presentation','atypical presentation that needs careful listening']
+    ['in a hospital ER night shift','in a busy outpatient clinic','at a small-town pharmacy counter','in a pre-hospital ambulance setting','during a university health clinic shift','in a rural health unit','on ICU rounds'],
+    ['a patient in their 20s','a middle-aged patient','an elderly patient on multiple medications','a young athlete','a pregnant patient (state the trimester)','a pediatric case (give the age)','a patient with chronic kidney disease','a patient recovering from surgery'],
+    ['dramatic and urgent presentation','subtle presentation where the diagnosis hides in routine vitals','classic textbook presentation','atypical presentation that needs careful listening']
   ];
   const pick = a => a[Math.floor(Math.random()*a.length)];
+  // ACTUALLY USE the randomization: one concrete instruction per scenario request
+  const flavor = `Today's scenario must be set ${pick(settings[0])}, involve ${pick(settings[1])}, with a ${pick(settings[2])}.`;
   const avoid = scenarioHistory.length
-    ? `\n\nIMPORTANT — do NOT repeat: the student already saw these scenarios/topics recently, generate something clearly different (different condition AND different setting): ${scenarioHistory.slice(-6).join(' | ')}.`
+    ? `\n\nIMPORTANT — do NOT repeat: the student already saw these scenarios recently, generate something clearly different (different condition AND different setting): ${scenarioHistory.slice(-6).join(' | ')}.`
     : '';
   return `You are a clinical case tutor for a pharmacy/medicine student, working from a course covering: ${chapters}. Generate realistic clinical scenarios one at a time. Draw from a WIDE range: emergencies (anaphylaxis, MI, DKA, status asthmaticus, acute stroke, severe hypoglycemia, PE, sepsis, poisoning/overdose) AND everyday internal medicine / OTC cases (hypertension follow-up, GERD, UTI, diabetes management, common cold, gastroenteritis, dyslipidemia, asthma review, insomnia, allergies, travel advice).
 
@@ -2354,7 +2393,7 @@ For each scenario: briefly describe the patient (age, relevant history, chief co
 
 When the learner responds, give short constructive feedback on their diagnosis and plan, then show the recommended approach as an actual written prescription (Rx format: Drug — Form — Dose/Frequency), reflecting current clinical guidelines. Keep responses concise and conversational. If asked about part of the case, explain it simply with one exam pearl. If asked for a new scenario, start a fresh one in a different domain than before.
 
-Formatting: your replies render as Markdown in the app. Use **bold** for drug names and key findings, short bullet lists where helpful, and put each prescription line on its own line starting with "Rx:". Never leave stray asterisks or raw symbols around text.` + avoid;
+Formatting: your replies render as Markdown in the app. Use **bold** for drug names and key findings, short bullet lists where helpful, and put each prescription line on its own line starting with "Rx:". Never leave stray asterisks or raw symbols around text.` + avoid + `\n\n${flavor}`;
 }
 async function callAiChat(cfg, messages){
   const model = cfg.model || defaultModelFor(cfg.provider);
@@ -2416,12 +2455,14 @@ function attachScenSelection(log){
     const text=sel ? sel.toString().trim() : '';
     // only inside the chat log, and meaningful length
     if(text.length>=3 && sel.anchorNode && log.contains(sel.anchorNode)){
+      window.__scenLastSel=text; // capture immediately — iOS clears selection on tap
       const r=sel.getRangeAt(0).getBoundingClientRect();
       btn.style.display='flex';
       btn.style.top=Math.max(8, r.top-44)+'px';
       btn.style.left=Math.max(8, Math.min(window.innerWidth-190, r.left))+'px';
     } else {
-      btn.style.display='none';
+      // keep the button visible briefly so the user can tap it (iOS quirk)
+      btn.style.display=btn.style.display==='flex'?'flex':'none';
     }
   };
   document.removeEventListener('selectionchange', window.__scenSelHandler||(()=>{}));
@@ -2433,7 +2474,16 @@ function askScenAboutSelection(){
   if(btn) btn.style.display='none';
   const sel=window.getSelection();
   const text=sel ? sel.toString().trim() : '';
-  if(text.length<3) return;
+  if(text.length<3){
+    // selection was lost (common on iOS when the button is tapped) — fall back
+    // to the last captured snippet so the question still gets asked
+    if(window.__scenLastSel && window.__scenLastSel.length>=3){ askScenText(window.__scenLastSel); }
+    return;
+  }
+  window.__scenLastSel=text;
+  askScenText(text);
+}
+function askScenText(text){
   if(navigator.vibrate) try{navigator.vibrate(8);}catch(e){}
   sendScenarioMessage(`❓ About this part:\n"${text}"\n\nExplain it simply: what it means, why it matters here, and one exam pearl.`);
 }
@@ -2613,6 +2663,7 @@ function exitMcq(){
   document.getElementById('mcqPlayArea').style.display='none';
   document.getElementById('mcqPlayArea').innerHTML='';
 }
+function exitMcqToPedcalc(){ goto('pedcalc'); }
 async function pushScenarioTurn(isNewScenario){
   const cfg = loadAiConfig();
   const log = document.getElementById('scenarioChatLog');
