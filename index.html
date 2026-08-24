@@ -313,6 +313,14 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 /* floating "ask about selection" pill */
 #scenAskSelBtn{position:fixed;z-index:999;display:none;align-items:center;gap:6px;background:var(--ink);color:var(--paper);border:none;border-radius:20px;padding:8px 14px;font-size:12.5px;font-weight:600;font-family:'Work Sans',sans-serif;box-shadow:0 6px 18px -6px rgba(33,26,19,.45);cursor:pointer;animation:popIn .2s ease both;}
 #scenAskSelBtn:active{transform:scale(.96);}
+/* big entry card for Clinical Scenarios */
+.scen-entry{display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:16px;border-radius:var(--radius-lg);background:linear-gradient(135deg,rgba(179,80,44,0.10),rgba(156,107,18,0.08) 55%,var(--card) 100%);border:1px solid var(--accent-line);box-shadow:0 2px 0 rgba(179,80,44,0.05), 0 12px 26px -20px rgba(33,26,19,0.4);cursor:pointer;transition:transform .15s, box-shadow .15s, border-color .2s;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) both;}
+.scen-entry:active{transform:scale(.98);}
+.scen-entry .se-icon{flex:none;width:52px;height:52px;border-radius:16px;background:var(--card);border:1px solid var(--accent-line);box-shadow:inset 0 0 0 3px var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:26px;}
+.scen-entry .se-text{flex:1;min-width:0;}
+.scen-entry .se-title{font-family:'Fraunces',serif;font-weight:700;font-size:16.5px;color:var(--ink);}
+.scen-entry .se-sub{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.5;}
+.scen-entry .se-arrow{flex:none;color:var(--accent);}
 
 /* ---------- MCQ Practice ---------- */
 .mcq-qcard{padding:15px 16px;margin-bottom:10px;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) both;}
@@ -2200,7 +2208,14 @@ function renderPedCalc(){
       </div>
       <div id="mcqPlayArea" style="display:none;"></div>
     </div>
-    <div class="pc-link" onclick="goto('pediatric')">View the Pediatric Doses reference lesson →</div>
+    <div class="scen-entry" onclick="goto('scen')">
+      <div class="se-icon">🩺</div>
+      <div class="se-text">
+        <div class="se-title">Clinical Scenarios</div>
+        <div class="se-sub">AI case tutor — diagnose, prescribe & learn</div>
+      </div>
+      <svg class="se-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
   `;
   state.pcUnit = 'years';
   renderMcqTopics();
@@ -2447,8 +2462,10 @@ Rules:
 - One question per line of thought; 4 options (A-D), exactly one correct.
 - Distractors must be plausible — same-class alternatives, common confusions.
 - Test recall + application, never trivia about the list itself.
-- Vary the tested category across questions (don't make all of them interactions).
-- Output ONLY a JSON array, no prose around it. Each item: {"q": string, "opts": [4 strings], "answer": "A"|"B"|"C"|"D", "expl": short explanation naming the drug and the key fact}.`;
+- Balance categories across the whole set: Contraindication, Side Effect, Antidote, Interaction, Pregnancy, Emergency (best-drug vignette). Spread them roughly evenly — each category appears at least once in a 5-question quiz, and no category may dominate.
+- Set "topic" to EXACTLY one of: Contraindication | Side Effect | Antidote | Interaction | Pregnancy | Emergency.
+- Distribute the correct answers EVENLY across A, B, C and D — never cluster them on A or B.
+- Output ONLY a JSON array, no prose around it. Each item: {"q": string, "opts": [4 strings], "answer": "A"|"B"|"C"|"D", "expl": short explanation naming the drug and the key fact, "topic": one of the six above}.`;
 }
 async function callAiJson(cfg, userPrompt, maxTokens){
   const model = cfg.model || defaultModelFor(cfg.provider);
@@ -2506,10 +2523,22 @@ function startMcq(){
         try{ const obj=JSON.parse(cleaned.slice(cleaned.indexOf('{'), cleaned.lastIndexOf('}')+1)); arr=obj.questions||obj.items; }catch(_e){}
       }
       if(!Array.isArray(arr) || !arr.length) throw new Error('Could not parse questions from AI reply.');
-      mcqQuiz.qs = arr.filter(q=>q&&q.q&&Array.isArray(q.opts)&&q.opts.length>=2).map(q=>({
-        q:String(q.q), opts:q.opts.map(o=>String(o)), answer:String(q.answer||'A').trim().toUpperCase().charAt(0),
-        expl:String(q.expl||''), topic:String(q.topic||'')
-      })).filter(q=>q.opts.every(o=>o.length<=220)).slice(0,n);
+      // normalize + shuffle each question's options on-device so the correct
+      // answer lands on a random letter (LLMs tend to cluster it on A/B)
+      const shuffle=(a)=>{ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+      mcqQuiz.qs = arr.filter(q=>q&&q.q&&Array.isArray(q.opts)&&q.opts.length>=2).map(q=>{
+        const opts=q.opts.map(o=>String(o));
+        let ansIdx='ABCD'.indexOf(String(q.answer||'A').trim().toUpperCase().charAt(0));
+        if(ansIdx<0 || ansIdx>=opts.length) ansIdx=0;
+        const order=shuffle([...opts.keys()]);
+        return {
+          q:String(q.q),
+          opts:order.map(k=>opts[k]),
+          answer:'ABCD'[order.indexOf(ansIdx)],
+          expl:String(q.expl||''),
+          topic:String(q.topic||'')
+        };
+      }).filter(q=>q.opts.every(o=>o.length<=220)).slice(0,n);
       if(!mcqQuiz.qs.length) throw new Error('AI returned no usable questions.');
       renderMcqQuestion();
     })
