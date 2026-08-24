@@ -468,33 +468,35 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
 }
 
-/* ---------- Edge swipe-to-go-back (native app feel) ---------- */
-#edgeSwipeLayer{position:fixed;top:0;bottom:0;left:0;width:26px;z-index:60;-webkit-user-select:none;user-select:none;touch-action:pan-y;}
-.swipe-ghost{
-  position:fixed;top:0;bottom:0;left:0;width:min(78vw,340px);z-index:95;pointer-events:none;
+/* ---------- Edge swipe-to-go-back (native app feel) ----------
+   NO overlay strip: touches are read passively off the document itself,
+   so taps near the left edge always reach the cards underneath.
+   A preview panel (with real content) slides in behind the finger. */
+.swipe-panel{
+  position:fixed;top:0;bottom:0;left:0;width:min(76vw,330px);z-index:95;
   background:var(--paper);border-right:1px solid var(--line-strong);
-  border-radius:0 20px 20px 0;
-  box-shadow:-14px 0 34px -18px rgba(33,26,19,.45);
-  overflow:hidden;
+  border-radius:0 22px 22px 0;
+  box-shadow:-18px 0 40px -20px rgba(33,26,19,.5);
+  overflow:hidden;pointer-events:none;will-change:transform;
 }
-.swipe-ghost .sg-head{
-  padding:calc(14px + env(safe-area-inset-top, 0px)) 16px 10px;
+.swipe-panel .sp-head{
+  padding:calc(14px + env(safe-area-inset-top, 0px)) 16px 11px;
   display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);
 }
-.swipe-ghost .sg-head svg{flex:none;}
-.swipe-ghost .sg-head span{
-  font-family:'Fraunces',serif;font-weight:600;font-size:14px;color:var(--ink);
+.swipe-panel .sp-head svg{flex:none;}
+.swipe-panel .sp-head span{
+  font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:var(--ink);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.swipe-ghost .sg-body{padding:14px 16px;}
-.sg-skel{height:12px;border-radius:6px;background:var(--paper-2);margin-bottom:9px;}
+.swipe-panel .sp-body{padding:13px 16px;}
+.sp-row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-md);padding:11px 12px;margin-bottom:8px;}
+.sp-row i{width:8px;height:8px;border-radius:50%;flex:none;background:var(--accent);}
+.sp-row span{font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 </style>
 </head>
 <body>
 
 <div class="app">
-
-  <div id="edgeSwipeLayer" aria-hidden="true"></div>
 
   <div class="tabbar">
     <button class="tabbtn active" id="tab-home" onclick="goto('home')">
@@ -1984,80 +1986,158 @@ function goto(screen){
 }
 
 /* ---------- Swipe from left edge = go back (native app feel) ----------
-   A ghost card peeks in and follows your finger with rubber-banding;
-   release past the threshold to pop back, release early to snap home. */
+   Passive listener on the document — no overlay, so taps always land
+   on the cards underneath. The preview panel is only created once the
+   gesture is unmistakably a horizontal swipe, and it carries REAL
+   content (the actual list you're going back to), never an empty shell.
+   iOS edge-swipe is left untouched via touch-action + passive listeners. */
 const BACK_MAP = { session:'home', scan:'home', mcq:'pedcalc', scen:'pedcalc' };
 function swipeBackTarget(){
   if(state.screen==='otcdetail') return state.otcReturnScreen || 'session';
   return BACK_MAP[state.screen] || (navOrder.indexOf(state.screen) > 0 ? 'home' : null);
 }
+function backScreenTitle(s){
+  if(s==='home') return 'PharmaCore';
+  return ({setup:'Browse', pedcalc:'Pedi Calc', session:'Lesson'})[s] || '';
+}
+/* Real content previews per destination screen — never an empty shell */
+const BACK_HINTS = {
+  setup:['Search','Drug entries','Brand names','Conditions'],
+  pedcalc:['Estimate weight','Drug MCQ Practice','Clinical Scenarios'],
+  scan:['Scan Prescription','Point camera at an Rx','AI adds the drugs'],
+  mcq:['Scope','Number of questions','⚡ Start Quiz'],
+  scen:['Text size A− / A+','🎲 New Scenario','Diagnose · prescribe · learn'],
+  pediatric:['Weight-based doses','Dose tables','Clinical notes']
+};
+function backPanelRows(s){
+  try{
+    if(s==='home' && typeof getChapterOrder==='function')
+      return getChapterOrder().map(id=>DB.find(c=>c.id===id)).filter(Boolean).slice(0,7).map(c=>({color:c.color,text:c.name}));
+    if(s==='session'){
+      const cards = state.sessionCards||[];
+      const rows = cards.slice(0,7).map(c=>({color:c.color,text:(c.data&&(c.data.g||c.data.t))||c.cat}));
+      if(state.sessionChapterName && rows.length) return rows;
+    }
+    if(BACK_HINTS[s]) return BACK_HINTS[s].map((t,i)=>({color:i===0?'#b3502c':'#8c7d68',text:t}));
+    if(typeof allCards==='function')
+      return allCards().slice(0,7).map(c=>({color:c.color,text:(c.data&&(c.data.g||c.data.t))||''})).filter(r=>r.text);
+  }catch(e){}
+  return null;
+}
 (function(){
-  const layer = document.getElementById('edgeSwipeLayer');
-  if(!layer || !window.PointerEvent) return;
-  let ghost=null, startX=0, startY=0, active=false, committed=false;
-  const OPEN = 72; // px of drag at which the back gesture commits
+  if(!window.PointerEvent) return;
+  let panel=null, startX=0, startY=0, tracking=false, armed=false, pid=null;
+  const OPEN = 84;          // px of horizontal drag that commits the back action
 
-  function makeGhost(label){
-    const g = document.createElement('div');
-    g.className = 'swipe-ghost';
-    g.innerHTML = `<div class="sg-head">
+  function buildPanel(target){
+    const p = document.createElement('div');
+    p.className = 'swipe-panel';
+    const rows = backPanelRows(target);
+    let body = '';
+    if(rows && rows.length){
+      body = rows.map(r=>`<div class="sp-row"><i style="background:${r.color}"></i><span></span></div>`).join('');
+    } else {
+      for(let i=0;i<5;i++) body += `<div class="sp-row"><i></i><span></span></div>`;
+    }
+    p.innerHTML = `<div class="sp-head">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b3502c" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
         <span></span>
-      </div>
-      <div class="sg-body">
-        <div class="sg-skel" style="width:52%"></div><div class="sg-skel" style="width:88%"></div>
-        <div class="sg-skel" style="width:74%"></div><div class="sg-skel" style="width:82%"></div>
-        <div class="sg-skel" style="width:60%"></div><div class="sg-skel" style="width:78%"></div>
-      </div>`;
-    g.querySelector('.sg-head span').textContent = label;
-    document.body.appendChild(g);
-    return g;
+      </div><div class="sp-body">${body}</div>`;
+    p.querySelector('.sp-head span').textContent = backScreenTitle(target);
+    const labels = rows && rows.length ? rows.map(r=>r.text) : ['—','—','—','—','—'];
+    p.querySelectorAll('.sp-row span').forEach((el,i)=>{ el.textContent = labels[i % labels.length]; });
+    document.body.appendChild(p);
+    p.style.transform = 'translateX(-102%)';
+    return p;
+  }
+  function destroyPanel(){ if(panel){ panel.remove(); panel=null; } }
+
+  function edgeStartAllowed(t, startEl){
+    if(t.clientX > 34) return false;                          // only the true left edge
+    if(document.getElementById('editModal')?.classList.contains('open')) return false;  // modal open: not a nav gesture
+    if(startEl && startEl.closest && startEl.closest('.dtable-wrap')) return false;     // table owns horizontal drags
+    return !!swipeBackTarget();
   }
 
-  layer.addEventListener('pointerdown', e=>{
-    const target = swipeBackTarget();
-    if(!target) return;
-    active = true; committed = false;
-    startX = e.clientX; startY = e.clientY;
-    ghost = makeGhost(target==='home' ? 'PharmaCore' : ({setup:'Browse', pedcalc:'Pedi Calc', session:'Lesson'})[target] || '');
-    ghost.style.transform = 'translateX(-101%)';
-    try{ navigator.vibrate && navigator.vibrate(8); }catch(err){}
-    try{ layer.setPointerCapture(e.pointerId); }catch(err){}
-  });
-  layer.addEventListener('pointermove', e=>{
-    if(!active) return;
-    const dx = e.clientX - startX, dy = Math.abs(e.clientY - startY);
-    if(!committed && dy > 14 && dx < 6){ cancel(); return; }          // that was a scroll, not a swipe
-    const x = Math.max(-101, Math.min(0, -101 + (dx/ (ghost.offsetWidth||300)) * 101 * 1.35));
-    ghost.style.transition = 'none';
-    ghost.style.transform = 'translateX(' + x + '%)';
-    if(!committed && dx >= OPEN){ committed = true; try{ navigator.vibrate && navigator.vibrate(12); }catch(err){} }
-    if(committed && dx < OPEN*0.55) committed = false;
-  });
-  function cancel(){ if(ghost){ ghost.remove(); ghost=null; } active=false; committed=false; }
-  layer.addEventListener('pointercancel', cancel);
-  layer.addEventListener('pointerup', e=>{
-    if(!active) return;
-    const dx = e.clientX - startX;
-    const g = ghost; ghost = null; active = false;
-    if(!g) return;
-    try{ layer.releasePointerCapture(e.pointerId); }catch(err){}
+  /* passive:true = we never block scrolling; iOS gestures stay healthy */
+  document.addEventListener('touchstart', e=>{
+    if(e.touches.length!==1){ tracking=false; return; }
+    const t = e.touches[0];
+    if(!edgeStartAllowed(t, e.target)){ tracking=false; return; }
+    tracking=true; armed=false; pid=t.identifier;
+    startX=t.clientX; startY=t.clientY;
+  }, {passive:true});
+
+  document.addEventListener('touchmove', e=>{
+    if(!tracking) return;
+    const t = [...e.touches].find(x=>x.identifier===pid);
+    if(!t) return;
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if(!armed){
+      // wait until the motion itself proves direction — protects vertical scroll
+      if(Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)*1.4){
+        armed = true;
+        destroyPanel();
+        panel = buildPanel(swipeBackTarget());
+      } else if(Math.abs(dy) > 12){ tracking=false; return; }  // it's a scroll, abandon silently
+      else return;
+    }
+    const w = panel.offsetWidth || 300;
+    const pct = Math.max(-102, Math.min(0, -102 + (dx / w) * 102 * 1.5));
+    panel.style.transform = 'translateX(' + pct + '%)';
+  }, {passive:true});
+
+  function endTouch(e){
+    if(!tracking) return;
+    tracking=false;
+    const t = e.changedTouches ? [...e.changedTouches].find(x=>x.identifier===pid) : null;
+    const dx = t ? (t.clientX - startX) : 0;
+    const wasArmed = armed;
+    armed=false; pid=null;
+    if(!wasArmed || !panel){ destroyPanel(); return; }
+    const p = panel; panel = null;
     if(dx >= OPEN){
       const target = swipeBackTarget();
-      g.style.transition = 'transform .22s cubic-bezier(.25,.9,.4,1), opacity .22s ease';
-      g.style.transform = 'translateX(0%)'; g.style.opacity = '1';
-      // Remove the ghost from the DOM in the SAME frame it lands, then let the
-      // browser breathe for one frame before goto() rebuilds the screen —
-      // otherwise iOS swallows taps for a while after a heavy pointerup.
+      p.style.transition = 'transform .2s cubic-bezier(.25,.9,.4,1)';
+      p.style.transform = 'translateX(0%)';
       setTimeout(()=>{
-        g.remove();
-        requestAnimationFrame(()=>goto(target));
-      }, 200);
+        p.remove();
+        requestAnimationFrame(()=>goto(target));               // slide-in transition plays underneath
+      }, 190);
     } else {
-      g.style.transition = 'transform .26s cubic-bezier(.3,.9,.4,1.1), opacity .2s ease';
-      g.style.transform = 'translateX(-101%)'; g.style.opacity = '0';
-      setTimeout(()=>g.remove(), 280);
+      p.style.transition = 'transform .24s cubic-bezier(.3,.9,.4,1.05), opacity .22s ease';
+      p.style.transform = 'translateX(-102%)'; p.style.opacity = '0';
+      setTimeout(()=>p.remove(), 260);
     }
+  }
+  document.addEventListener('touchend', endTouch, {passive:true});
+  document.addEventListener('touchcancel', ()=>{ tracking=false; armed=false; destroyPanel(); }, {passive:true});
+
+  /* Desktop / devtools testing hook: same gesture with a mouse drag */
+  document.addEventListener('mousedown', e=>{
+    if(e.button!==0 || e.clientX > 12) return;
+    if(!swipeBackTarget()) return;
+    tracking=true; armed=false; pid='mouse'; startX=e.clientX; startY=e.clientY;
+  });
+  document.addEventListener('mousemove', e=>{
+    if(!tracking || pid!=='mouse') return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    if(!armed){
+      if(Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)*1.4){ armed=true; destroyPanel(); panel=buildPanel(swipeBackTarget()); }
+      else if(Math.abs(dy) > 12){ tracking=false; return; }
+      else return;
+    }
+    const w = panel.offsetWidth || 300;
+    panel.style.transform = 'translateX(' + Math.max(-102, Math.min(0, -102 + (dx/w)*102*1.5)) + '%)';
+  });
+  document.addEventListener('mouseup', e=>{
+    if(!tracking || pid!=='mouse') return;
+    const dx = e.clientX - startX;
+    const wasArmed = armed; const p = panel;
+    tracking=false; armed=false; panel=null; pid=null;
+    if(!wasArmed || !p) return;
+    if(dx >= OPEN){ p.remove(); requestAnimationFrame(()=>goto(swipeBackTarget())); }
+    else { p.style.transition='transform .24s ease, opacity .22s ease'; p.style.transform='translateX(-102%)'; p.style.opacity='0'; setTimeout(()=>p.remove(),260); }
   });
 
   /* Android / Chrome hardware & UI back button: same native behaviour */
