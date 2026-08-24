@@ -65,23 +65,44 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 /* ---------- Top nav ---------- */
 .tabbar{
   position:sticky;top:0;left:0;right:0;z-index:50;
-  display:flex;align-items:center;gap:22px;
-  background:var(--paper);
+  display:flex;align-items:center;justify-content:center;gap:clamp(14px,7vw,34px);
+  background:rgba(243,236,223,0.86);
+  -webkit-backdrop-filter:saturate(1.5) blur(14px);
+  backdrop-filter:saturate(1.5) blur(14px);
   border-bottom:1px solid var(--line-strong);
-  padding:calc(18px + env(safe-area-inset-top, 0px)) 16px 12px;
+  padding:calc(14px + env(safe-area-inset-top, 0px)) 16px 0;
   margin:0 -16px 22px;
 }
 .tabbtn{
-  background:none;border:none;color:var(--muted);font-size:13px;font-weight:600;
-  padding:2px 0 10px;cursor:pointer;position:relative;font-family:'Work Sans',sans-serif;
-  display:flex;flex-direction:column;align-items:center;gap:0;
+  background:none;border:none;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.02em;
+  padding:4px 2px 11px;cursor:pointer;position:relative;font-family:'Work Sans',sans-serif;
+  display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap;
+  transition:color .22s ease;
 }
-.tabbtn svg{display:none;}
+.tabbtn svg{display:block;width:18px;height:18px;stroke:currentColor;transition:transform .25s cubic-bezier(.3,1.4,.5,1);}
+.tabbtn:active svg{transform:translateY(-2px) scale(.92);}
 .tabbtn.active{color:var(--ink);}
-.tabbtn.active::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--accent);}
+.tabbtn.active svg{color:var(--accent);}
+.tabbtn::after{
+  content:"";position:absolute;left:18%;right:18%;bottom:-1px;height:2.5px;border-radius:3px;
+  background:var(--accent);transform:scaleX(0);opacity:0;
+  transition:transform .3s cubic-bezier(.34,1.35,.5,1), opacity .2s ease;
+}
+.tabbtn.active::after{transform:scaleX(1);opacity:1;}
+.nav-indicator{
+  position:absolute;bottom:-1px;left:0;height:2.5px;border-radius:3px;background:var(--accent);
+  opacity:0;transition:transform .32s cubic-bezier(.34,1.2,.5,1), width .32s cubic-bezier(.34,1.2,.5,1), opacity .2s ease;
+  will-change:transform,width;
+}
+.tabbar{position:sticky;}
 
-.screen{display:none;position:relative;z-index:1;animation:fadeUp .3s ease;}
+/* Screen transitions — direction aware, light */
+.screen{display:none;position:relative;z-index:1;}
 .screen.active{display:block;}
+.screen.anim-fwd{animation:screenInFwd .3s cubic-bezier(.25,.8,.35,1) both;}
+.screen.anim-back{animation:screenInBack .3s cubic-bezier(.25,.8,.35,1) both;}
+@keyframes screenInFwd{from{opacity:0;transform:translateX(26px);}to{opacity:1;transform:translateX(0);}}
+@keyframes screenInBack{from{opacity:0;transform:translateX(-26px);}to{opacity:1;transform:translateX(0);}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
 /* ---------- Card base ---------- */
@@ -144,7 +165,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 
 .task-item{
   display:flex;align-items:center;gap:12px;padding:14px 15px;margin-bottom:9px;border-radius:var(--radius-md);
-  cursor:pointer;
+  cursor:pointer;animation:fadeUp .32s ease both;
 }
 .task-item:hover{border-color:var(--accent-line);}
 .task-tag{width:5px;align-self:stretch;border-radius:4px;flex-shrink:0;}
@@ -163,9 +184,10 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .text-input{
   width:100%;background:var(--paper);border:1px solid var(--line-strong);border-radius:var(--radius-sm);
   padding:11px 13px;color:var(--ink);font-size:14px;font-family:inherit;outline:none;
+  transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
 }
 .text-input::placeholder{color:var(--muted);}
-.text-input:focus{border-color:var(--accent);}
+.text-input:focus{border-color:var(--accent);background:var(--card);box-shadow:0 0 0 3.5px var(--accent-soft);}
 
 /* ---------- SESSION / lesson ---------- */
 /* Sticky compact header: collapses smoothly into pinned back+context bar on scroll, expands back at top */
@@ -192,15 +214,19 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .sess-progress-track{height:5px;border-radius:20px;background:var(--paper-2);margin:14px 0 6px;overflow:hidden;}
 .sess-progress-fill{height:100%;background:var(--accent);border-radius:20px;}
 
-.empty-hint{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;}
+.empty-hint{
+  text-align:center;padding:32px 22px;color:var(--muted);font-size:12.5px;line-height:1.65;
+  border:1.5px dashed var(--line-strong);border-radius:var(--radius-lg);
+  background:rgba(255,252,246,0.55);margin:8px 0;
+}
 .lesson-meta{font-size:11px;color:var(--muted);margin:2px 0 16px;font-weight:500;}
 
 /* ---------- Accordion stacked drug/otc cards ---------- */
-.acc-card{padding:0;margin-bottom:11px;overflow:hidden;cursor:pointer;}
+.acc-card{padding:0;margin-bottom:11px;overflow:hidden;cursor:pointer;animation:fadeUp .32s ease both;}
 .group-header{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line-strong);}
 .group-header:first-child{margin-top:0;}
 .acc-head{display:flex;align-items:center;gap:12px;padding:14px 15px;}
-.acc-head .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.acc-head .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 3px color-mix(in srgb, currentColor 18%, transparent);}
 .acc-head-info{flex:1;min-width:0;}
 .acc-head-name{font-size:14px;font-weight:600;color:var(--ink);font-family:'Fraunces',serif;}
 .acc-head-preview{font-size:11.5px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -218,9 +244,10 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .acc-ar{font-size:12px;color:var(--ink-soft);margin-bottom:10px;line-height:1.65;direction:rtl;text-align:right;background:var(--accent-soft);border:1px solid var(--accent-line);padding:10px 12px;border-radius:var(--radius-md);}
 
 /* ---------- OTC detail page (tables) ---------- */
-.otc-link-row{display:flex;align-items:center;gap:12px;padding:13px 15px;cursor:pointer;}
-.otc-arrow{width:16px;height:16px;flex-shrink:0;color:var(--muted);}
+.otc-link-row{display:flex;align-items:center;gap:12px;padding:13px 15px;cursor:pointer;animation:fadeUp .32s ease both;}
+.otc-arrow{width:16px;height:16px;flex-shrink:0;color:var(--muted);transition:transform .2s ease,color .2s ease;}
 .otc-link-row:hover .otc-arrow{color:var(--accent);}
+.otc-link-row:active .otc-arrow{transform:translateX(3px);}
 
 .detail-section{margin-bottom:18px;}
 .detail-section-title{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:7px;}
@@ -253,10 +280,11 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .chapter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .chapter-card{
   background:var(--card);border:1px solid var(--line-strong);border-radius:var(--radius-md);
-  padding:13px 12px 11px;cursor:pointer;position:relative;transition:border-color .15s ease,transform .1s ease;
-  display:flex;flex-direction:column;gap:6px;min-height:92px;
+  padding:13px 12px 11px;cursor:pointer;position:relative;transition:border-color .15s ease,transform .1s ease,box-shadow .2s ease;
+  display:flex;flex-direction:column;gap:6px;min-height:92px;animation:fadeUp .34s ease both;
 }
 .chapter-card:hover{border-color:var(--accent-line);}
+.chapter-card:hover{box-shadow:0 6px 18px -12px rgba(33,26,19,.4);}
 .chapter-card:active{transform:scale(.98);}
 .chapter-card .cc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 .chapter-card .cc-title{font-size:13px;font-weight:600;color:var(--ink);line-height:1.25;}
@@ -269,12 +297,11 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .chapter-card .cc-reorder button:hover{color:var(--accent);border-color:var(--accent-line);}
 .reset-order-link{font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline;}
 .backup-hint{font-size:10.5px;color:var(--muted);line-height:1.5;margin:-4px 0 18px;}
-
 /* ---------- Pedi Calculator ---------- */
 .unit-toggle{display:flex;gap:6px;margin-top:8px;}
 .unit-toggle button{
   flex:1;padding:8px 0;border-radius:8px;border:1px solid var(--line-strong);background:var(--paper);
-  color:var(--ink-soft);font-size:12.5px;font-weight:600;cursor:pointer;
+  color:var(--ink-soft);font-size:12.5px;font-weight:600;cursor:pointer;transition:background .18s,color .18s,border-color .18s;
 }
 .unit-toggle button.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 .pc-row{display:flex;gap:8px;}
@@ -404,13 +431,17 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .edit-inline{font-size:10.5px;font-weight:600;color:var(--accent);cursor:pointer;text-decoration:underline;text-transform:none;letter-spacing:0;}
 
 /* ---------- Modal (drug / chapter / table / notes editor) ---------- */
-.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(33,26,19,0.45);z-index:100;align-items:flex-end;justify-content:center;}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(33,26,19,0.45);z-index:100;flex-direction:column;align-items:center;justify-content:flex-end;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);}
 .modal-backdrop.open{display:flex;}
-.modal-card{background:var(--paper);width:100%;max-width:440px;max-height:86vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:18px 18px 16px;animation:fadeUp .2s ease;}
-@media (min-width:480px){ .modal-card{border-radius:18px;margin-bottom:6vh;} }
+.modal-card{background:var(--paper);width:100%;max-width:440px;max-height:86vh;overflow-y:auto;border-radius:22px 22px 0 0;padding:10px 18px 16px;box-shadow:0 -12px 40px -18px rgba(33,26,19,.5);animation:sheetUp .32s cubic-bezier(.25,.9,.35,1) both;}
+.modal-backdrop.open::before{content:"";width:38px;height:4px;border-radius:4px;background:var(--line-strong);margin:6px auto 8px;flex-shrink:0;}
+@keyframes sheetUp{from{transform:translateY(60%);opacity:.4;}to{transform:translateY(0);opacity:1;}}
+@media (min-width:480px){ .modal-backdrop.open{justify-content:center;} .modal-card{border-radius:18px;margin-bottom:6vh;animation:popIn .28s cubic-bezier(.3,1.3,.5,1) both;} }
 .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
 .modal-header span{font-size:15px;font-weight:700;font-family:'Fraunces',serif;}
-.modal-x{border:none;background:var(--card);border:1px solid var(--line-strong);width:28px;height:28px;border-radius:8px;font-size:15px;cursor:pointer;color:var(--ink-soft);}
+.modal-x{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:none;background:var(--card);border:1px solid var(--line-strong);border-radius:50%;font-size:15px;line-height:1;cursor:pointer;color:var(--ink-soft);transition:border-color .18s,color .18s,transform .15s;}
+.modal-x:hover{color:var(--accent);border-color:var(--accent-line);}
+.modal-x:active{transform:scale(.88);}
 .modal-body .field-label{margin-top:2px;}
 .modal-body textarea.text-input{min-height:70px;resize:vertical;font-family:inherit;}
 .modal-actions{display:flex;gap:8px;margin-top:16px;}
@@ -428,14 +459,42 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 /* ---------- iOS Home Screen / standalone safe-area fix ---------- */
 @media (display-mode: standalone){
   .tabbar{
-    padding-top:calc(18px + env(safe-area-inset-top, 0px));
+    padding-top:calc(14px + env(safe-area-inset-top, 0px));
   }
 }
+
+/* Respect users who prefer minimal motion */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+}
+
+/* ---------- Edge swipe-to-go-back (native app feel) ---------- */
+#edgeSwipeLayer{position:fixed;top:0;bottom:0;left:0;width:26px;z-index:60;-webkit-user-select:none;user-select:none;touch-action:pan-y;}
+.swipe-ghost{
+  position:fixed;top:0;bottom:0;left:0;width:min(78vw,340px);z-index:95;pointer-events:none;
+  background:var(--paper);border-right:1px solid var(--line-strong);
+  border-radius:0 20px 20px 0;
+  box-shadow:-14px 0 34px -18px rgba(33,26,19,.45);
+  overflow:hidden;
+}
+.swipe-ghost .sg-head{
+  padding:calc(14px + env(safe-area-inset-top, 0px)) 16px 10px;
+  display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);
+}
+.swipe-ghost .sg-head svg{flex:none;}
+.swipe-ghost .sg-head span{
+  font-family:'Fraunces',serif;font-weight:600;font-size:14px;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.swipe-ghost .sg-body{padding:14px 16px;}
+.sg-skel{height:12px;border-radius:6px;background:var(--paper-2);margin-bottom:9px;}
 </style>
 </head>
 <body>
 
 <div class="app">
+
+  <div id="edgeSwipeLayer" aria-hidden="true"></div>
 
   <div class="tabbar">
     <button class="tabbtn active" id="tab-home" onclick="goto('home')">
@@ -450,6 +509,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="2.5" width="16" height="19" rx="3"/><path d="M8 7h8M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01"/></svg>
       Pedi Calc
     </button>
+    <span id="navIndicator" class="nav-indicator"></span>
     <button class="tabbtn edit-toggle" id="editModeBtn" onclick="toggleEditMode()" title="Edit content">✎</button>
   </div>
 
@@ -503,7 +563,6 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
     </div>
 
     <input type="file" id="importFile" accept="application/json" style="display:none;" onchange="importDB(this)">
-    <div class="backup-hint">Your added/edited content auto-saves on this device. Download a backup occasionally so nothing is lost if you switch devices or clear browser data.</div>
 
     <div class="section-title"><h3>Course Chapters</h3><span><span class="reset-order-link" onclick="resetChapterOrder()">Reset order</span><span id="resetDataLink" class="reset-order-link" style="margin-left:10px;display:none;" onclick="resetDB()">Reset data</span></span></div>
     <div id="chapterList"></div>
@@ -1876,14 +1935,43 @@ function updateCompactHeaders(){
 window.addEventListener('resize', updateTabbarHeightVar);
 window.addEventListener('scroll', ()=>requestAnimationFrame(updateCompactHeaders), {passive:true});
 
+/* ---------- Navigation: order-aware transitions + sliding tab indicator ---------- */
+const navOrder = ['home','setup','pedcalc'];
+
+function updateNavIndicator(instant){
+  const ind = document.getElementById('navIndicator');
+  const tabEl = document.getElementById('tab-'+state.screen);
+  if(!ind || !tabEl){ if(ind) ind.style.opacity = 0; return; }
+  if(tabEl.parentElement !== ind.parentElement){ ind.style.opacity = 0; return; } // hidden on non-tab screens
+  const r = tabEl.getBoundingClientRect();
+  const pr = ind.parentElement.getBoundingClientRect();
+  ind.style.opacity = 1;
+  ind.style.width = Math.max(18, r.width*0.5) + 'px';
+  ind.style.transform = 'translateX('+(r.left - pr.left + r.width/2)+'px)';
+  if(instant) ind.style.transition = 'none';
+  requestAnimationFrame(()=>{ ind.style.transition = ''; });
+}
+window.addEventListener('resize', ()=>updateNavIndicator(true));
+window.addEventListener('load', ()=>updateNavIndicator(true));
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>updateNavIndicator(true));
+
+let _lastScreen = 'home';
 function goto(screen){
+  let dir = 1;
+  const iFrom = navOrder.indexOf(_lastScreen), iTo = navOrder.indexOf(screen);
+  if(iFrom > -1 && iTo > -1) dir = iTo > iFrom ? 1 : -1;          // lateral tabs: follow their order
+  else if(navOrder.includes(screen)) dir = -1;                     // deep screen -> a main tab feels like going back
+  else dir = 1;                                                    // main tab -> deep screen pushes forward
+  _lastScreen = screen;
   state.screen=screen;
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+screen).classList.add('active');
+  document.querySelectorAll('.screen').forEach(s=>{ s.classList.remove('active','anim-fwd','anim-back'); });
+  const sec = document.getElementById('screen-'+screen);
+  sec.classList.add('active', dir>0 ? 'anim-fwd' : 'anim-back');
   document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
   window.scrollTo(0,0);
   const tabEl = document.getElementById('tab-'+screen);
   if(tabEl) tabEl.classList.add('active');
+  updateNavIndicator(false);
   if(screen==='home') renderHome();
   if(screen==='setup') renderResults();
   if(screen==='session') renderSession();
@@ -1894,6 +1982,89 @@ function goto(screen){
   if(screen==='mcq') renderMcqScreen();
   updateCompactHeaders();
 }
+
+/* ---------- Swipe from left edge = go back (native app feel) ----------
+   A ghost card peeks in and follows your finger with rubber-banding;
+   release past the threshold to pop back, release early to snap home. */
+const BACK_MAP = { session:'home', scan:'home', mcq:'pedcalc', scen:'pedcalc' };
+function swipeBackTarget(){
+  if(state.screen==='otcdetail') return state.otcReturnScreen || 'session';
+  return BACK_MAP[state.screen] || (navOrder.indexOf(state.screen) > 0 ? 'home' : null);
+}
+(function(){
+  const layer = document.getElementById('edgeSwipeLayer');
+  if(!layer || !window.PointerEvent) return;
+  let ghost=null, startX=0, startY=0, active=false, committed=false;
+  const OPEN = 72; // px of drag at which the back gesture commits
+
+  function makeGhost(label){
+    const g = document.createElement('div');
+    g.className = 'swipe-ghost';
+    g.innerHTML = `<div class="sg-head">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b3502c" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+        <span></span>
+      </div>
+      <div class="sg-body">
+        <div class="sg-skel" style="width:52%"></div><div class="sg-skel" style="width:88%"></div>
+        <div class="sg-skel" style="width:74%"></div><div class="sg-skel" style="width:82%"></div>
+        <div class="sg-skel" style="width:60%"></div><div class="sg-skel" style="width:78%"></div>
+      </div>`;
+    g.querySelector('.sg-head span').textContent = label;
+    document.body.appendChild(g);
+    return g;
+  }
+
+  layer.addEventListener('pointerdown', e=>{
+    const target = swipeBackTarget();
+    if(!target) return;
+    active = true; committed = false;
+    startX = e.clientX; startY = e.clientY;
+    ghost = makeGhost(target==='home' ? 'PharmaCore' : ({setup:'Browse', pedcalc:'Pedi Calc', session:'Lesson'})[target] || '');
+    ghost.style.transform = 'translateX(-101%)';
+    try{ navigator.vibrate && navigator.vibrate(8); }catch(err){}
+    try{ layer.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  layer.addEventListener('pointermove', e=>{
+    if(!active) return;
+    const dx = e.clientX - startX, dy = Math.abs(e.clientY - startY);
+    if(!committed && dy > 14 && dx < 6){ cancel(); return; }          // that was a scroll, not a swipe
+    const x = Math.max(-101, Math.min(0, -101 + (dx/ (ghost.offsetWidth||300)) * 101 * 1.35));
+    ghost.style.transition = 'none';
+    ghost.style.transform = 'translateX(' + x + '%)';
+    if(!committed && dx >= OPEN){ committed = true; try{ navigator.vibrate && navigator.vibrate(12); }catch(err){} }
+    if(committed && dx < OPEN*0.55) committed = false;
+  });
+  function cancel(){ if(ghost){ ghost.remove(); ghost=null; } active=false; committed=false; }
+  layer.addEventListener('pointercancel', cancel);
+  layer.addEventListener('pointerup', e=>{
+    if(!active) return;
+    const dx = e.clientX - startX;
+    const g = ghost; ghost = null; active = false;
+    if(!g) return;
+    if(dx >= OPEN){
+      const target = swipeBackTarget();
+      g.style.transition = 'transform .22s cubic-bezier(.25,.9,.4,1), opacity .22s ease';
+      g.style.transform = 'translateX(0%)'; g.style.opacity = '1';
+      setTimeout(()=>g.remove(), 230);
+      goto(target);                                                   // slide-in transition plays underneath
+    } else {
+      g.style.transition = 'transform .26s cubic-bezier(.3,.9,.4,1.1), opacity .2s ease';
+      g.style.transform = 'translateX(-101%)'; g.style.opacity = '0';
+      setTimeout(()=>g.remove(), 280);
+    }
+  });
+
+  /* Android / Chrome hardware & UI back button: same native behaviour */
+  window.addEventListener('popstate', ()=>{
+    if(state._navGuard) return;
+    const target = swipeBackTarget();
+    if(!target){ history.back(); return; }
+    state._navGuard = true;
+    goto(target);
+    setTimeout(()=>{ state._navGuard=false; history.pushState({pc:true},''); }, 60);
+  });
+  try{ history.replaceState({pc:true},''); history.pushState({pc:true},''); }catch(e){}
+})();
 
 /* ---------- OTC full-page detail ---------- */
 function findOtcTopic(id){
