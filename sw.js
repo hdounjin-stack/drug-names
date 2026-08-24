@@ -3,7 +3,7 @@
    fonts) is stored locally and works with zero internet connection.
    Your added drugs/chapters/tables live separately in localStorage
    and are untouched by this file. */
-const CACHE = 'pharmacore-shell-v7';
+const CACHE = 'pharmacore-shell-v9';
 const SHELL = [
   './',
   './index.html',
