@@ -99,8 +99,8 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 /* Screen transitions — direction aware, light */
 .screen{display:none;position:relative;z-index:1;}
 .screen.active{display:block;}
-.screen.anim-fwd{animation:screenInFwd .3s cubic-bezier(.25,.8,.35,1) both;}
-.screen.anim-back{animation:screenInBack .3s cubic-bezier(.25,.8,.35,1) both;}
+.screen.anim-fwd{animation:screenInFwd .28s cubic-bezier(.25,.8,.35,1) backwards;}
+.screen.anim-back{animation:screenInBack .28s cubic-bezier(.25,.8,.35,1) backwards;}
 @keyframes screenInFwd{from{opacity:0;transform:translateX(26px);}to{opacity:1;transform:translateX(0);}}
 @keyframes screenInBack{from{opacity:0;transform:translateX(-26px);}to{opacity:1;transform:translateX(0);}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
@@ -165,7 +165,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 
 .task-item{
   display:flex;align-items:center;gap:12px;padding:14px 15px;margin-bottom:9px;border-radius:var(--radius-md);
-  cursor:pointer;animation:fadeUp .32s ease both;
+  cursor:pointer;animation:fadeUp .32s ease backwards;
 }
 .task-item:hover{border-color:var(--accent-line);}
 .task-tag{width:5px;align-self:stretch;border-radius:4px;flex-shrink:0;}
@@ -222,7 +222,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .lesson-meta{font-size:11px;color:var(--muted);margin:2px 0 16px;font-weight:500;}
 
 /* ---------- Accordion stacked drug/otc cards ---------- */
-.acc-card{padding:0;margin-bottom:11px;overflow:hidden;cursor:pointer;animation:fadeUp .32s ease both;}
+.acc-card{padding:0;margin-bottom:11px;overflow:hidden;cursor:pointer;animation:fadeUp .32s ease backwards;}
 .group-header{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line-strong);}
 .group-header:first-child{margin-top:0;}
 .acc-head{display:flex;align-items:center;gap:12px;padding:14px 15px;}
@@ -244,7 +244,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .acc-ar{font-size:12px;color:var(--ink-soft);margin-bottom:10px;line-height:1.65;direction:rtl;text-align:right;background:var(--accent-soft);border:1px solid var(--accent-line);padding:10px 12px;border-radius:var(--radius-md);}
 
 /* ---------- OTC detail page (tables) ---------- */
-.otc-link-row{display:flex;align-items:center;gap:12px;padding:13px 15px;cursor:pointer;animation:fadeUp .32s ease both;}
+.otc-link-row{display:flex;align-items:center;gap:12px;padding:13px 15px;cursor:pointer;animation:fadeUp .32s ease backwards;}
 .otc-arrow{width:16px;height:16px;flex-shrink:0;color:var(--muted);transition:transform .2s ease,color .2s ease;}
 .otc-link-row:hover .otc-arrow{color:var(--accent);}
 .otc-link-row:active .otc-arrow{transform:translateX(3px);}
@@ -281,7 +281,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .chapter-card{
   background:var(--card);border:1px solid var(--line-strong);border-radius:var(--radius-md);
   padding:13px 12px 11px;cursor:pointer;position:relative;transition:border-color .15s ease,transform .1s ease,box-shadow .2s ease;
-  display:flex;flex-direction:column;gap:6px;min-height:92px;animation:fadeUp .34s ease both;
+  display:flex;flex-direction:column;gap:6px;min-height:92px;animation:fadeUp .34s ease backwards;
 }
 .chapter-card:hover{border-color:var(--accent-line);}
 .chapter-card:hover{box-shadow:0 6px 18px -12px rgba(33,26,19,.4);}
@@ -348,7 +348,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 #scenAskSelBtn{position:fixed;z-index:999;display:none;align-items:center;gap:6px;background:var(--ink);color:var(--paper);border:none;border-radius:20px;padding:8px 14px;font-size:12.5px;font-weight:600;font-family:'Work Sans',sans-serif;box-shadow:0 6px 18px -6px rgba(33,26,19,.45);cursor:pointer;animation:popIn .2s ease both;}
 #scenAskSelBtn:active{transform:scale(.96);}
 /* big entry card for Clinical Scenarios */
-.scen-entry,.mcq-entry{display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:16px;border-radius:var(--radius-lg);background:linear-gradient(135deg,rgba(179,80,44,0.10),rgba(156,107,18,0.08) 55%,var(--card) 100%);border:1px solid var(--accent-line);box-shadow:0 2px 0 rgba(179,80,44,0.05), 0 12px 26px -20px rgba(33,26,19,0.4);cursor:pointer;transition:transform .15s, box-shadow .15s, border-color .2s;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) both;}
+.scen-entry,.mcq-entry{display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:16px;border-radius:var(--radius-lg);background:linear-gradient(135deg,rgba(179,80,44,0.10),rgba(156,107,18,0.08) 55%,var(--card) 100%);border:1px solid var(--accent-line);box-shadow:0 2px 0 rgba(179,80,44,0.05), 0 12px 26px -20px rgba(33,26,19,0.4);cursor:pointer;transition:transform .15s, box-shadow .15s, border-color .2s;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) backwards;}
 .scen-entry:active,.mcq-entry:active{transform:scale(.98);}
 .scen-entry .se-icon,.mcq-entry .se-icon{flex:none;width:52px;height:52px;border-radius:16px;background:var(--card);border:1px solid var(--accent-line);box-shadow:inset 0 0 0 3px var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:26px;}
 .scen-entry .se-text,.mcq-entry .se-text{flex:1;min-width:0;}
@@ -364,7 +364,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .util-tile{
   background:var(--card);border:1px solid var(--line-strong);border-radius:var(--radius-md);
   padding:11px 4px 9px;display:flex;flex-direction:column;align-items:center;gap:6px;
-  cursor:pointer;transition:border-color .18s, transform .12s;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) both;
+  cursor:pointer;transition:border-color .18s, transform .12s;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) backwards;
 }
 .util-tile:nth-child(2){animation-delay:.05s}.util-tile:nth-child(3){animation-delay:.1s}.util-tile:nth-child(4){animation-delay:.15s}
 .util-tile:active{transform:scale(.94);}
@@ -373,14 +373,14 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .util-tile span{font-size:10px;font-weight:700;color:var(--ink-soft);letter-spacing:.02em;}
 
 /* ---------- MCQ Practice ---------- */
-.mcq-qcard{padding:15px 16px;margin-bottom:10px;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) both;}
+.mcq-qcard{padding:15px 16px;margin-bottom:10px;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) backwards;}
 @keyframes mcqIn{from{opacity:0;transform:translateY(10px) scale(.985);}to{opacity:1;transform:none;}}
 .mcq-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:9px;}
 .mcq-chip{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:20px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line);}
 .mcq-chip.topic{background:rgba(156,107,18,0.09);color:var(--amber);border-color:rgba(156,107,18,0.3);}
 .mcq-qtext{font-size:13px;font-weight:600;line-height:1.55;}
 .mcq-opts{display:flex;flex-direction:column;gap:7px;margin-top:11px;}
-.mcq-opt{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:var(--paper);border:1px solid var(--line-strong);border-radius:var(--radius-md);padding:9px 12px;font-family:'Work Sans',sans-serif;font-size:12.5px;color:var(--ink-soft);cursor:pointer;transition:border-color .18s, background .18s, transform .18s, color .18s;animation:optIn .3s ease both;}
+.mcq-opt{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:var(--paper);border:1px solid var(--line-strong);border-radius:var(--radius-md);padding:9px 12px;font-family:'Work Sans',sans-serif;font-size:12.5px;color:var(--ink-soft);cursor:pointer;transition:border-color .18s, background .18s, transform .18s, color .18s;animation:optIn .3s ease backwards;}
 .mcq-opt > span:last-child{flex:1;}
 .mcq-opt > span:last-child p{margin:0;}
 .mcq-opt:nth-child(1){animation-delay:.04s}.mcq-opt:nth-child(2){animation-delay:.1s}
@@ -398,7 +398,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .mcq-opt.dim{opacity:.42;pointer-events:none;}
 .mcq-opt.shake{animation:mcqShake .38s ease;}
 @keyframes mcqShake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}50%{transform:translateX(4px);}75%{transform:translateX(-2px);}}
-.mcq-expl{margin-top:11px;padding:10px 12px;border-radius:var(--radius-md);background:var(--paper-2);border:1px dashed var(--line-strong);font-size:12px;line-height:1.6;color:var(--ink-soft);animation:mcqIn .32s ease both;}
+.mcq-expl{margin-top:11px;padding:10px 12px;border-radius:var(--radius-md);background:var(--paper-2);border:1px dashed var(--line-strong);font-size:12px;line-height:1.6;color:var(--ink-soft);animation:mcqIn .32s ease backwards;}
 .mcq-expl b,.mcq-expl strong{color:var(--ink);}
 .mcq-expl .rx-line{background:var(--card);}
 .mcq-score-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 12px;}
@@ -406,7 +406,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .mcq-score-num small{font-size:11px;color:var(--muted);font-family:'Work Sans',sans-serif;font-weight:600;}
 .mcq-progress{flex:1;height:6px;border-radius:6px;background:var(--paper-2);border:1px solid var(--line);overflow:hidden;}
 .mcq-progress-fill{height:100%;width:0%;border-radius:6px;background:linear-gradient(90deg,var(--accent),#d4794e);transition:width .45s cubic-bezier(.2,.8,.3,1);}
-.mcq-done-card{text-align:center;padding:26px 18px !important;animation:mcqIn .4s cubic-bezier(.2,.8,.3,1) both;}
+.mcq-done-card{text-align:center;padding:26px 18px !important;animation:mcqIn .4s cubic-bezier(.2,.8,.3,1) backwards;}
 .mcq-done-emoji{font-size:34px;display:block;margin-bottom:6px;animation:popIn .45s cubic-bezier(.2,1.4,.4,1) both .15s;}
 @keyframes popIn{from{opacity:0;transform:scale(.4);}to{opacity:1;transform:scale(1);}}
 .mcq-done-title{font-family:'Fraunces',serif;font-size:17px;font-weight:700;margin-bottom:4px;}
@@ -2041,12 +2041,18 @@ function swipeBackTarget(){
     const dx = e.clientX - startX;
     const g = ghost; ghost = null; active = false;
     if(!g) return;
+    try{ layer.releasePointerCapture(e.pointerId); }catch(err){}
     if(dx >= OPEN){
       const target = swipeBackTarget();
       g.style.transition = 'transform .22s cubic-bezier(.25,.9,.4,1), opacity .22s ease';
       g.style.transform = 'translateX(0%)'; g.style.opacity = '1';
-      setTimeout(()=>g.remove(), 230);
-      goto(target);                                                   // slide-in transition plays underneath
+      // Remove the ghost from the DOM in the SAME frame it lands, then let the
+      // browser breathe for one frame before goto() rebuilds the screen —
+      // otherwise iOS swallows taps for a while after a heavy pointerup.
+      setTimeout(()=>{
+        g.remove();
+        requestAnimationFrame(()=>goto(target));
+      }, 200);
     } else {
       g.style.transition = 'transform .26s cubic-bezier(.3,.9,.4,1.1), opacity .2s ease';
       g.style.transform = 'translateX(-101%)'; g.style.opacity = '0';
