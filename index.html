@@ -310,6 +310,9 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .scen-font-btns button{background:var(--card);border:1px solid var(--line-strong);border-radius:8px;color:var(--ink-soft);font-weight:700;cursor:pointer;padding:4px 10px;font-family:'Work Sans',sans-serif;}
 .scen-font-btns button:active{transform:scale(.96);}
 .scen-font-label{font-size:10.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:700;}
+/* floating "ask about selection" pill */
+#scenAskSelBtn{position:fixed;z-index:999;display:none;align-items:center;gap:6px;background:var(--ink);color:var(--paper);border:none;border-radius:20px;padding:8px 14px;font-size:12.5px;font-weight:600;font-family:'Work Sans',sans-serif;box-shadow:0 6px 18px -6px rgba(33,26,19,.45);cursor:pointer;animation:popIn .2s ease both;}
+#scenAskSelBtn:active{transform:scale(.96);}
 
 /* ---------- MCQ Practice ---------- */
 .mcq-qcard{padding:15px 16px;margin-bottom:10px;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) both;}
@@ -535,6 +538,18 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
       <div style="width:34px;"></div>
     </div>
     <div id="scanArea"></div>
+  </section>
+
+  <!-- ================= SCREEN 8 : CLINICAL SCENARIOS (AI tutor, full page) ================= -->
+  <section class="screen" id="screen-scen">
+    <div class="sess-header">
+      <button class="sess-back" onclick="goto('pedcalc')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+      </button>
+      <div class="sess-title"><div class="cat">AI TUTOR · BETA</div><div class="name">Clinical Scenarios</div></div>
+      <div style="width:34px;"></div>
+    </div>
+    <div id="scenArea"></div>
   </section>
 
 </div>
@@ -1813,6 +1828,7 @@ function goto(screen){
   if(screen==='pediatric') renderPediatric();
   if(screen==='pedcalc') renderPedCalc();
   if(screen==='scan') renderScan();
+  if(screen==='scen') renderScenScreen();
   updateCompactHeaders();
 }
 
@@ -2168,23 +2184,6 @@ function renderPedCalc(){
     </div>
 
     <div class="card" style="padding:16px;margin-top:14px;">
-      <div class="detail-section-title">🩺 Clinical Scenarios <span class="beta-tag">new</span></div>
-      <div class="modal-hint">AI-generated cases — emergencies and everyday internal medicine — for practicing preliminary diagnosis and writing a prescription per current clinical guidelines. Uses the same AI key as Scan Prescription.</div>
-      <div class="scen-font-row">
-        <span class="scen-font-label">Text size</span>
-        <div class="scen-font-btns">
-          <button onclick="changeChatFont(-1)" title="Smaller text" style="font-size:13px;">A−</button>
-          <button onclick="changeChatFont(1)" title="Larger text" style="font-size:16px;">A+</button>
-        </div>
-      </div>
-      <button class="pill-btn primary" style="width:100%;" onclick="startNewScenario()">🎲 New Scenario</button>
-      <div id="scenarioChatLog" class="chat-log"></div>
-      <div class="chat-input-row" id="scenarioInputRow" style="display:none;">
-        <input type="text" id="scenarioInput" class="text-input" placeholder="Your diagnosis / plan / answer..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendScenarioMessage();}">
-        <button class="pill-btn primary" onclick="sendScenarioMessage()">Send</button>
-      </div>
-    </div>
-    <div class="card" style="padding:16px;margin-top:14px;">
       <div class="detail-section-title">🧠 Drug MCQ Practice <span class="beta-tag">new</span></div>
       <div class="modal-hint">Quick-fire multiple-choice questions built from your own library — contraindications, side effects, antidotes, interactions & emergency drug choice. Uses the same AI key as Scan Prescription.</div>
       <div id="mcqSetup">
@@ -2204,8 +2203,32 @@ function renderPedCalc(){
     <div class="pc-link" onclick="goto('pediatric')">View the Pediatric Doses reference lesson →</div>
   `;
   state.pcUnit = 'years';
-  renderScenarioChat();
   renderMcqTopics();
+}
+
+/* ---------- Clinical Scenarios: dedicated full-page screen ---------- */
+function renderScenScreen(){
+  const area = document.getElementById('scenArea');
+  if(!area) return;
+  area.innerHTML = `
+    <div class="card" style="padding:16px;">
+      <div class="scen-font-row" style="margin-bottom:12px;">
+        <span class="scen-font-label">Text size</span>
+        <div class="scen-font-btns">
+          <button onclick="changeChatFont(-1)" title="Smaller text" style="font-size:13px;">A−</button>
+          <button onclick="changeChatFont(1)" title="Larger text" style="font-size:16px;">A+</button>
+        </div>
+      </div>
+      <button class="pill-btn primary" style="width:100%;" onclick="startNewScenario()">🎲 New Scenario</button>
+      <div id="scenarioChatLog" class="chat-log"></div>
+      <div class="chat-input-row" id="scenarioInputRow" style="display:none;">
+        <input type="text" id="scenarioInput" class="text-input" placeholder="Your diagnosis / plan / answer..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendScenarioMessage();}">
+        <button class="pill-btn primary" onclick="sendScenarioMessage()">Send</button>
+      </div>
+    </div>
+    <button id="scenAskSelBtn" onclick="askScenAboutSelection()">❓ Ask about this</button>`;
+  renderScenarioChat();
+  initScenSelection();
 }
 function pcSetUnit(u){
   state.pcUnit = u;
@@ -2230,6 +2253,7 @@ function pcEstimate(){
 }
 /* ---------- Clinical Scenarios chat (uses same BYOK config as Scan Prescription) ---------- */
 let scenarioMessages = [];
+let scenarioHistory = (()=>{ try{ return JSON.parse(localStorage.getItem('pc_scen_hist')||'[]'); }catch(e){ return []; } })(); // recent scenario topics so the AI avoids repeats
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 
 /* Tiny safe markdown renderer for AI replies: escape first, then convert.
@@ -2299,13 +2323,23 @@ function changeChatFont(delta){
 
 function clinicalScenarioSystemPrompt(){
   const chapters = DB.map(c=>c.name).join(', ');
-  return `You are a clinical case tutor for a pharmacy/medicine student, working from a course covering: ${chapters}. Generate realistic clinical scenarios one at a time — mix emergencies (e.g. anaphylaxis, MI, DKA, status asthmaticus, acute stroke, severe hypoglycemia) with everyday internal medicine / OTC cases (e.g. hypertension follow-up, GERD, UTI, diabetes management, common cold, gastroenteritis).
+  // randomize the flavor each time so scenarios never repeat
+  const settings = [
+    ['hospital ER night shift','busy outpatient clinic','small-town pharmacy counter','ambulance / pre-hospital','university health clinic','rural health unit','ICU rounds'],
+    ['a 20s adult','a middle-aged patient','an elderly patient on polypharmacy','a young athlete','a pregnant patient (choose trimester carefully)','a pediatric case','a patient with chronic kidney disease'],
+    ['dramatic and urgent','subtle — diagnosis hides in routine vitals','classic textbook presentation','atypical presentation that needs careful listening']
+  ];
+  const pick = a => a[Math.floor(Math.random()*a.length)];
+  const avoid = scenarioHistory.length
+    ? `\n\nIMPORTANT — do NOT repeat: the student already saw these scenarios/topics recently, generate something clearly different (different condition AND different setting): ${scenarioHistory.slice(-6).join(' | ')}.`
+    : '';
+  return `You are a clinical case tutor for a pharmacy/medicine student, working from a course covering: ${chapters}. Generate realistic clinical scenarios one at a time. Draw from a WIDE range: emergencies (anaphylaxis, MI, DKA, status asthmaticus, acute stroke, severe hypoglycemia, PE, sepsis, poisoning/overdose) AND everyday internal medicine / OTC cases (hypertension follow-up, GERD, UTI, diabetes management, common cold, gastroenteritis, dyslipidemia, asthma review, insomnia, allergies, travel advice).
 
 For each scenario: briefly describe the patient (age, relevant history, chief complaint, key vitals/exam findings) realistically, then STOP and ask the learner for (1) their preliminary diagnosis and (2) their initial drug plan (basic drug names, form, dose). Do not reveal the answer yet.
 
-When the learner responds, give short constructive feedback on their diagnosis and plan, then show the recommended approach as an actual written prescription (Rx format: Drug — Form — Dose/Frequency), reflecting current clinical guidelines. Keep responses concise and conversational. If asked for a new scenario, start a fresh one in the same style.
+When the learner responds, give short constructive feedback on their diagnosis and plan, then show the recommended approach as an actual written prescription (Rx format: Drug — Form — Dose/Frequency), reflecting current clinical guidelines. Keep responses concise and conversational. If asked about part of the case, explain it simply with one exam pearl. If asked for a new scenario, start a fresh one in a different domain than before.
 
-Formatting: your replies render as Markdown in the app. Use **bold** for drug names and key findings, short bullet lists where helpful, and put each prescription line on its own line starting with "Rx:". Never leave stray asterisks or raw symbols around text.`;
+Formatting: your replies render as Markdown in the app. Use **bold** for drug names and key findings, short bullet lists where helpful, and put each prescription line on its own line starting with "Rx:". Never leave stray asterisks or raw symbols around text.` + avoid;
 }
 async function callAiChat(cfg, messages){
   const model = cfg.model || defaultModelFor(cfg.provider);
@@ -2350,6 +2384,43 @@ function renderScenarioChat(){
   log.scrollTop = log.scrollHeight;
   const row = document.getElementById('scenarioInputRow');
   if(row) row.style.display = scenarioMessages.length ? 'flex' : 'none';
+}
+/* Ask-the-AI-about-a-selection: select any text in a reply -> floating button appears */
+function initScenSelection(){
+  const log = document.getElementById('scenarioChatLog');
+  if(!log || log._selInit) { if(log) attachScenSelection(log); return; }
+  log._selInit = true;
+  attachScenSelection(log);
+}
+let _scenBtnBound = false;
+function attachScenSelection(log){
+  const showBtn = ()=>{
+    const btn=document.getElementById('scenAskSelBtn');
+    if(!btn) return;
+    const sel=window.getSelection();
+    const text=sel ? sel.toString().trim() : '';
+    // only inside the chat log, and meaningful length
+    if(text.length>=3 && sel.anchorNode && log.contains(sel.anchorNode)){
+      const r=sel.getRangeAt(0).getBoundingClientRect();
+      btn.style.display='flex';
+      btn.style.top=Math.max(8, r.top-44)+'px';
+      btn.style.left=Math.max(8, Math.min(window.innerWidth-190, r.left))+'px';
+    } else {
+      btn.style.display='none';
+    }
+  };
+  document.removeEventListener('selectionchange', window.__scenSelHandler||(()=>{}));
+  window.__scenSelHandler=showBtn;
+  document.addEventListener('selectionchange', showBtn);
+}
+function askScenAboutSelection(){
+  const btn=document.getElementById('scenAskSelBtn');
+  if(btn) btn.style.display='none';
+  const sel=window.getSelection();
+  const text=sel ? sel.toString().trim() : '';
+  if(text.length<3) return;
+  if(navigator.vibrate) try{navigator.vibrate(8);}catch(e){}
+  sendScenarioMessage(`❓ About this part:\n"${text}"\n\nExplain it simply: what it means, why it matters here, and one exam pearl.`);
 }
 
 /* =========================================================
@@ -2513,7 +2584,7 @@ function exitMcq(){
   document.getElementById('mcqPlayArea').style.display='none';
   document.getElementById('mcqPlayArea').innerHTML='';
 }
-async function pushScenarioTurn(){
+async function pushScenarioTurn(isNewScenario){
   const cfg = loadAiConfig();
   const log = document.getElementById('scenarioChatLog');
   log.insertAdjacentHTML('beforeend', `<div class="chat-msg assistant" id="scenarioLoading">…thinking</div>`);
@@ -2521,6 +2592,13 @@ async function pushScenarioTurn(){
   try{
     const reply = await callAiChat(cfg, scenarioMessages);
     scenarioMessages.push({role:'assistant', text:reply});
+    if(isNewScenario){
+      // remember a short label of this case so the next one avoids it
+      const first = reply.replace(/[#*`>]/g,'').split('\n').map(s=>s.trim()).filter(Boolean).slice(0,2).join(' ').slice(0,90);
+      scenarioHistory.push(first);
+      if(scenarioHistory.length>8) scenarioHistory.shift();
+      try{ localStorage.setItem('pc_scen_hist', JSON.stringify(scenarioHistory)); }catch(e){}
+    }
   }catch(e){
     scenarioMessages.push({role:'assistant', text:'⚠️ '+(e.message||e).toString().slice(0,300)});
   }
@@ -2529,15 +2607,19 @@ async function pushScenarioTurn(){
 function startNewScenario(){
   const cfg = loadAiConfig();
   if(!cfg.key){ goto('scan'); return; }
+  // rotate the random flavor + tell the AI what to avoid
   scenarioMessages = [{role:'user', text:'Start a new clinical scenario.'}];
   renderScenarioChat();
-  pushScenarioTurn();
+  pushScenarioTurn(true);
 }
-function sendScenarioMessage(){
+function sendScenarioMessage(text){
   const input = document.getElementById('scenarioInput');
-  const text = input.value.trim(); if(!text) return;
-  scenarioMessages.push({role:'user', text});
-  input.value = '';
+  const msg = (typeof text==='string' && text) ? text : (input ? input.value.trim() : '');
+  if(!msg) return;
+  if(input && typeof text!=='string') input.value='';
+  else if(input && text===undefined) input.value='';
+  scenarioMessages.push({role:'user', text:msg});
+  if(input) input.value='';
   renderScenarioChat();
   pushScenarioTurn();
 }
