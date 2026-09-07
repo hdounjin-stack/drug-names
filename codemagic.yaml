@@ -5,9 +5,22 @@ workflows:
     environment:
       node: 18
     scripts:
-      - npm install
-      - npx cap add android        # ➕ السطر الجديد ده
-      - npx cap sync android
-      - cd android && ./gradlew assembleDebug
+      - name: Install Dependencies
+        script: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+      - name: Prepare Web Assets
+        script: |
+          mkdir -p www
+          cp -r index.html manifest.json sw.js icon-*.png favicon-32.png www/ 2>/dev/null || true
+      - name: Setup Android Platform
+        script: |
+          if [ ! -d android ]; then
+            npx cap add android
+          fi
+          npx cap copy android
+          npx cap sync android
+      - name: Build APK
+        script: |
+          cd android && ./gradlew assembleDebug
     artifacts:
       - android/app/build/outputs/apk/debug/*.apk
