@@ -8,15 +8,21 @@ workflows:
       - name: Install Dependencies
         script: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
-      - name: Prepare Web Assets
-        script: |
-          mkdir -p www
-          cp -r index.html manifest.json sw.js icon-*.png favicon-32.png www/ 2>/dev/null || true
-      - name: Setup Android Platform
+      - name: Setup Android Platform & Set Icon
         script: |
           if [ ! -d android ]; then
             npx cap add android
           fi
+          
+          # نسخ صورة icon-512.png لتصبح أيقونة التطبيق الرسمية
+          if [ -f icon-512.png ]; then
+            for dir in android/app/src/main/res/mipmap-*; do
+              cp icon-512.png "$dir/ic_launcher.png" 2>/dev/null || true
+              cp icon-512.png "$dir/ic_launcher_round.png" 2>/dev/null || true
+              cp icon-512.png "$dir/ic_launcher_foreground.png" 2>/dev/null || true
+            done
+          fi
+
           npx cap copy android
           npx cap sync android
       - name: Build APK
