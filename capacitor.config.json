@@ -1,0 +1,6 @@
+{
+  "appId": "com.hisham.drugnames",
+  "appName": "Drugs",
+  "webDir": ".",
+  "bundledWebRuntime": false
+}
