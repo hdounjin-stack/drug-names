@@ -10,25 +10,37 @@ workflows:
           npm install @capacitor/core @capacitor/cli @capacitor/android
       - name: Prepare Web Assets & Set Icon
         script: |
-          # 1. إنشاء مجلد www ونسخ ملفات الويب بداخله
+          # 1. تجهيز مجلد www
           mkdir -p www
-          cp -r index.html manifest.json sw.js icon-*.png favicon-32.png www/ 2>/dev/null || true
+          cp -r index.html assets components js pages styles icon-*.png apple-touch-icon.png www/ 2>/dev/null || true
 
-          # 2. إضافة منصة Android إذا لم تكن موجودة
+          # 2. إضافة منصة android إذا لم تكن موجودة
           if [ ! -d android ]; then
             npx cap add android
           fi
 
-          # 3. نسخ صورة icon-512.png إلى مجلدات الأيقونات الرسمية للأندرويد
+          # 3. تحديد ملف الصورة المستخدمة كأيقونة
+          ICON_FILE=""
           if [ -f icon-512.png ]; then
+            ICON_FILE="icon-512.png"
+          elif [ -f apple-touch-icon.png ]; then
+            ICON_FILE="apple-touch-icon.png"
+          fi
+
+          # 4. حذف ملفات الـ XML وتطبيق الأيقونة بدون تعارض
+          if [ -n "$ICON_FILE" ]; then
+            # حذف ملفات XML المتعارضة في mipmap-anydpi-v26
+            rm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher*.xml
+
+            # استبدال الأيقونات في جميع المجلدات
             for dir in android/app/src/main/res/mipmap-*; do
-              cp icon-512.png "$dir/ic_launcher.png" 2>/dev/null || true
-              cp icon-512.png "$dir/ic_launcher_round.png" 2>/dev/null || true
-              cp icon-512.png "$dir/ic_launcher_foreground.png" 2>/dev/null || true
+              cp -f "$ICON_FILE" "$dir/ic_launcher.png"
+              cp -f "$ICON_FILE" "$dir/ic_launcher_round.png"
+              cp -f "$ICON_FILE" "$dir/ic_launcher_foreground.png"
             done
           fi
 
-          # 4. مزامنة الملفات مع مجلد أندرويد
+          # 5. مزامنة الملفات
           npx cap copy android
           npx cap sync android
       - name: Build APK
