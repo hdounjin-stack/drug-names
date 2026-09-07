@@ -1,0 +1,13 @@
+workflows:
+  build-android:
+    name: Build Android APK
+    instance_type: mac_mini_m1
+    environment:
+      node: 18
+    scripts:
+      - npm install
+      - npx cap add android        # ➕ السطر الجديد ده
+      - npx cap sync android
+      - cd android && ./gradlew assembleDebug
+    artifacts:
+      - android/app/build/outputs/apk/debug/*.apk
