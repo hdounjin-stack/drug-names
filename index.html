@@ -27,6 +27,7 @@ if ('serviceWorker' in navigator) {
 :root{
   --paper:#f3ecdf;
   --paper-2:#ece2cf;
+  --paper-glass:rgba(243,236,223,0.86);
   --card:#fffcf6;
   --ink:#211a13;
   --ink-soft:#4d4238;
@@ -50,6 +51,7 @@ if ('serviceWorker' in navigator) {
 html[data-theme="clinical"]{
   --paper:#eef1f2;            /* cool light grey */
   --paper-2:#dfe4e7;
+  --paper-glass:rgba(238,241,242,0.86);
   --card:#ffffff;
   --ink:#152430;              /* blue-black ink */
   --ink-soft:#3d5060;
@@ -68,10 +70,11 @@ html[data-theme="clinical"]{
 html[data-theme="dark"]{
   --paper:#15171b;
   --paper-2:#1c1f24;
+  --paper-glass:rgba(21,23,27,0.82);
   --card:#20242a;
   --ink:#eef0f2;
   --ink-soft:#c2c7cd;
-  --muted:#868e97;
+  --muted:#9aa3ac;
   --line:rgba(255,255,255,0.08);
   --line-strong:rgba(255,255,255,0.16);
   --accent:#e2915c;
@@ -324,13 +327,28 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .text-input::placeholder{color:var(--muted);}
 .text-input:focus{border-color:var(--accent);background:var(--card);box-shadow:0 0 0 3.5px var(--accent-soft);}
 
+/* ---------- Search bar: single glassy surface, icon inline, real focus glow ---------- */
+.search-field{position:relative;display:flex;align-items:center;margin-bottom:14px;}
+.search-icon{position:absolute;left:14px;width:18px;height:18px;stroke:var(--muted);pointer-events:none;transition:stroke .2s ease;}
+.search-input{
+  width:100%;padding:13px 14px 13px 42px;font-family:inherit;font-size:0.875rem;font-weight:500;
+  background:var(--card);color:var(--ink);border:1.5px solid var(--line-strong);border-radius:var(--radius-lg);
+  outline:none;box-shadow:0 2px 10px -6px rgba(33,26,19,.15);
+  transition:border-color .2s ease, box-shadow .25s ease;
+}
+.search-input::placeholder{color:var(--muted);font-weight:500;}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft), 0 4px 16px -6px rgba(33,26,19,.2);}
+.search-field:focus-within .search-icon{stroke:var(--accent);}
+
 /* ---------- SESSION / lesson ---------- */
 /* Sticky compact header: collapses smoothly into pinned back+context bar on scroll, expands back at top */
 .sess-header{
   display:flex;align-items:center;justify-content:space-between;
   margin:0 -16px 6px;padding:10px 16px;
   position:sticky;top:calc(8px + env(safe-area-inset-top, 0px));z-index:40;
-  background:var(--paper);
+  background:var(--paper-glass);
+  -webkit-backdrop-filter:saturate(1.5) blur(14px);
+  backdrop-filter:saturate(1.5) blur(14px);
   border-bottom:1px solid transparent;
   transition:padding .22s ease,border-color .22s ease,box-shadow .22s ease;
 }
@@ -352,12 +370,19 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .empty-hint{
   text-align:center;padding:32px 22px;color:var(--muted);font-size:0.78125rem;line-height:1.65;
   border:1.5px dashed var(--line-strong);border-radius:var(--radius-lg);
-  background:rgba(255,252,246,0.55);margin:8px 0;
+  background:var(--paper-2);margin:8px 0;
 }
 .lesson-meta{font-size:0.6875rem;color:var(--muted);margin:2px 0 16px;font-weight:500;}
 
 /* ---------- Accordion stacked drug/otc cards ---------- */
-.acc-card{padding:0;margin-bottom:11px;overflow:hidden;cursor:pointer;animation:fadeUp .32s ease backwards;}
+.acc-card{padding:0;margin-bottom:11px;overflow:hidden;cursor:pointer;animation:fadeUp .32s ease backwards;scroll-margin-top:80px;}
+/* Deep-link target flash: two soft pulses of the accent ring, then settle */
+@keyframes pulseHighlight{
+  0%{box-shadow:0 0 0 0 var(--accent-soft);border-color:var(--accent);}
+  50%{box-shadow:0 0 0 9px var(--accent-soft);border-color:var(--accent);}
+  100%{box-shadow:0 0 0 0 rgba(0,0,0,0);border-color:var(--line);}
+}
+.pulse-highlight{animation:pulseHighlight .75s ease-out 2;}
 .group-header{font-size:0.6875rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line-strong);}
 .group-header:first-child{margin-top:0;}
 .acc-head{display:flex;align-items:center;gap:12px;padding:14px 15px;}
@@ -374,7 +399,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .acc-full-info{font-size:0.78125rem;color:var(--ink-soft);line-height:1.6;margin-bottom:10px;}
 .acc-brand-title{font-size:0.59375rem;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;}
 .acc-brand-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
-.acc-brand-chip{font-size:0.71875rem;font-weight:600;padding:5px 10px;border-radius:var(--radius-sm);background:var(--paper);border:1px solid var(--line-strong);color:var(--ink-soft);}
+.acc-brand-chip{font-size:0.71875rem;font-weight:700;padding:5px 11px;border-radius:var(--radius-sm);background:var(--accent-soft);border:1px solid var(--accent-line);color:var(--ink);}
 .acc-no-brand{font-size:0.71875rem;color:var(--muted);font-style:italic;}
 .acc-ar{font-size:0.75rem;color:var(--ink-soft);margin-bottom:10px;line-height:1.65;direction:rtl;text-align:right;background:var(--accent-soft);border:1px solid var(--accent-line);padding:10px 12px;border-radius:var(--radius-md);}
 
@@ -718,9 +743,9 @@ body.edit-mode #editModeBtn{color:var(--accent);}
       <p>Find a drug, brand or condition.</p>
     </div>
 
-    <div class="card field-card">
-      <div class="field-label">Search</div>
-      <input class="text-input" id="searchInput" placeholder="e.g. Paracetamol, Augmentin, Gastritis…" oninput="renderResults()">
+    <div class="search-field">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input class="search-input" id="searchInput" placeholder="e.g. Paracetamol, Augmentin, Gastritis…" oninput="renderResults()">
     </div>
 
     <div id="resultsArea"></div>
@@ -1729,8 +1754,19 @@ const DATA = [
 
 /* ---------- DB: mutable working copy of DATA, persisted to localStorage ---------- */
 function loadDB(){
-  try{ const s=localStorage.getItem('pc_db'); if(s) return JSON.parse(s); }catch(e){}
-  return JSON.parse(JSON.stringify(DATA));
+  let data;
+  try{ const s=localStorage.getItem('pc_db'); data = s ? JSON.parse(s) : JSON.parse(JSON.stringify(DATA)); }
+  catch(e){ data = JSON.parse(JSON.stringify(DATA)); }
+  // Every drug/topic needs a permanent id for deep-linking (search result ->
+  // exact card). Built-in DATA entries don't ship with one, so stamp any
+  // that are missing it, once, and persist so the id never changes again.
+  let stamped = false;
+  data.forEach(c=>{
+    (c.drugs||[]).forEach(d=>{ if(!d.id){ d.id = uid(); stamped = true; } });
+    (c.topics||[]).forEach(t=>{ if(!t.id){ t.id = uid(); stamped = true; } });
+  });
+  if(stamped){ try{ localStorage.setItem('pc_db', JSON.stringify(data)); }catch(e){} }
+  return data;
 }
 function saveDB(){ try{ localStorage.setItem('pc_db', JSON.stringify(DB)); }catch(e){} }
 
@@ -2522,8 +2558,10 @@ function drugAccCard(d, color, uid, chapId, idx, isSearch, searchChapName){
       <button onclick="event.stopPropagation();openDrugModal('${chapId}',${idx})">✎</button>
       <button onclick="event.stopPropagation();deleteDrug('${chapId}',${idx})">🗑</button>
     </div>` : '';
-  /* ✅ "Go to section" — only inside search results */
-  const sectionLink = (isSearch && chapId && searchChapName) ? `<div class="search-jump" onclick="event.stopPropagation();openChapter('${chapId}')">Search in: ${searchChapName}</div>` : '';
+  /* ✅ "Go to section" — only inside search results. Deep-links straight
+     to this exact drug inside the chapter (scroll + highlight + expand),
+     not just the chapter's top. */
+  const sectionLink = (isSearch && chapId && searchChapName) ? `<div class="search-jump" onclick="event.stopPropagation();jumpToDrug('${chapId}','${d.id}')">Search in: ${searchChapName}</div>` : '';
   return `<div class="card acc-card" id="${uid}" onclick="toggleAcc(this,event)">
     <div class="acc-head">
       <div class="dot" style="color:${color};background:${color}"></div>
@@ -2573,7 +2611,7 @@ function renderCardList(cards, opts){
       if(grp && grp!==lastGroup) html += `<div class="group-header">${grp}</div>`;
       lastGroup = grp || undefined;
     }
-    const uid = (opts.prefix||'c')+'-'+i;
+    const uid = (opts.prefix||'c')+'-'+(c.data && c.data.id ? c.data.id : i);
     html += c.kind==='drug' ? drugAccCard(c.data, c.color, uid, c.chapId, c.idx) : otcAccCard(c.data, c.color, uid, c.chapId);
   });
   return html;
@@ -2591,6 +2629,23 @@ function openChapter(id){
   state.sessionChapterName = chapter.name;
   state.sessionChapterId = id;
   goto('session');
+}
+
+/* Deep-link from a search result straight to the exact drug card inside
+   its chapter: open the chapter, then scroll to + expand + flash-highlight
+   that one card so the user isn't left hunting through the whole lesson. */
+function jumpToDrug(chapId, drugId){
+  openChapter(chapId);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const el = document.getElementById('sess-'+drugId);
+    if(!el) return;
+    el.classList.add('open');
+    setTimeout(()=>{
+      el.scrollIntoView({behavior:'smooth', block:'center'});
+      el.classList.add('pulse-highlight');
+      setTimeout(()=>el.classList.remove('pulse-highlight'), 1500);
+    }, 60);
+  }));
 }
 
 function renderDataTables(tables, ctx){
