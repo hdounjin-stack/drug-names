@@ -283,6 +283,9 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .ring-svg{width:52px;height:52px;margin:0 auto 7px;}
 .ring-bg{fill:none;stroke:var(--paper-2);stroke-width:5;}
 .ring-fg{fill:none;stroke-width:5;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;}
+.ring-fg.r1{stroke:var(--accent);}
+.ring-fg.r2{stroke:var(--amber);}
+.ring-fg.r3{stroke:var(--accent);opacity:.6;}
 .ring-num{font-size:0.875rem;font-weight:700;fill:var(--ink);font-family:'Fraunces',serif;}
 .ring-label{font-size:0.59375rem;color:var(--muted);font-weight:600;letter-spacing:.02em;}
 
@@ -622,6 +625,20 @@ body.edit-mode .reset-order-link{display:inline-block !important;}
 @keyframes popIn{from{opacity:0;transform:scale(.4);}to{opacity:1;transform:scale(1);}}
 .mcq-done-title{font-family:'Fraunces',serif;font-size:1.0625rem;font-weight:700;margin-bottom:4px;}
 .mcq-done-sub{font-size:0.75rem;color:var(--muted);margin-bottom:14px;line-height:1.6;}
+/* Per-topic breakdown on the results screen */
+.mcq-topic-breakdown{text-align:left;background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:14px;}
+.mcq-topic-row{display:flex;align-items:center;justify-content:space-between;font-size:0.75rem;font-weight:600;color:var(--ink-soft);padding:4px 0;}
+.mcq-topic-row.weak{color:var(--accent);}
+/* Full answer review, shown after "Review answers" */
+.mcq-review-list{display:flex;flex-direction:column;gap:10px;}
+.mcq-review-item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);padding:12px 13px;}
+.mcq-review-item.wrong{border-color:var(--accent-line);}
+.mcq-review-q{font-size:0.8125rem;font-weight:600;color:var(--ink);margin-bottom:8px;line-height:1.5;}
+.mcq-review-opt{display:flex;align-items:center;gap:8px;font-size:0.75rem;color:var(--ink-soft);padding:5px 8px;border-radius:8px;margin-bottom:3px;}
+.mcq-review-opt.reveal-correct{background:rgba(52,168,83,0.1);color:var(--ink);}
+.mcq-review-opt.reveal-correct .mcq-key{background:#2f8c3f;border-color:#2f8c3f;color:#fff;}
+.mcq-review-opt.sel-wrong{background:rgba(179,60,44,0.08);color:var(--ink);}
+.mcq-review-opt.sel-wrong .mcq-key{background:var(--accent);border-color:var(--accent);color:#fff;}
 .chat-input-row{display:none;gap:8px;margin-top:12px;}
 .chat-input-row .text-input{flex:1;margin-bottom:0;}
 .pc-link{font-size:0.75rem;color:var(--accent);text-decoration:underline;cursor:pointer;text-align:center;margin-top:18px;}
@@ -865,13 +882,13 @@ body.edit-mode #editModeBtn{color:var(--accent);}
   <div class="theme-popup" id="themePopup">
     <div class="theme-blob" id="themeBlob"></div>
     <button class="theme-opt" data-theme-opt="clinical" onclick="selectTheme('clinical')">
-      <span class="theme-swatch theme-swatch-clinical"></span>الثيم الطبي
+      <span class="theme-swatch theme-swatch-clinical"></span>Ward
     </button>
     <button class="theme-opt" data-theme-opt="classic" onclick="selectTheme('classic')">
-      <span class="theme-swatch theme-swatch-classic"></span>ثيم الورق
+      <span class="theme-swatch theme-swatch-classic"></span>Paper
     </button>
     <button class="theme-opt" data-theme-opt="dark" onclick="selectTheme('dark')">
-      <span class="theme-swatch theme-swatch-dark"></span>الثيم الليلي
+      <span class="theme-swatch theme-swatch-dark"></span>Dark
     </button>
   </div>
 
@@ -1875,7 +1892,7 @@ function applyImport(mode){
 let DB = loadDB();
 let editMode = false;
 
-/* ---------- Design switch: Classic <-> Clinical <-> Dark ---------- */
+/* ---------- Design switch: Paper <-> Ward <-> Dark ---------- */
 const THEME_KEY = 'pc_theme';
 function applyTheme(t){
   if(t==='clinical' || t==='dark'){ document.documentElement.setAttribute('data-theme', t); }
@@ -1884,7 +1901,14 @@ function applyTheme(t){
   const meta = document.getElementById('metaTheme');
   if(meta) meta.setAttribute('content', t==='clinical' ? '#eef1f2' : t==='dark' ? '#15171b' : '#211a13');
   const label = document.getElementById('themeBtnLabel');
-  if(label) label.textContent = t==='clinical' ? 'Clinical' : t==='dark' ? 'Dark' : 'Theme';
+  if(label) label.textContent = t==='clinical' ? 'Ward' : t==='dark' ? 'Dark' : 'Paper';
+  // Some layers (backdrop-filter + mix-blend-mode, mainly on iOS Safari)
+  // don't repaint on a plain attribute change — they only catch up on the
+  // next reflow, which is why switching theme looked "half-applied" until
+  // you navigated to another screen and back. Force that reflow right now.
+  document.body.style.display='none';
+  void document.body.offsetHeight;
+  document.body.style.display='';
 }
 function toggleTheme(){
   const cur = document.documentElement.getAttribute('data-theme') || 'classic';
@@ -2472,16 +2496,16 @@ function renderHome(){
   const totalBrands = DB.reduce((n,c)=> n + (c.drugs? c.drugs.reduce((m,d)=>m+(d.brands?d.brands.length:0),0) : 0),0);
 
   const rings = [
-    {label:'Chapters', num:totalChapters, max:totalChapters, color:'#b3502c'},
-    {label:'Drug Entries', num:totalDrugs, max:totalDrugs, color:'#8c6a3f'},
-    {label:'Brand Names', num:totalBrands, max:totalBrands, color:'#9c6b12'}
+    {label:'Chapters', num:totalChapters, max:totalChapters, cls:'r1'},
+    {label:'Drug Entries', num:totalDrugs, max:totalDrugs, cls:'r2'},
+    {label:'Brand Names', num:totalBrands, max:totalBrands, cls:'r3'}
   ];
   document.getElementById('ringRow').innerHTML = rings.map(r=>{
     const R=24, C=2*Math.PI*R;
     return `<div class="card ring-card">
       <svg class="ring-svg" viewBox="0 0 60 60">
         <circle class="ring-bg" cx="30" cy="30" r="${R}"/>
-        <circle class="ring-fg" cx="30" cy="30" r="${R}" stroke="${r.color}" stroke-dasharray="${C} ${C}" stroke-dashoffset="0"/>
+        <circle class="ring-fg ${r.cls}" cx="30" cy="30" r="${R}" stroke-dasharray="${C} ${C}" stroke-dashoffset="0"/>
         <text x="30" y="34" text-anchor="middle" class="ring-num">${r.num}</text>
       </svg>
       <div class="ring-label">${r.label}</div>
@@ -2887,6 +2911,39 @@ function pcEstimate(){
 /* ---------- Clinical Scenarios chat (uses same BYOK config as Scan Prescription) ---------- */
 let scenarioMessages = [];
 let scenarioHistory = (()=>{ try{ return JSON.parse(localStorage.getItem('pc_scen_hist')||'[]'); }catch(e){ return []; } })(); // recent scenario topics so the AI avoids repeats
+
+/* Real fix for "same scenario every time": don't just ASK the model to vary
+   itself (it tends to gravitate back to the same 2-3 classic cases even
+   with that instruction) — WE pick the condition deterministically from a
+   shuffled, non-repeating queue and hand it to the model as a fixed
+   requirement. Every condition in the pool gets used exactly once before
+   any of them repeat; the queue (and the in-progress case) persist across
+   reloads so refreshing the page mid-session doesn't reshuffle things. */
+const SCEN_CONDITION_POOL = [
+  'anaphylaxis','acute myocardial infarction','diabetic ketoacidosis','status asthmaticus / severe asthma exacerbation',
+  'acute ischemic stroke','severe hypoglycemia','pulmonary embolism','sepsis','acute poisoning / drug overdose',
+  'hypertensive urgency and long-term follow-up','GERD flare','uncomplicated urinary tract infection',
+  'newly diagnosed or poorly controlled type 2 diabetes','common cold / upper respiratory infection',
+  'acute gastroenteritis and dehydration','dyslipidemia follow-up','asthma control review','chronic insomnia',
+  'seasonal allergic rhinitis','pre-travel medicine consult','acute migraine attack','first-time seizure work-up',
+  'community-acquired pneumonia','acute otitis media in a child','allergic contact dermatitis',
+  'peptic ulcer disease with alarm symptoms','hyperkalemia / electrolyte disturbance','acute pyelonephritis',
+  'iron-deficiency anemia','suspected thyroid storm'
+];
+let scenConditionQueue = (()=>{ try{ return JSON.parse(localStorage.getItem('pc_scen_queue')||'[]'); }catch(e){ return []; } })();
+let currentScenCondition = (()=>{ try{ return localStorage.getItem('pc_scen_current')||''; }catch(e){ return ''; } })();
+function nextScenCondition(){
+  if(!scenConditionQueue.length){
+    scenConditionQueue = [...SCEN_CONDITION_POOL];
+    for(let i=scenConditionQueue.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [scenConditionQueue[i],scenConditionQueue[j]]=[scenConditionQueue[j],scenConditionQueue[i]]; }
+  }
+  currentScenCondition = scenConditionQueue.shift();
+  try{
+    localStorage.setItem('pc_scen_queue', JSON.stringify(scenConditionQueue));
+    localStorage.setItem('pc_scen_current', currentScenCondition);
+  }catch(e){}
+  return currentScenCondition;
+}
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 
 /* Tiny safe markdown renderer for AI replies: escape first, then convert.
@@ -2968,13 +3025,16 @@ function clinicalScenarioSystemPrompt(){
   const avoid = scenarioHistory.length
     ? `\n\nIMPORTANT — do NOT repeat: the student already saw these scenarios recently, generate something clearly different (different condition AND different setting): ${scenarioHistory.slice(-6).join(' | ')}.`
     : '';
+  const forced = currentScenCondition
+    ? `\n\nThis scenario's clinical condition is FIXED and non-negotiable: "${currentScenCondition}". Build the entire case (history, vitals, exam findings, correct diagnosis, and treatment plan) around exactly this condition — do not substitute, broaden, or default to a different one, even if it seems like a more "classic" teaching case.`
+    : '';
   return `You are a clinical case tutor for a pharmacy/medicine student, working from a course covering: ${chapters}. Generate realistic clinical scenarios one at a time. Draw from a WIDE range: emergencies (anaphylaxis, MI, DKA, status asthmaticus, acute stroke, severe hypoglycemia, PE, sepsis, poisoning/overdose) AND everyday internal medicine / OTC cases (hypertension follow-up, GERD, UTI, diabetes management, common cold, gastroenteritis, dyslipidemia, asthma review, insomnia, allergies, travel advice).
 
 For each scenario: briefly describe the patient (age, relevant history, chief complaint, key vitals/exam findings) realistically, then STOP and ask the learner for (1) their preliminary diagnosis and (2) their initial drug plan (basic drug names, form, dose). Do not reveal the answer yet.
 
 When the learner responds, give short constructive feedback on their diagnosis and plan, then show the recommended approach as an actual written prescription (Rx format: Drug — Form — Dose/Frequency), reflecting current clinical guidelines. Keep responses concise and conversational. If asked about part of the case, explain it simply with one exam pearl. If asked for a new scenario, start a fresh one in a different domain than before.
 
-Formatting: your replies render as Markdown in the app. Use **bold** for drug names and key findings, short bullet lists where helpful, and put each prescription line on its own line starting with "Rx:". Never leave stray asterisks or raw symbols around text.` + avoid + `\n\n${flavor}`;
+Formatting: your replies render as Markdown in the app. Use **bold** for drug names and key findings, short bullet lists where helpful, and put each prescription line on its own line starting with "Rx:". Never leave stray asterisks or raw symbols around text.` + forced + avoid + `\n\n${flavor}`;
 }
 async function callAiChat(cfg, messages){
   const model = cfg.model || defaultModelFor(cfg.provider);
@@ -3140,7 +3200,7 @@ function startMcq(){
   const listing = focus.map(t=>`- ${t.name}${t.info?` (${t.info})`:''}${t.brands?` [brands: ${t.brands}]`:''} — chapter: ${t.chapter}`).join('\n');
   const playArea=document.getElementById('mcqPlayArea'), setup=document.getElementById('mcqSetup');
   setup.style.display='none'; playArea.style.display='block';
-  mcqQuiz = {qs:null, i:0, correct:0, answered:0};
+  mcqQuiz = {qs:null, i:0, correct:0, answered:0, log:[]};
   playArea.innerHTML = `<div class="card mcq-qcard"><div class="modal-hint" style="margin:0;">Generating ${n} questions from ${focus.length} drugs in your library…</div></div>`;
   callAiJson(cfg, `Drugs from my library:\n${listing}\n\nWrite ${n} single-best-answer MCQs testing these drugs. Mix categories: contraindications, side effects, antidotes, interactions, pregnancy safety, emergency/best-drug vignettes. Return ONLY the JSON array.`)
     .then(raw=>{
@@ -3208,6 +3268,7 @@ function answerMcq(pick){
     const el=document.getElementById('mcqOpt'+pick);
     if(el) el.classList.add('shake');
   }
+  qz.log.push({q:q.q, opts:q.opts, correctIdx, pickedIdx:pick, expl:q.expl, topic:q.topic, isRight});
   opts.forEach((el,oi)=>{
     el.onclick=null;
     if(oi===pick && isRight) el.classList.add('sel-correct');
@@ -3228,14 +3289,49 @@ function finishMcq(){
   const qz=mcqQuiz, pct=qz.qs.length?Math.round(qz.correct/qz.qs.length*100):0;
   const emoji = pct>=80?'🏆':pct>=60?'💪':'📚';
   const msg = pct>=80?'Excellent — exam ready!':pct>=60?'Solid — review the misses and go again.':'Keep at it — reread the chapter cards, then retry.';
+  // per-topic breakdown so the student knows exactly where to focus
+  const byTopic = {};
+  qz.log.forEach(l=>{
+    const t = l.topic || 'Other';
+    if(!byTopic[t]) byTopic[t] = {correct:0, total:0};
+    byTopic[t].total++;
+    if(l.isRight) byTopic[t].correct++;
+  });
+  const topicRows = Object.keys(byTopic).map(t=>{
+    const b = byTopic[t];
+    const weak = b.correct < b.total;
+    return `<div class="mcq-topic-row${weak?' weak':''}"><span>${escapeHtml(t)}</span><span>${b.correct}/${b.total}</span></div>`;
+  }).join('');
   document.getElementById('mcqPlayArea').innerHTML = `
     <div class="card mcq-done-card">
       <span class="mcq-done-emoji">${emoji}</span>
       <div class="mcq-done-title">${qz.correct} / ${qz.qs.length} correct · ${pct}%</div>
       <div class="mcq-done-sub">${msg}</div>
-      <button class="pill-btn primary" style="width:100%;" onclick="retryMcq()">Try again</button>
+      ${topicRows ? `<div class="mcq-topic-breakdown">${topicRows}</div>` : ''}
+      <button class="pill-btn primary" style="width:100%;" onclick="renderMcqReview()">Review answers</button>
+      <button class="pill-btn ghost" style="width:100%;margin-top:8px;" onclick="retryMcq()">Try again</button>
       <button class="pill-btn ghost" style="width:100%;margin-top:8px;" onclick="exitMcq()">Change settings</button>
     </div>`;
+}
+/* Full-detail review: every question, what you picked, the right answer,
+   and the explanation — so a finished quiz is something you can actually
+   learn from, not just a score you forget five seconds later. */
+function renderMcqReview(){
+  const qz = mcqQuiz; if(!qz) return;
+  const rows = qz.log.map((l,i)=>`
+    <div class="mcq-review-item ${l.isRight?'right':'wrong'}">
+      <div class="mcq-review-q">Q${i+1}. ${mdToHtml(l.q)}</div>
+      ${l.opts.map((o,oi)=>{
+        let cls='';
+        if(oi===l.correctIdx) cls='reveal-correct';
+        else if(oi===l.pickedIdx) cls='sel-wrong';
+        return `<div class="mcq-review-opt ${cls}"><span class="mcq-key">${mcqLetter(oi)}</span><span>${mdToHtml(o)}</span></div>`;
+      }).join('')}
+      <div class="mcq-expl">${l.isRight?'✅ ':'❌ '}${mdToHtml(l.expl||'')}</div>
+    </div>`).join('');
+  document.getElementById('mcqPlayArea').innerHTML = `
+    <div class="mcq-review-list">${rows}</div>
+    <button class="pill-btn primary" style="width:100%;margin-top:6px;" onclick="finishMcq()">← Back to results</button>`;
 }
 function retryMcq(){ exitMcq(); setTimeout(()=>startMcq(), 60); }
 function exitMcq(){
@@ -3268,7 +3364,7 @@ async function pushScenarioTurn(isNewScenario){
 function startNewScenario(){
   const cfg = loadAiConfig();
   if(!cfg.key){ goto('scan'); return; }
-  // rotate the random flavor + tell the AI what to avoid
+  nextScenCondition(); // deterministic, non-repeating pick — see SCEN_CONDITION_POOL above
   scenarioMessages = [{role:'user', text:'Start a new clinical scenario.'}];
   renderScenarioChat();
   pushScenarioTurn(true);
