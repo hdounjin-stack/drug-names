@@ -334,7 +334,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .search-field{position:relative;display:flex;align-items:center;margin-bottom:14px;}
 .search-icon{position:absolute;left:14px;width:18px;height:18px;stroke:var(--muted);pointer-events:none;transition:stroke .2s ease;}
 .search-input{
-  width:100%;padding:13px 14px 13px 42px;font-family:inherit;font-size:0.875rem;font-weight:500;
+  width:100%;padding:13px 38px 13px 42px;font-family:inherit;font-size:0.875rem;font-weight:500;
   background:var(--card);color:var(--ink);border:1.5px solid var(--line-strong);border-radius:var(--radius-lg);
   outline:none;box-shadow:0 2px 10px -6px rgba(33,26,19,.15);
   transition:border-color .2s ease, box-shadow .25s ease;
@@ -342,6 +342,15 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .search-input::placeholder{color:var(--muted);font-weight:500;}
 .search-input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft), 0 4px 16px -6px rgba(33,26,19,.2);}
 .search-field:focus-within .search-icon{stroke:var(--accent);}
+.search-clear{
+  position:absolute;right:8px;width:26px;height:26px;border-radius:50%;border:none;
+  background:var(--paper-2);color:var(--muted);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:background .18s ease, color .18s ease, transform .15s ease;
+}
+.search-clear svg{width:13px;height:13px;}
+.search-clear:hover{background:var(--accent-soft);color:var(--accent);}
+.search-clear:active{transform:scale(.88);}
 
 /* ---------- SESSION / lesson ---------- */
 /* Sticky compact header: collapses smoothly into pinned back+context bar on scroll, expands back at top */
@@ -763,6 +772,9 @@ body.edit-mode #editModeBtn{color:var(--accent);}
     <div class="search-field">
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       <input class="search-input" id="searchInput" placeholder="e.g. Paracetamol, Augmentin, Gastritis…" oninput="renderResults()">
+      <button class="search-clear" id="searchClearBtn" onclick="clearSearch()" title="Clear" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
     </div>
 
     <div id="resultsArea"></div>
@@ -2058,13 +2070,13 @@ function openDrugModal(chapterId, idx){
   const d = idx===null ? {g:'',info:'',group:'',brands:[]} : c.drugs[idx];
   const groups = Array.from(new Set((c.drugs||[]).map(x=>x.group).filter(Boolean)));
   openModal(idx===null?'Add Drug':'Edit Drug', `
-    <div class="field-card"><div class="field-label">Generic name</div><input id="mDrugG" class="text-input" value="${d.g||''}" placeholder="e.g. Ibuprofen"></div>
-    <div class="field-card"><div class="field-label">Info (class · dose · notes)</div><textarea id="mDrugInfo" class="text-input">${d.info||''}</textarea></div>
     <div class="field-card"><div class="field-label">Group / subcategory (optional)</div>
       <input id="mDrugGroup" class="text-input" list="mDrugGroupList" value="${d.group||''}" placeholder="e.g. Salicylates">
       <datalist id="mDrugGroupList">${groups.map(g=>`<option value="${g}">`).join('')}</datalist>
     </div>
     <div class="modal-hint">Pick an existing group to add this drug under it, or type a new name to start a fresh section.</div>
+    <div class="field-card"><div class="field-label">Generic name</div><input id="mDrugG" class="text-input" value="${d.g||''}" placeholder="e.g. Ibuprofen"></div>
+    <div class="field-card"><div class="field-label">Info (class · dose · notes)</div><textarea id="mDrugInfo" class="text-input">${d.info||''}</textarea></div>
     <div class="field-card"><div class="field-label">Brand names (comma separated)</div><input id="mDrugBrands" class="text-input" value="${(d.brands||[]).join(', ')}" placeholder="Brufen, Advil"></div>
   `, ()=>{
     const g = val('mDrugG').trim(); if(!g) return;
@@ -2750,8 +2762,17 @@ function fuzzyIncludes(haystack, q){
   const maxDist = q.length>7 ? 2 : 1;
   return words.some(w=>Math.abs(w.length-q.length)<=maxDist && lev(w,q)<=maxDist);
 }
+function clearSearch(){
+  const input = document.getElementById('searchInput');
+  if(!input) return;
+  input.value = '';
+  renderResults();
+  input.focus();
+}
 function renderResults(){
   const q = (document.getElementById('searchInput')?.value||'').trim().toLowerCase();
+  const clearBtn = document.getElementById('searchClearBtn');
+  if(clearBtn) clearBtn.style.display = q ? 'flex' : 'none';
   const area = document.getElementById('resultsArea');
   if(!q){
     area.innerHTML = `<div class="empty-hint">Start typing to search.</div>`;
