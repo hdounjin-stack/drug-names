@@ -183,6 +183,26 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 }
 @media (min-width:480px) and (max-width:768px){ .tabbar{max-width:400px;} }
 @media (min-width:769px){ .tabbar{max-width:420px;} }
+
+/* ---------- Scroll-to-top floating button ----------
+   Sits just above the floating dock, on the right, out of the thumb's way
+   of the dock itself. Shows on every screen once scrolled down a bit. */
+#scrollTopBtn{
+  position:fixed;right:18px;
+  bottom:calc(14px + env(safe-area-inset-bottom, 0px) + var(--tabbar-h, 60px) + 14px);
+  z-index:49;width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--card);border:1px solid var(--line-strong);color:var(--accent);
+  box-shadow:0 10px 24px -10px rgba(33,26,19,.4);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  cursor:pointer;
+  opacity:0;pointer-events:none;transform:translateY(8px) scale(.9);
+  transition:opacity .22s ease, transform .22s cubic-bezier(.34,1.56,.4,1);
+}
+#scrollTopBtn.show{opacity:1;pointer-events:auto;transform:translateY(0) scale(1);}
+#scrollTopBtn svg{width:19px;height:19px;}
+#scrollTopBtn:active{transform:scale(.9);}
+
 /* Sliding highlight — glides under whichever tab is active, spring ease */
 .tab-blob{
   position:absolute;top:6px;bottom:6px;left:6px;width:56px;
@@ -461,22 +481,19 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .chapter-card .cc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 .chapter-card .cc-title{font-size:0.8125rem;font-weight:600;color:var(--ink);line-height:1.25;}
 .chapter-card .cc-meta{font-size:0.65625rem;color:var(--muted);margin-top:auto;}
-.chapter-card .cc-reorder{position:absolute;top:6px;right:6px;display:flex;flex-direction:column;gap:2px;}
+/* Quick-nudge ▲/▼ buttons on each card (edit mode only) — a fast small
+   move without opening the full drag-reorder list. */
+.chapter-card .cc-reorder{position:absolute;top:6px;right:6px;display:flex;flex-direction:column;gap:2px;opacity:0;pointer-events:none;transform:scale(0.85);transition:opacity .22s ease, transform .2s ease;}
 .chapter-card .cc-reorder button{
   width:19px;height:15px;border:none;background:var(--paper);border:1px solid var(--line-strong);
   color:var(--muted);font-size:0.5625rem;line-height:1;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s ease, color .18s ease, border-color .18s ease;
 }
 .chapter-card .cc-reorder button:hover{color:var(--accent);border-color:var(--accent-line);}
-.reset-order-link{font-size:0.6875rem;color:var(--accent);cursor:pointer;text-decoration:underline;}
-/* ---------- Edit mode: hide reorder arrows by default, show on edit ---------- */
-.chapter-card .cc-reorder{
-  opacity:0;pointer-events:none;transform:scale(0.85);transition:opacity .22s ease, transform .2s ease;
-}
-.chapter-card .cc-reorder button{opacity:0;pointer-events:none;transition:opacity .2s ease;}
-body.edit-mode .chapter-card .cc-reorder{
-  opacity:1;pointer-events:auto;transform:scale(1);
-}
+.chapter-card .cc-reorder button:disabled{opacity:.3;cursor:default;}
+body.edit-mode .chapter-card .cc-reorder{opacity:1;pointer-events:auto;transform:scale(1);}
 body.edit-mode .chapter-card .cc-reorder button{opacity:1;pointer-events:auto;}
+.reset-order-link{font-size:0.6875rem;color:var(--accent);cursor:pointer;text-decoration:underline;}
 
 /* Reset Order button: hidden unless edit mode is active */
 .reset-order-link{display:none !important;}
@@ -686,6 +703,22 @@ body.edit-mode #editModeBtn{color:var(--accent);}
 .modal-row{display:flex;gap:8px;}
 .modal-row .field-card{flex:1;}
 .modal-hint{font-size:0.65625rem;color:var(--muted);margin:-6px 0 12px;line-height:1.5;}
+/* ---------- Reorder Chapters list ---------- */
+.reorder-list{max-height:min(50vh,420px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px 0;}
+.reorder-row{
+  display:flex;align-items:center;gap:10px;height:52px;padding:0 4px;
+  background:var(--card);border-bottom:1px solid var(--line);
+  touch-action:pan-y;user-select:none;-webkit-user-select:none;
+}
+.reorder-row.dragging-row{position:relative;z-index:5;background:var(--paper-2);box-shadow:0 10px 24px -12px rgba(33,26,19,.35);border-radius:var(--radius-sm);}
+.reorder-name{flex:1;font-size:0.8125rem;font-weight:600;color:var(--ink);}
+.reorder-row .cc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.reorder-handle{
+  flex-shrink:0;width:32px;height:32px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);cursor:grab;touch-action:none;
+}
+.reorder-handle:active{cursor:grabbing;color:var(--accent);}
 .share-toggle-row{display:flex;gap:14px;margin-bottom:10px;}
 .share-list{max-height:280px;overflow-y:auto;border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:4px 12px;}
 .share-row{display:flex;align-items:center;gap:9px;padding:9px 0;font-size:0.8125rem;border-bottom:1px solid var(--line);}
@@ -758,7 +791,7 @@ body.edit-mode #editModeBtn{color:var(--accent);}
 
     <input type="file" id="importFile" accept="application/json" style="display:none;" onchange="importDB(this)">
 
-    <div class="section-title"><h3>Course Chapters</h3><span><span class="reset-order-link" onclick="resetChapterOrder()">Reset order</span><span id="resetDataLink" class="reset-order-link" style="margin-left:10px;display:none;" onclick="resetDB()">Reset data</span></span></div>
+    <div class="section-title"><h3>Course Chapters</h3><span><span class="reset-order-link" onclick="openChapterReorder()">↕ Reorder</span><span class="reset-order-link" style="margin-left:10px;" onclick="resetChapterOrder()">Reset order</span><span id="resetDataLink" class="reset-order-link" style="margin-left:10px;display:none;" onclick="resetDB()">Reset data</span></span></div>
     <div id="chapterList"></div>
   </section>
 
@@ -870,6 +903,10 @@ body.edit-mode #editModeBtn{color:var(--accent);}
     <div id="mcqArea"></div>
   </section>
 
+  <button id="scrollTopBtn" onclick="scrollToTop()" title="Scroll to top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+
   <div class="tabbar">
     <div class="tab-blob" id="tabBlob"></div>
     <button class="tabbtn active" id="tab-home" onclick="goto('home')">
@@ -914,6 +951,18 @@ body.edit-mode #editModeBtn{color:var(--accent);}
     <div class="modal-actions">
       <button class="pill-btn ghost" onclick="closeModal()">Cancel</button>
       <button class="pill-btn primary" id="modalSaveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= REORDER CHAPTERS MODAL ================= -->
+<div id="reorderModal" class="modal-backdrop" onclick="if(event.target.id==='reorderModal')confirmChapterReorder()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-header"><span>Reorder Chapters</span><button class="modal-x" onclick="confirmChapterReorder()">×</button></div>
+    <div class="modal-hint" style="margin-top:-4px;">Drag the ⠿ handle up or down.</div>
+    <div id="reorderList" class="reorder-list"></div>
+    <div class="modal-actions">
+      <button class="pill-btn primary" style="width:100%;" onclick="confirmChapterReorder()">Done</button>
     </div>
   </div>
 </div>
@@ -2323,6 +2372,20 @@ function updateCompactHeaders(){
   document.querySelectorAll('.dtable-wrap').forEach(w=>{
     w.classList.toggle('scrollable', w.scrollWidth > w.clientWidth + 2);
   });
+  updateScrollTopBtn(y);
+}
+/* ---------- Scroll-to-top floating button ----------
+   Appears on ANY page once you've scrolled down a bit, regardless of
+   which screen is active — a long chapter, search results, pediatric
+   doses, wherever. Hidden again near the top so it doesn't clutter a
+   page you haven't scrolled. */
+function updateScrollTopBtn(y){
+  const btn = document.getElementById('scrollTopBtn');
+  if(!btn) return;
+  btn.classList.toggle('show', y > 420);
+}
+function scrollToTop(){
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 window.addEventListener('resize', ()=>{ updateTabbarHeightVar(); positionTabBlob(); });
 window.addEventListener('scroll', ()=>requestAnimationFrame(updateCompactHeaders), {passive:true});
@@ -2558,6 +2621,8 @@ function getChapterOrder(){
 function saveChapterOrder(order){
   try{ localStorage.setItem('pc_chapter_order', JSON.stringify(order)); }catch(e){}
 }
+/* Quick one-step nudge: the ▲/▼ buttons on each card, for a fast small
+   move without opening the full reorder list. */
 function moveChapter(id, dir){
   const order = getChapterOrder();
   const i = order.indexOf(id);
@@ -2565,6 +2630,144 @@ function moveChapter(id, dir){
   if(j<0 || j>=order.length) return;
   [order[i],order[j]] = [order[j],order[i]];
   saveChapterOrder(order);
+  renderHome();
+}
+/* ---------- Reorder Chapters: dedicated vertical-list modal ----------
+   The earlier attempt dragged cards live inside the wrapping grid using
+   elementFromPoint hit-testing — that has to reason about columns, rows,
+   and the grid reflowing under the finger, and on a real touchscreen the
+   browser can also reinterpret the gesture as a page scroll mid-drag,
+   killing the pointer events with no cleanup. Rebuilt as a single-column
+   list instead: dragging is pure vertical math (how many row-heights did
+   the finger move), no hit-testing, no ambiguity, and pointercancel always
+   lands in a well-defined state. This is the standard, battle-tested
+   pattern for reorderable lists on mobile. */
+function openChapterReorder(){
+  chapReorder = { order: getChapterOrder(), drag: null };
+  renderChapterReorderList();
+  document.getElementById('reorderModal').classList.add('open');
+}
+function closeChapterReorder(){
+  document.getElementById('reorderModal').classList.remove('open');
+  if(rowDragRAF){ cancelAnimationFrame(rowDragRAF); rowDragRAF = null; }
+  rowDrag = null;
+  chapReorder = null;
+}
+function renderChapterReorderList(){
+  const list = document.getElementById('reorderList');
+  list.innerHTML = chapReorder.order.map((id,i)=>{
+    const c = DB.find(x=>x.id===id); if(!c) return '';
+    return `<div class="reorder-row" data-i="${i}">
+      <span class="cc-dot" style="background:${c.color};box-shadow:0 0 6px ${c.color}"></span>
+      <span class="reorder-name">${c.name}</span>
+      <span class="reorder-handle" onpointerdown="startRowDrag(event,${i})" title="Drag to reorder">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><circle cx="8" cy="6" r="1.6"/><circle cx="16" cy="6" r="1.6"/><circle cx="8" cy="12" r="1.6"/><circle cx="16" cy="12" r="1.6"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="18" r="1.6"/></svg>
+      </span>
+    </div>`;
+  }).join('');
+}
+let chapReorder = null, rowDrag = null, rowDragRAF = null;
+function startRowDrag(ev, idx){
+  ev.preventDefault(); ev.stopPropagation();
+  const handle = ev.currentTarget;
+  const row = handle.closest('.reorder-row');
+  const list = row.parentElement;
+  try{ handle.setPointerCapture(ev.pointerId); }catch(e){}
+  const rows = [...list.querySelectorAll('.reorder-row')];
+  const rowH = row.getBoundingClientRect().height;
+  row.classList.add('dragging-row');
+  rowDrag = {
+    origIdx: idx, idx, row, rows, rowH, handle, list,
+    startY: ev.clientY, startScrollTop: list.scrollTop, lastClientY: ev.clientY
+  };
+  handle.addEventListener('pointermove', onRowDragMove);
+  handle.addEventListener('pointerup', endRowDrag);
+  handle.addEventListener('pointercancel', endRowDrag);
+  startRowAutoScroll();
+}
+/* Repositions the dragged row + its siblings for the CURRENT state —
+   called both from a real pointermove and from the auto-scroll loop below,
+   since the list can keep scrolling even while the finger holds still at
+   the edge. */
+function applyRowDragPositions(){
+  if(!rowDrag) return;
+  const {row, rows, rowH, origIdx, list, startY, startScrollTop} = rowDrag;
+  // Combine finger movement with however much the list has auto-scrolled
+  // since the drag started — that scroll is "distance traveled" too, even
+  // when the pointer itself hasn't moved.
+  const dy = (rowDrag.lastClientY - startY) + (list.scrollTop - startScrollTop);
+  row.style.transform = `translateY(${dy}px)`;
+  const shift = Math.round(dy / rowH);
+  const newIdx = Math.max(0, Math.min(rows.length-1, origIdx + shift));
+  rowDrag.idx = newIdx;
+  rows.forEach((r,i)=>{
+    if(r===row) return;
+    let off = 0;
+    if(origIdx < newIdx && i>origIdx && i<=newIdx) off = -1;
+    else if(origIdx > newIdx && i>=newIdx && i<origIdx) off = 1;
+    r.style.transition = 'transform .18s ease';
+    r.style.transform = off ? `translateY(${off*rowH}px)` : '';
+  });
+}
+function onRowDragMove(ev){
+  if(!rowDrag) return;
+  ev.preventDefault();
+  rowDrag.lastClientY = ev.clientY;
+  applyRowDragPositions();
+}
+/* ---------- Auto-scroll the list while dragging near its top/bottom edge ----------
+   Without this, moving a chapter from the bottom of a long list to the very
+   top gets physically stuck at the visible edge of the modal: the list
+   itself never scrolls during the drag, so the user has to release, scroll
+   manually, and re-grab over and over. A requestAnimationFrame loop checks
+   the pointer's last known position against the list's edges every frame
+   (not just on pointermove) so it keeps scrolling even while the finger
+   holds perfectly still right at the edge — exactly the case that was
+   stuck before. */
+const ROW_DRAG_EDGE = 46, ROW_DRAG_MAX_SPEED = 16;
+function startRowAutoScroll(){
+  function tick(){
+    if(!rowDrag){ rowDragRAF = null; return; }
+    const {list} = rowDrag;
+    const rect = list.getBoundingClientRect();
+    const y = rowDrag.lastClientY;
+    let speed = 0;
+    if(y < rect.top + ROW_DRAG_EDGE){
+      const depth = Math.min(1, (rect.top + ROW_DRAG_EDGE - y) / ROW_DRAG_EDGE);
+      speed = -Math.ceil(depth * ROW_DRAG_MAX_SPEED);
+    } else if(y > rect.bottom - ROW_DRAG_EDGE){
+      const depth = Math.min(1, (y - (rect.bottom - ROW_DRAG_EDGE)) / ROW_DRAG_EDGE);
+      speed = Math.ceil(depth * ROW_DRAG_MAX_SPEED);
+    }
+    if(speed !== 0){
+      const max = list.scrollHeight - list.clientHeight;
+      const next = Math.max(0, Math.min(max, list.scrollTop + speed));
+      if(next !== list.scrollTop){
+        list.scrollTop = next;
+        applyRowDragPositions();
+      }
+    }
+    rowDragRAF = requestAnimationFrame(tick);
+  }
+  rowDragRAF = requestAnimationFrame(tick);
+}
+function endRowDrag(){
+  if(!rowDrag) return;
+  const {handle, origIdx, idx} = rowDrag;
+  handle.removeEventListener('pointermove', onRowDragMove);
+  handle.removeEventListener('pointerup', endRowDrag);
+  handle.removeEventListener('pointercancel', endRowDrag);
+  if(rowDragRAF){ cancelAnimationFrame(rowDragRAF); rowDragRAF = null; }
+  if(idx !== origIdx){
+    const [moved] = chapReorder.order.splice(origIdx,1);
+    chapReorder.order.splice(idx,0,moved);
+  }
+  rowDrag = null;
+  renderChapterReorderList(); // clean re-render — DOM now matches the array exactly, no leftover transforms possible
+}
+function confirmChapterReorder(){
+  saveChapterOrder(chapReorder.order);
+  closeChapterReorder();
   renderHome();
 }
 function resetChapterOrder(){
@@ -2716,7 +2919,7 @@ function renderSession(){
   document.getElementById('lessonMeta').textContent = total ? (total+' item'+(total>1?'s':'')+' in this lesson') : '';
 
   const area = document.getElementById('sessCardArea');
-  if(!total && !(editMode && chapter)){
+  if(!total && !chapter){
     area.innerHTML = `<div class="empty-hint">Pick a chapter from Home or search in Browse to open a lesson.</div>`;
     return;
   }
@@ -2731,7 +2934,7 @@ function renderSession(){
     `<button class="pill-btn primary" style="width:100%;margin-bottom:14px;" onclick="openDrugModal('${chapter.id}',null)">+ Add Drug</button>` : '';
   const addTopicBtn = (editMode && chapter && chapter.type==='otc') ?
     `<button class="pill-btn primary" style="width:100%;margin-bottom:14px;" onclick="openTopicModal('${chapter.id}',null)">+ Add Topic</button>` : '';
-  const emptyHint = (!total && editMode) ? `<div class="empty-hint">No ${chapter && chapter.type==='otc'?'topics':'drugs'} yet — use "+ Add ${chapter && chapter.type==='otc'?'Topic':'Drug'}" above to start this chapter.</div>` : '';
+  const emptyHint = !total ? (editMode ? `<div class="empty-hint">No ${chapter && chapter.type==='otc'?'topics':'drugs'} yet — use "+ Add ${chapter && chapter.type==='otc'?'Topic':'Drug'}" above to start this chapter.</div>` : `<div class="empty-hint">No ${chapter && chapter.type==='otc'?'topics':'drugs'} in this chapter yet.</div>`) : '';
   const shareBtn = chapter ? `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="shareOrDownload([DB.find(c=>c.id==='${chapter.id}')],'pharmacore-${chapter.id}.json','PharmaCore — ${chapter.name} chapter')">Share This Chapter</button>` : '';
   area.innerHTML = shareBtn + addDrugBtn + addTopicBtn + addTableBtn + tablesHtml + addNotesBtn + notesHtml + emptyHint + renderCardList(cards, {prefix:'sess', grouped:true});
 }
