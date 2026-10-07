@@ -2055,11 +2055,12 @@ function toggleEditMode(){
   editMode = !editMode;
   document.getElementById('editModeBtn').classList.toggle('active', editMode);
   document.body.classList.toggle('edit-mode', editMode);
-  if(!editMode){
-    // ✅ حفظ ترتيب البطاقات المحدَّث في localStorage عند إغلاق وضع التحرير
-    const order = Array.from(document.querySelectorAll('#chapterList .chapter-card')).map(c=>c.dataset.id);
-    try{ localStorage.setItem('pc_chapter_order', JSON.stringify(order)); }catch(e){}
-  }
+  // Chapter order is persisted the moment it changes — by moveChapter() (up/down)
+  // and confirmChapterReorder() (drag modal), both via saveChapterOrder().
+  // Toggling edit mode must NOT touch pc_chapter_order: the chapter cards have
+  // no data-id attribute, so re-deriving an order from their DOM here used to
+  // write an array of blank/undefined ids, silently wiping any real reorder
+  // the next time edit mode was turned off.
   if(state.screen==='home') renderHome();
   if(state.screen==='session') renderSession();
   if(state.screen==='otcdetail' && state.otcDetailId){
@@ -2704,7 +2705,11 @@ async function gdriveRequestToken(interactive){
       }
     };
     try{
-      gTokenClient.requestAccessToken({ prompt: interactive ? 'consent' : '' });
+      // 'none' = fail fast with a clean error if silent renewal isn't possible (never hangs).
+      // '' (interactive) = let Google decide: near-instant if still authorized, full
+      // consent screen only the first time or after access has been revoked —
+      // never forces the person to re-approve on every sync.
+      gTokenClient.requestAccessToken({ prompt: interactive ? '' : 'none' });
     }catch(e){ reject(e); }
   });
 }
