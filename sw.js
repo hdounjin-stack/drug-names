@@ -3,7 +3,7 @@
    fonts) is stored locally and works with zero internet connection.
    Your added drugs/chapters/tables live separately in localStorage
    and are untouched by this file. */
-const CACHE = 'pharmacore-shell-v28';
+const CACHE = 'pharmacore-shell-v30';
 const SHELL = [
   './',
   './index.html',
@@ -33,6 +33,11 @@ self.addEventListener('activate', e=>{
 self.addEventListener('fetch', e=>{
   if(e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
+  // Google sign-in / Drive sync calls: always go straight to the network,
+  // never cached (they're authenticated + time-sensitive).
+  if(url.origin !== location.origin){
+    return;
+  }
   // App shell (HTML) = network-first: always try the freshest copy when online,
   // so updates you publish are picked up instead of a stale cached version.
   const isShell = url.origin===location.origin &&

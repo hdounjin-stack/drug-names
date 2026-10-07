@@ -9,6 +9,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -599,6 +600,8 @@ body.edit-mode .reset-order-link{display:inline-block !important;}
 .scen-entry .se-icon svg,.mcq-entry .se-icon svg,.scan-entry .se-icon svg{width:26px;height:26px;color:var(--accent);}
 .avatar svg{color:var(--card);}
 .scan-entry{background:linear-gradient(135deg,rgba(179,80,44,0.15),rgba(156,107,18,0.06) 55%,var(--card) 100%);}
+.sync-entry{background:linear-gradient(135deg,rgba(66,133,244,0.12),rgba(52,168,83,0.06) 55%,var(--card) 100%);margin-top:10px;}
+.sync-entry .se-icon svg{color:#4285F4;}
 /* home utility tiles row */
 .util-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 18px;}
 .util-tile{
@@ -785,6 +788,17 @@ body.edit-mode #editModeBtn{color:var(--accent);}
       <div class="se-text">
         <div class="se-title">Scan Prescription</div>
         <div class="se-sub">Point your camera at an Rx — AI adds the drugs for you</div>
+      </div>
+      <svg class="se-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+
+    <div class="scen-entry sync-entry" onclick="openSyncModal()">
+      <div class="se-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+      </div>
+      <div class="se-text">
+        <div class="se-title">Cloud Sync</div>
+        <div class="se-sub" id="syncStatusSub">Not connected — tap to set up</div>
       </div>
       <svg class="se-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
     </div>
@@ -1846,7 +1860,14 @@ function loadDB(){
   if(stamped){ try{ localStorage.setItem('pc_db', JSON.stringify(data)); }catch(e){} }
   return data;
 }
-function saveDB(){ try{ localStorage.setItem('pc_db', JSON.stringify(DB)); }catch(e){} }
+function saveDB(){
+  try{
+    const json = JSON.stringify(DB);
+    const prev = localStorage.getItem('pc_db');
+    localStorage.setItem('pc_db', json);
+    if(json !== prev) markLocalChanged(); // only bump the sync clock on a real change — saveDB() also runs on every app close/hide as a safety flush
+  }catch(e){}
+}
 
 /* ---------- Undo: one-step undo after a destructive delete ----------
    Every delete function snapshots DB first, then shows a toast with an
@@ -2619,8 +2640,296 @@ function getChapterOrder(){
   return order;
 }
 function saveChapterOrder(order){
-  try{ localStorage.setItem('pc_chapter_order', JSON.stringify(order)); }catch(e){}
+  try{
+    const json = JSON.stringify(order);
+    const prev = localStorage.getItem('pc_chapter_order');
+    localStorage.setItem('pc_chapter_order', json);
+    if(json !== prev) markLocalChanged();
+  }catch(e){}
 }
+
+/* ================= CLOUD SYNC (Google Drive, appDataFolder) =================
+   Keeps your drug library + chapter order in sync across every device signed
+   in with the same Google account. Storage lives in Drive's hidden "app data"
+   folder — invisible in the user's normal Drive, never shared with anyone,
+   readable only by this app. Whole-library last-write-wins, with a manual
+   choice offered on the rare case both devices changed since the last sync. */
+const GDRIVE_CLIENT_ID = '230439370047-9ur8v63rr7s6mc1sc1plt4jj6va5kafs.apps.googleusercontent.com';
+const GDRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email';
+const GDRIVE_FILE_NAME = 'pharmacore-sync.json';
+
+let gTokenClient = null;
+let gAccessToken = null;
+let gTokenExpiry = 0;
+let gSyncInProgress = false;
+let gSyncDebounceTimer = null;
+
+function gdriveConnected(){ return localStorage.getItem('pc_gdrive_connected')==='1'; }
+
+function markLocalChanged(){
+  try{ localStorage.setItem('pc_db_updated', String(Date.now())); }catch(e){}
+  scheduleCloudSync();
+}
+function scheduleCloudSync(){
+  if(!gdriveConnected()) return;
+  if(gSyncDebounceTimer) clearTimeout(gSyncDebounceTimer);
+  gSyncDebounceTimer = setTimeout(()=>{ gdriveSync(false); }, 4000);
+}
+
+function gdriveInitClient(){
+  if(gTokenClient) return true;
+  if(!(window.google && google.accounts && google.accounts.oauth2)) return false;
+  gTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GDRIVE_CLIENT_ID,
+    scope: GDRIVE_SCOPE,
+    callback: ()=>{} // overridden per-call below
+  });
+  return true;
+}
+function gdriveRequestToken(interactive){
+  return new Promise((resolve, reject)=>{
+    if(!gdriveInitClient()){ reject(new Error('Google sign-in is still loading — check your connection and try again in a moment.')); return; }
+    gTokenClient.callback = (resp)=>{
+      if(resp && resp.access_token){
+        gAccessToken = resp.access_token;
+        gTokenExpiry = Date.now() + ((resp.expires_in||3500)*1000);
+        resolve(gAccessToken);
+      } else {
+        reject(new Error((resp && resp.error) || 'Sign-in was cancelled or failed.'));
+      }
+    };
+    try{
+      gTokenClient.requestAccessToken({ prompt: interactive ? 'consent' : '' });
+    }catch(e){ reject(e); }
+  });
+}
+async function gdriveEnsureToken(interactive){
+  if(gAccessToken && Date.now() < gTokenExpiry - 30000) return gAccessToken;
+  return gdriveRequestToken(interactive);
+}
+
+async function gdriveFindFileId(forceRefresh){
+  if(!forceRefresh){
+    const cached = localStorage.getItem('pc_gdrive_file_id');
+    if(cached) return cached;
+  }
+  const token = await gdriveEnsureToken(false);
+  const q = encodeURIComponent(`name='${GDRIVE_FILE_NAME}'`);
+  const res = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name)&q=${q}`, {
+    headers:{ Authorization:'Bearer '+token }
+  });
+  if(!res.ok) throw new Error('Drive lookup failed ('+res.status+')');
+  const j = await res.json();
+  const f = (j.files||[])[0];
+  if(f){ localStorage.setItem('pc_gdrive_file_id', f.id); return f.id; }
+  localStorage.removeItem('pc_gdrive_file_id');
+  return null;
+}
+async function gdriveReadRemote(){
+  let fileId = await gdriveFindFileId();
+  if(!fileId) return null;
+  const token = await gdriveEnsureToken(false);
+  let res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers:{ Authorization:'Bearer '+token } });
+  if(res.status===404){
+    // cached file id went stale (e.g. deleted elsewhere) — look it up fresh once
+    localStorage.removeItem('pc_gdrive_file_id');
+    fileId = await gdriveFindFileId(true);
+    if(!fileId) return null;
+    res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers:{ Authorization:'Bearer '+token } });
+  }
+  if(!res.ok) throw new Error('Drive read failed ('+res.status+')');
+  try{ return await res.json(); }catch(e){ return null; }
+}
+async function gdriveWriteRemote(payload){
+  const token = await gdriveEnsureToken(false);
+  const fileId = await gdriveFindFileId();
+  const body = JSON.stringify(payload);
+  if(fileId){
+    const res = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+      method:'PATCH',
+      headers:{ Authorization:'Bearer '+token, 'Content-Type':'application/json' },
+      body
+    });
+    if(!res.ok) throw new Error('Drive save failed ('+res.status+')');
+  } else {
+    const boundary = 'pcsync'+Date.now();
+    const metadata = { name: GDRIVE_FILE_NAME, parents:['appDataFolder'] };
+    const multipart =
+      `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`+
+      `--${boundary}\r\nContent-Type: application/json\r\n\r\n${body}\r\n`+
+      `--${boundary}--`;
+    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method:'POST',
+      headers:{ Authorization:'Bearer '+token, 'Content-Type':`multipart/related; boundary=${boundary}` },
+      body: multipart
+    });
+    if(!res.ok) throw new Error('Drive create failed ('+res.status+')');
+    const j = await res.json();
+    if(j.id) localStorage.setItem('pc_gdrive_file_id', j.id);
+  }
+}
+
+async function gdriveSignIn(){
+  try{
+    await gdriveRequestToken(true);
+    let email = '';
+    try{
+      const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers:{ Authorization:'Bearer '+gAccessToken } });
+      if(r.ok){ const j = await r.json(); email = j.email || ''; }
+    }catch(e){}
+    localStorage.setItem('pc_gdrive_connected','1');
+    if(email) localStorage.setItem('pc_gdrive_email', email);
+    refreshSyncModalIfOpen();
+    updateSyncEntrySub('syncing');
+    await gdriveSync(true);
+  }catch(e){
+    alert('تعذر تسجيل الدخول بجوجل: '+(e.message||e)+'\n\nلو التطبيق مفتوح جوه نسخة الأندرويد (مش متصفح عادي)، جرب تفتح رابط التطبيق في Chrome وسجّل دخول من هناك.');
+  }
+}
+function gdriveSignOut(){
+  if(gAccessToken){ try{ google.accounts.oauth2.revoke(gAccessToken, ()=>{}); }catch(e){} }
+  gAccessToken = null; gTokenExpiry = 0;
+  localStorage.removeItem('pc_gdrive_connected');
+  localStorage.removeItem('pc_gdrive_email');
+  localStorage.removeItem('pc_gdrive_file_id');
+  localStorage.removeItem('pc_last_synced');
+  refreshSyncModalIfOpen();
+  updateSyncEntrySub('idle');
+}
+
+function applyRemoteData(remote){
+  if(Array.isArray(remote.db)){ DB = remote.db; try{ localStorage.setItem('pc_db', JSON.stringify(DB)); }catch(e){} }
+  if(Array.isArray(remote.chapterOrder)){ try{ localStorage.setItem('pc_chapter_order', JSON.stringify(remote.chapterOrder)); }catch(e){} }
+  try{ renderHome(); }catch(e){}
+  try{ if(state.screen==='session') refreshSessionIfOpen(state.sessionChapterId); }catch(e){}
+}
+
+async function gdriveSync(interactive){
+  if(gSyncInProgress) return;
+  if(!gdriveConnected()) return;
+  gSyncInProgress = true;
+  updateSyncEntrySub('syncing');
+  try{
+    await gdriveEnsureToken(interactive);
+    const remote = await gdriveReadRemote();
+    const localUpdated = Number(localStorage.getItem('pc_db_updated')||0);
+    const lastSynced = Number(localStorage.getItem('pc_last_synced')||0);
+    const remoteUpdated = remote ? Number(remote.updatedAt||0) : 0;
+    const localChanged = localUpdated > lastSynced;
+    const remoteChanged = remoteUpdated > lastSynced;
+
+    if(remote && localChanged && remoteChanged && remoteUpdated !== localUpdated){
+      gSyncInProgress = false;
+      updateSyncEntrySub('conflict');
+      showSyncConflictPrompt(remote);
+      return;
+    }
+    if(remote && remoteChanged && !localChanged){
+      applyRemoteData(remote);
+      localStorage.setItem('pc_last_synced', String(Math.max(remoteUpdated, lastSynced)));
+    } else if(localChanged || !remote){
+      const payload = { updatedAt: localUpdated || Date.now(), db: DB, chapterOrder: getChapterOrder() };
+      await gdriveWriteRemote(payload);
+      localStorage.setItem('pc_last_synced', String(payload.updatedAt));
+    }
+    updateSyncEntrySub('synced');
+  }catch(e){
+    updateSyncEntrySub('error');
+  } finally {
+    gSyncInProgress = false;
+    refreshSyncModalIfOpen();
+  }
+}
+function showSyncConflictPrompt(remote){
+  window._syncConflictRemote = remote;
+  openModal('Sync Conflict', `
+    <div class="modal-hint">البيانات اتغيّرت على الجهازين من آخر مزامنة. اختار أي نسخة تحتفظ بيها (النسخة التانية هتتبدّل بيها):</div>
+    <button class="pill-btn primary" style="width:100%;margin-bottom:10px;" onclick="resolveSyncConflict('local')">💻 احتفظ بنسخة هذا الجهاز</button>
+    <button class="pill-btn ghost" style="width:100%;" onclick="resolveSyncConflict('remote')">☁️ استخدم نسخة الجهاز التاني</button>
+  `, null);
+}
+async function resolveSyncConflict(choice){
+  const remote = window._syncConflictRemote;
+  closeModal();
+  updateSyncEntrySub('syncing');
+  try{
+    if(choice==='remote' && remote){
+      applyRemoteData(remote);
+      localStorage.setItem('pc_last_synced', String(Math.max(Number(remote.updatedAt||0), Date.now())));
+    } else {
+      const now = Date.now();
+      localStorage.setItem('pc_db_updated', String(now));
+      const payload = { updatedAt: now, db: DB, chapterOrder: getChapterOrder() };
+      await gdriveWriteRemote(payload);
+      localStorage.setItem('pc_last_synced', String(now));
+    }
+    updateSyncEntrySub('synced');
+  }catch(e){
+    updateSyncEntrySub('error');
+  }
+  window._syncConflictRemote = null;
+}
+
+function syncStatusLabel(state){
+  if(!gdriveConnected()) return 'Not connected — tap to set up';
+  if(state==='syncing') return 'Syncing…';
+  if(state==='error') return 'Sync error — tap to retry';
+  if(state==='conflict') return 'Changes on both devices — tap to resolve';
+  // 'synced' or 'idle' (just-loaded, no action taken yet) — show last known sync time
+  const last = Number(localStorage.getItem('pc_last_synced')||0);
+  if(!last) return 'Connected • not yet synced';
+  if(state==='synced' && Date.now()-last < 15000) return 'Synced • just now';
+  return 'Synced • '+new Date(last).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+function updateSyncEntrySub(state){
+  const el = document.getElementById('syncStatusSub');
+  if(el) el.textContent = syncStatusLabel(state);
+}
+function renderSyncModalBodyHtml(){
+  if(!gdriveConnected()){
+    return `
+      <div class="modal-hint">خلّي مكتبة الأدوية بتاعتك متزامنة تلقائيًا على كل أجهزتك عن طريق حساب جوجل بتاعك — التخزين خاص وجوة مساحة التطبيق فقط، مش هتشوفه في درايف العادي، ومحدش غيرك بيشوفه.</div>
+      <button class="pill-btn primary" style="width:100%;margin-top:6px;" onclick="gdriveSignIn()">🔗 تسجيل الدخول بجوجل</button>
+    `;
+  }
+  const email = localStorage.getItem('pc_gdrive_email')||'';
+  const lastSynced = Number(localStorage.getItem('pc_last_synced')||0);
+  const lastSyncedText = lastSynced ? new Date(lastSynced).toLocaleString() : 'لسه ما حصلش';
+  return `
+    <div class="modal-hint">متصل بحساب: <b>${email||'Google'}</b></div>
+    <div class="modal-hint">آخر مزامنة: ${lastSyncedText}</div>
+    <button class="pill-btn primary" style="width:100%;margin:10px 0;" onclick="gdriveSync(true)">🔄 مزامنة الآن</button>
+    <button class="pill-btn ghost" style="width:100%;" onclick="gdriveSignOut()">قطع الاتصال</button>
+  `;
+}
+function openSyncModal(){
+  openModal('Cloud Sync', renderSyncModalBodyHtml(), null);
+}
+function refreshSyncModalIfOpen(){
+  const modal = document.getElementById('editModal');
+  if(modal && modal.classList.contains('open') && document.getElementById('modalTitle').textContent==='Cloud Sync'){
+    document.getElementById('modalBody').innerHTML = renderSyncModalBodyHtml();
+  }
+}
+function gdriveWaitForLib(timeoutMs){
+  return new Promise(resolve=>{
+    const started = Date.now();
+    (function check(){
+      if(window.google && google.accounts && google.accounts.oauth2){ resolve(true); return; }
+      if(Date.now()-started > timeoutMs){ resolve(false); return; }
+      setTimeout(check, 300);
+    })();
+  });
+}
+async function gdriveTrySilentResume(){
+  if(!gdriveConnected()) return;
+  // Best-effort: pull any remote changes made by other devices since last launch.
+  // The GIS script loads async/defer, so give it a moment before giving up.
+  const ready = await gdriveWaitForLib(4000);
+  if(!ready) return; // stay quiet — next manual "Sync now" or visibility change will retry
+  gdriveSync(false);
+}
+
 /* Quick one-step nudge: the ▲/▼ buttons on each card, for a fast small
    move without opening the full reorder list. */
 function moveChapter(id, dir){
@@ -3946,9 +4255,14 @@ renderHome();
 updateTabbarHeightVar();
 updateCompactHeaders();
 positionTabBlob();
+updateSyncEntrySub('idle');
 window.addEventListener('load', positionTabBlob);
+window.addEventListener('load', gdriveTrySilentResume);
 window.addEventListener('beforeunload', saveDB);
-document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveDB(); });
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){ saveDB(); }
+  else { gdriveTrySilentResume(); }
+});
 
 </script>
 </body>
