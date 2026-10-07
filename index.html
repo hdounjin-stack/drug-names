@@ -2686,9 +2686,14 @@ function gdriveInitClient(){
   });
   return true;
 }
-function gdriveRequestToken(interactive){
+async function gdriveRequestToken(interactive){
+  if(!gdriveInitClient()){
+    const ready = await gdriveWaitForLib(8000);
+    if(!ready || !gdriveInitClient()){
+      throw new Error('Google sign-in is still loading — check your connection and try again in a moment.');
+    }
+  }
   return new Promise((resolve, reject)=>{
-    if(!gdriveInitClient()){ reject(new Error('Google sign-in is still loading — check your connection and try again in a moment.')); return; }
     gTokenClient.callback = (resp)=>{
       if(resp && resp.access_token){
         gAccessToken = resp.access_token;
