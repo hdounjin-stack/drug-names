@@ -2708,9 +2708,23 @@ async function gdriveRequestToken(interactive){
     }catch(e){ reject(e); }
   });
 }
+function gdriveWithTimeout(promise, ms, message){
+  return Promise.race([
+    promise,
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error(message||'Timed out')), ms))
+  ]);
+}
 async function gdriveEnsureToken(interactive){
   if(gAccessToken && Date.now() < gTokenExpiry - 30000) return gAccessToken;
-  return gdriveRequestToken(interactive);
+  if(!interactive){
+    // A silent (no-prompt) token refresh can simply never call back — e.g. the
+    // browser blocks the third-party storage Google's iframe needs — which would
+    // otherwise hang gdriveSync() forever on "Syncing…". Time it out instead,
+    // so the UI can show an error and the person can tap "Sync now" to retry
+    // with an interactive (popup) sign-in.
+    return gdriveWithTimeout(gdriveRequestToken(false), 8000, 'Silent re-auth timed out — please reconnect.');
+  }
+  return gdriveRequestToken(true);
 }
 
 async function gdriveFindFileId(forceRefresh){
