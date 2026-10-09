@@ -430,6 +430,17 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .acc-card.open .acc-body{max-height:1400px;}
 .acc-body-inner{padding:0 15px 15px;border-top:1px solid var(--line);margin-top:2px;padding-top:12px;}
 .acc-full-info{font-size:0.78125rem;color:var(--ink-soft);line-height:1.6;margin-bottom:10px;}
+.info-line{margin-bottom:6px;}
+.info-line:last-child{margin-bottom:0;}
+.info-table-wrap{margin:8px 0;}
+.info-table-wrap .dtable{min-width:0;}
+.info-table-wrap .dtable td{white-space:normal;}
+/* Arabic/mixed-language content: let the browser pick each text run's own
+   direction instead of forcing the page's LTR default — fixes Arabic notes,
+   drug info, brand names, and table cells rendering jumbled or misaligned. */
+.acc-head-name,.acc-full-info,.acc-head-preview,.info-line,.dtable td,.dtable th,
+.acc-brand-chip,.notes-list li,.warn-list li,.cc-title,.detail-section-title,
+.group-header,.search-jump,.otc-link-row .acc-head-name,.step-list li{unicode-bidi:plaintext;}
 .acc-brand-title{font-size:0.59375rem;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;}
 .acc-brand-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
 .acc-brand-chip{font-size:0.71875rem;font-weight:700;padding:5px 11px;border-radius:var(--radius-sm);background:var(--accent-soft);border:1px solid var(--accent-line);color:var(--ink);}
@@ -461,6 +472,55 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .warn-list li{font-size:0.75rem;color:var(--ink-soft);line-height:1.6;margin-bottom:4px;}
 
 .notes-card{padding:14px 16px;}
+.warn-card{padding:14px 16px;background:linear-gradient(135deg,rgba(214,69,47,0.10),rgba(214,69,47,0.04) 60%,var(--card) 100%);border:1px solid rgba(214,69,47,0.35);}
+.warn-card .detail-section-title{color:#b43a22;}
+.warn-list{margin:0;padding-left:18px;}
+.warn-list li{font-size:0.75rem;color:var(--ink-soft);line-height:1.6;margin-bottom:5px;}
+html[data-theme="dark"] .warn-card{background:linear-gradient(135deg,rgba(255,99,71,0.14),rgba(255,99,71,0.05) 60%,var(--card) 100%);border-color:rgba(255,99,71,0.4);}
+html[data-theme="dark"] .warn-card .detail-section-title{color:#ff8a65;}
+
+/* ---------- Blocks (steps / red flags / clinical / summary / notes / warnings) ---------- */
+.blk{padding:14px 16px;}
+.blk-head{min-height:28px;}
+.blk-ico{font-size:.95rem;line-height:1;}
+.blk-title{flex:1;min-width:0;unicode-bidi:plaintext;}
+.blk-ctl{margin:0 -2px 0 auto;flex-shrink:0;}
+.edit-btns button:disabled{opacity:.3;cursor:default;}
+.blk-bar{display:flex;justify-content:flex-end;gap:12px;margin:-4px 0 8px;}
+.blk-list,.blk-steps{margin:0;padding:0;list-style:none;}
+.blk-list li,.blk-steps li{font-size:.75rem;color:var(--ink-soft);line-height:1.6;unicode-bidi:plaintext;}
+.blk-list li{position:relative;padding-inline-start:16px;margin-bottom:5px;}
+.blk-list li::before{content:"";position:absolute;inset-inline-start:3px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--accent);}
+.blk-steps{counter-reset:st;}
+.blk-steps li{counter-increment:st;position:relative;padding-inline-start:30px;padding-bottom:10px;min-height:22px;}
+.blk-steps li::before{content:counter(st);position:absolute;inset-inline-start:0;top:0;width:21px;height:21px;border-radius:50%;background:var(--accent);color:var(--paper);font-size:.6875rem;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.blk-steps li::after{content:"";position:absolute;inset-inline-start:10px;top:24px;bottom:2px;width:1px;background:var(--line-strong);}
+.blk-steps li:last-child{padding-bottom:0;}
+.blk-steps li:last-child::after{display:none;}
+.blkc-redflags{background:rgba(214,69,47,.07);border-color:rgba(214,69,47,.3);}
+.blkc-redflags .detail-section-title{color:#b43a22;}
+.blkc-redflags .blk-list li::before{background:#d6452f;}
+html[data-theme="dark"] .blkc-redflags{background:rgba(255,99,71,.1);border-color:rgba(255,99,71,.35);}
+html[data-theme="dark"] .blkc-redflags .detail-section-title{color:#ff8a65;}
+html[data-theme="dark"] .blkc-redflags .blk-list li::before{background:#ff8a65;}
+.blkc-clinical{background:var(--paper-2);}
+.blk-summary{background:var(--accent-soft,rgba(179,80,44,.08));border-radius:var(--radius-sm,10px);padding:10px 12px;}
+.blk-summary .info-line{font-size:.8125rem;color:var(--ink);line-height:1.65;font-weight:500;}
+.blk-wrap.blk-new{animation:blkIn .45s cubic-bezier(.22,1,.36,1) both;}
+@keyframes blkIn{from{opacity:0;transform:translateY(14px) scale(.97);}to{opacity:1;transform:none;}}
+.blk-wrap.blk-new .card{animation:pulseHighlight .75s ease-out 2;}
+/* picker */
+.blk-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.blk-opt{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:start;padding:13px 12px;border:1px solid var(--line-strong);border-radius:14px;background:var(--card);color:var(--ink);cursor:pointer;font:inherit;
+  animation:optRise .42s cubic-bezier(.22,1,.36,1) both;animation-delay:calc(var(--i)*45ms + 60ms);transition:transform .18s cubic-bezier(.22,1,.36,1),border-color .18s,background .18s;}
+.blk-opt:hover{border-color:var(--accent-line);}
+.blk-opt:active{transform:scale(.96);}
+.blk-opt-ico{width:34px;height:34px;border-radius:10px;background:var(--paper-2);display:flex;align-items:center;justify-content:center;font-size:1.05rem;}
+.blk-opt b{display:block;font-size:.8125rem;font-weight:700;}
+.blk-opt small{display:block;font-size:.65625rem;color:var(--muted);line-height:1.4;margin-top:2px;}
+.add-row{display:flex;gap:8px;margin-bottom:10px;}
+.add-row .pill-btn{flex:1;margin:0 !important;}
+@keyframes optRise{from{opacity:0;transform:translateY(14px) scale(.96);}to{opacity:1;transform:none;}}
 .notes-list{margin:0;padding-left:18px;}
 .notes-list li{font-size:0.75rem;color:var(--ink-soft);line-height:1.6;margin-bottom:5px;}
 
@@ -714,7 +774,10 @@ body.edit-mode #editModeBtn{color:var(--accent);}
   touch-action:pan-y;user-select:none;-webkit-user-select:none;
 }
 .reorder-row.dragging-row{position:relative;z-index:5;background:var(--paper-2);box-shadow:0 10px 24px -12px rgba(33,26,19,.35);border-radius:var(--radius-sm);}
-.reorder-name{flex:1;font-size:0.8125rem;font-weight:600;color:var(--ink);}
+.reorder-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.reorder-sub{font-size:.625rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;unicode-bidi:plaintext;}
+.reorder-row.grp-start{border-top:2px solid var(--line-strong);}
+.reorder-name{font-size:0.8125rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;unicode-bidi:plaintext;}
 .reorder-row .cc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 .reorder-handle{
   flex-shrink:0;width:32px;height:32px;border-radius:9px;
@@ -792,7 +855,7 @@ body.edit-mode #editModeBtn{color:var(--accent);}
       <svg class="se-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
     </div>
 
-    <div class="scen-entry sync-entry" onclick="openSyncModal()">
+    <div class="scen-entry sync-entry" onclick="handleSyncEntryTap()">
       <div class="se-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
       </div>
@@ -969,14 +1032,14 @@ body.edit-mode #editModeBtn{color:var(--accent);}
   </div>
 </div>
 
-<!-- ================= REORDER CHAPTERS MODAL ================= -->
-<div id="reorderModal" class="modal-backdrop" onclick="if(event.target.id==='reorderModal')confirmChapterReorder()">
+<!-- ================= GENERIC REORDER MODAL (chapters / drugs / tables / notes / warnings) ================= -->
+<div id="reorderModal" class="modal-backdrop" onclick="if(event.target.id==='reorderModal')confirmReorder()">
   <div class="modal-card" onclick="event.stopPropagation()">
-    <div class="modal-header"><span>Reorder Chapters</span><button class="modal-x" onclick="confirmChapterReorder()">×</button></div>
-    <div class="modal-hint" style="margin-top:-4px;">Drag the ⠿ handle up or down.</div>
+    <div class="modal-header"><span id="reorderModalTitle">Reorder</span><button class="modal-x" onclick="confirmReorder()">×</button></div>
+    <div id="reorderHint" class="modal-hint" style="margin-top:-4px;">Drag the ⠿ handle up or down.</div>
     <div id="reorderList" class="reorder-list"></div>
     <div class="modal-actions">
-      <button class="pill-btn primary" style="width:100%;" onclick="confirmChapterReorder()">Done</button>
+      <button class="pill-btn primary" style="width:100%;" onclick="confirmReorder()">Done</button>
     </div>
   </div>
 </div>
@@ -2056,7 +2119,7 @@ function toggleEditMode(){
   document.getElementById('editModeBtn').classList.toggle('active', editMode);
   document.body.classList.toggle('edit-mode', editMode);
   // Chapter order is persisted the moment it changes — by moveChapter() (up/down)
-  // and confirmChapterReorder() (drag modal), both via saveChapterOrder().
+  // and the drag-reorder modal (confirmReorder()), both via saveChapterOrder().
   // Toggling edit mode must NOT touch pc_chapter_order: the chapter cards have
   // no data-id attribute, so re-deriving an order from their DOM here used to
   // write an array of blank/undefined ids, silently wiping any real reorder
@@ -2142,13 +2205,14 @@ function openDrugModal(chapterId, idx){
   const groups = Array.from(new Set((c.drugs||[]).map(x=>x.group).filter(Boolean)));
   openModal(idx===null?'Add Drug':'Edit Drug', `
     <div class="field-card"><div class="field-label">Group / subcategory (optional)</div>
-      <input id="mDrugGroup" class="text-input" list="mDrugGroupList" value="${d.group||''}" placeholder="e.g. Salicylates">
+      <input id="mDrugGroup" class="text-input" dir="auto" list="mDrugGroupList" value="${d.group||''}" placeholder="e.g. Salicylates">
       <datalist id="mDrugGroupList">${groups.map(g=>`<option value="${g}">`).join('')}</datalist>
     </div>
     <div class="modal-hint">Pick an existing group to add this drug under it, or type a new name to start a fresh section.</div>
-    <div class="field-card"><div class="field-label">Generic name</div><input id="mDrugG" class="text-input" value="${d.g||''}" placeholder="e.g. Ibuprofen"></div>
-    <div class="field-card"><div class="field-label">Info (class · dose · notes)</div><textarea id="mDrugInfo" class="text-input">${d.info||''}</textarea></div>
-    <div class="field-card"><div class="field-label">Brand names (comma separated)</div><input id="mDrugBrands" class="text-input" value="${(d.brands||[]).join(', ')}" placeholder="Brufen, Advil"></div>
+    <div class="field-card"><div class="field-label">Generic name</div><input id="mDrugG" class="text-input" dir="auto" value="${d.g||''}" placeholder="e.g. Ibuprofen"></div>
+    <div class="field-card"><div class="field-label">Info (class · dose · notes)</div><textarea id="mDrugInfo" class="text-input" dir="auto">${d.info||''}</textarea></div>
+    <div class="modal-hint" style="margin:-4px 0 0;">كل سطر تكتبه هيفضل في سطره — واكتب خلية|خلية|خلية في أي سطر عشان يتحول تلقائيًا لصف جدول صغير جوة الـinfo.</div>
+    <div class="field-card"><div class="field-label">Brand names (comma separated)</div><input id="mDrugBrands" class="text-input" dir="auto" value="${(d.brands||[]).join(', ')}" placeholder="Brufen, Advil"></div>
   `, ()=>{
     const g = val('mDrugG').trim(); if(!g) return;
     const info = val('mDrugInfo').trim();
@@ -2204,9 +2268,9 @@ function openTableModal(chapterId, tIdx){
   const t = tIdx===null ? {title:'🧾 ', cols:[], rows:[]} : c.tables[tIdx];
   const rowsText = (t.rows||[]).map(r=>r.join(' | ')).join('\n');
   openModal(tIdx===null?'Add Table':'Edit Table', `
-    <div class="field-card"><div class="field-label">Table title</div><input id="mTabTitle" class="text-input" value="${t.title||''}" placeholder="e.g. 🧾 Rx — Gastritis"></div>
-    <div class="field-card"><div class="field-label">Columns (comma separated)</div><input id="mTabCols" class="text-input" value="${(t.cols||[]).join(', ')}" placeholder="Drug, Form, Dose, Notes"></div>
-    <div class="field-card"><div class="field-label">Rows — one per line, cells separated by |</div><textarea id="mTabRows" class="text-input" style="min-height:120px;">${rowsText}</textarea></div>
+    <div class="field-card"><div class="field-label">Table title</div><input id="mTabTitle" class="text-input" dir="auto" value="${t.title||''}" placeholder="e.g. 🧾 Rx — Gastritis"></div>
+    <div class="field-card"><div class="field-label">Columns (comma separated)</div><input id="mTabCols" class="text-input" dir="auto" value="${(t.cols||[]).join(', ')}" placeholder="Drug, Form, Dose, Notes"></div>
+    <div class="field-card"><div class="field-label">Rows — one per line, cells separated by |</div><textarea id="mTabRows" class="text-input" dir="auto" style="min-height:120px;">${rowsText}</textarea></div>
     <div class="modal-hint">Example row: Antodine (Ranitidine) | Amp | — | Emergency injection</div>
   `, ()=>{
     const title = val('mTabTitle').trim(); if(!title) return;
@@ -2225,15 +2289,111 @@ function deleteTable(chapterId, tIdx){
   showUndoToast('Deleted table');
 }
 
-/* ---------- Notes ---------- */
-function openNotesModal(chapterId){
+/* ---------- Blocks: ordered content cards inside a chapter ----------
+   One list (chapter.blocks) holds every note-like card, so any block can sit
+   anywhere relative to the others. Old chapters (notes[] / warnings[]) are
+   converted lazily by ensureBlocks(). */
+const BLOCK_TYPES = {
+  steps:    {ico:'🪜', label:'Approach Steps', hint:'One step per line, in order'},
+  redflags: {ico:'🚩', label:'Red Flags', hint:'One red flag per line'},
+  clinical: {ico:'🩺', label:'Clinical Notes', hint:'One note per line'},
+  summary:  {ico:'✨', label:'Summary', hint:'Summary text', text:true},
+  notes:    {ico:'📝', label:'Notes', hint:'One note per line'},
+  warnings: {ico:'⚠️', label:'Warnings / Interactions', hint:'One warning per line'}
+};
+let blkFlashId = null;
+function ensureBlocks(c){
+  if(!Array.isArray(c.blocks)){
+    c.blocks = [];
+    if(c.notes && c.notes.length) c.blocks.push({id:uid(), type:'notes', items:c.notes});
+    if(c.warnings && c.warnings.length) c.blocks.push({id:uid(), type:'warnings', items:c.warnings});
+    delete c.notes; delete c.warnings;
+  }
+  return c.blocks;
+}
+function blockBodyHtml(b){
+  const items = b.items || [];
+  if(b.type==='summary') return `<div class="blk-summary">${formatInfoText(items.join('\n'))}</div>`;
+  if(b.type==='steps') return `<ol class="blk-steps">${items.map(n=>`<li>${n}</li>`).join('')}</ol>`;
+  const cls = b.type==='notes' ? 'notes-list' : b.type==='warnings' ? 'warn-list' : 'blk-list';
+  return `<ul class="${cls}">${items.map(n=>`<li>${n}</li>`).join('')}</ul>`;
+}
+function renderBlocksHtml(c, editable){
+  const blocks = ensureBlocks(c);
+  const bar = (editable && blocks.length>1) ? `<div class="blk-bar"><span class="edit-inline" onclick="openBlocksReorder('${c.id}')">↕ reorder blocks</span></div>` : '';
+  return bar + blocks.map((b,i)=>{
+    const t = BLOCK_TYPES[b.type] || BLOCK_TYPES.notes;
+    const ctl = editable ? `<span class="edit-btns blk-ctl">
+      <button ${i?'':'disabled'} aria-label="Move up" onclick="moveBlock('${c.id}','${b.id}',-1)">▲</button>
+      <button ${i<blocks.length-1?'':'disabled'} aria-label="Move down" onclick="moveBlock('${c.id}','${b.id}',1)">▼</button>
+      <button aria-label="Edit" onclick="openBlockEditor('${c.id}','${b.id}')">✎</button>
+      <button aria-label="Delete" onclick="deleteBlock('${c.id}','${b.id}')">🗑</button></span>` : '';
+    const cardCls = b.type==='notes' ? ' notes-card' : b.type==='warnings' ? ' warn-card' : '';
+    const flash = blkFlashId===b.id ? ' blk-new' : '';
+    return `<div class="detail-section blk-wrap${flash}" data-bid="${b.id}"><div class="card blk blkc-${b.type}${cardCls}"><div class="detail-section-title blk-head"><span class="blk-ico">${t.ico}</span><span class="blk-title">${b.title||t.label}</span>${ctl}</div>${blockBodyHtml(b)}</div></div>`;
+  }).join('');
+}
+function openBlockPicker(chapterId){
+  openModal('Add block', `<div class="blk-pick">${Object.entries(BLOCK_TYPES).map(([k,t],i)=>
+    `<button class="blk-opt" style="--i:${i}" onclick="openBlockEditor('${chapterId}',null,'${k}')"><span class="blk-opt-ico">${t.ico}</span><span><b>${t.label}</b><small>${t.hint}</small></span></button>`
+  ).join('')}</div>`, null);
+}
+function openBlockEditor(chapterId, blockId, type){
   const c = DB.find(x=>x.id===chapterId); if(!c) return;
-  openModal('Edit Notes', `
-    <div class="field-card"><div class="field-label">One note per line</div><textarea id="mNotes" class="text-input" style="min-height:130px;">${(c.notes||[]).join('\n')}</textarea></div>
+  const blocks = ensureBlocks(c);
+  const b = blockId ? blocks.find(x=>x.id===blockId) : null;
+  if(blockId && !b) return;
+  const ty = b ? b.type : type;
+  const t = BLOCK_TYPES[ty]; if(!t) return;
+  const body = b ? (b.items||[]).join('\n') : '';
+  openModal((b?'Edit ':'Add ')+t.label, `
+    <div class="field-card"><div class="field-label">Title (optional)</div><input id="mBlkTitle" class="text-input" dir="auto" value="${escAttr(b&&b.title||'')}" placeholder="${escAttr(t.label)}"></div>
+    <div class="field-card"><div class="field-label">${t.hint}</div><textarea id="mBlkBody" class="text-input" dir="auto" style="min-height:${t.text?150:130}px;">${escapeHtml(body)}</textarea></div>
   `, ()=>{
-    c.notes = val('mNotes').split('\n').map(l=>l.trim()).filter(Boolean);
+    const raw = val('mBlkBody');
+    const items = t.text ? (raw.trim()?[raw.trim()]:[]) : raw.split('\n').map(l=>l.trim()).filter(Boolean);
+    if(!items.length){ closeModal(); return; }
+    const title = val('mBlkTitle').trim();
+    let id;
+    if(b){ b.items = items; b.title = title||undefined; id = b.id; }
+    else { id = uid(); blocks.push({id, type:ty, title:title||undefined, items}); }
+    blkFlashId = id;
     saveDB(); closeModal(); refreshSessionIfOpen(chapterId); renderSession();
+    blkFlashId = null;
+    const el = document.querySelector(`#sessCardArea [data-bid="${id}"]`);
+    if(el) el.scrollIntoView({behavior:'smooth', block:'nearest'});
   });
+}
+function deleteBlock(chapterId, blockId){
+  const c = DB.find(x=>x.id===chapterId); if(!c) return;
+  const blocks = ensureBlocks(c);
+  const i = blocks.findIndex(x=>x.id===blockId); if(i<0) return;
+  snapshotForUndo();
+  blocks.splice(i,1); saveDB(); refreshSessionIfOpen(chapterId); renderSession();
+  showUndoToast('Deleted block');
+}
+/* One-step move with a FLIP animation: measure, reorder, re-render, then
+   slide every block from its old position to its new one. */
+function moveBlock(chapterId, blockId, dir){
+  const c = DB.find(x=>x.id===chapterId); if(!c) return;
+  const blocks = ensureBlocks(c);
+  const i = blocks.findIndex(x=>x.id===blockId), j = i+dir;
+  if(i<0 || j<0 || j>=blocks.length) return;
+  const sel = '#sessCardArea [data-bid]';
+  const first = {};
+  document.querySelectorAll(sel).forEach(e=>{ first[e.dataset.bid] = e.getBoundingClientRect().top; });
+  [blocks[i],blocks[j]] = [blocks[j],blocks[i]];
+  saveDB(); renderSession();
+  document.querySelectorAll(sel).forEach(e=>{
+    const d = first[e.dataset.bid] - e.getBoundingClientRect().top;
+    if(!d) return;
+    e.style.transition = 'none'; e.style.transform = `translateY(${d}px)`;
+    e.getBoundingClientRect();
+    e.style.transition = 'transform .34s cubic-bezier(.22,1,.36,1)'; e.style.transform = '';
+    setTimeout(()=>{ e.style.transition = ''; }, 380);
+  });
+  const moved = document.querySelector(`${sel}[data-bid="${blockId}"]`);
+  if(moved) moved.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 /* ---------- OTC topic-level tables / notes / topics ---------- */
@@ -2905,9 +3065,24 @@ function syncStatusLabel(state){
   if(state==='synced' && Date.now()-last < 15000) return 'Synced • just now';
   return 'Synced • '+new Date(last).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 }
+let gLastSyncState = 'idle';
 function updateSyncEntrySub(state){
+  if(state) gLastSyncState = state;
   const el = document.getElementById('syncStatusSub');
-  if(el) el.textContent = syncStatusLabel(state);
+  if(el) el.textContent = syncStatusLabel(gLastSyncState);
+}
+/* Tapping the home-screen Cloud Sync card: if we're mid-error (the silent,
+   no-popup token renewal failed — typically because the ~1 hour access token
+   expired and the browser won't let a hidden request renew it quietly), one
+   tap here retries *interactively* right away instead of making the person
+   dig into the modal first just to find a "Sync now" button. Every other
+   state opens the normal modal. */
+function handleSyncEntryTap(){
+  if(gdriveConnected() && (gLastSyncState==='error' || gLastSyncState==='conflict')){
+    gdriveSync(true);
+    return;
+  }
+  openSyncModal();
 }
 function renderSyncModalBodyHtml(){
   if(!gdriveConnected()){
@@ -2975,31 +3150,91 @@ function moveChapter(id, dir){
    the finger move), no hit-testing, no ambiguity, and pointercancel always
    lands in a well-defined state. This is the standard, battle-tested
    pattern for reorderable lists on mobile. */
-function openChapterReorder(){
-  chapReorder = { order: getChapterOrder(), drag: null };
-  renderChapterReorderList();
+/* ---------- Generic reorder modal ----------
+   One drag-reorder engine shared by chapters, drugs-within-a-chapter,
+   tables, notes, and warnings. `reorderCtx` holds a flat list of
+   {id, label, color?} items (in current order) plus an onConfirm(items)
+   callback that each opener supplies to decide what "save" means for
+   that particular list. The drag physics below (pointer capture,
+   auto-scroll near the edges, translateY math) don't care what the rows
+   represent — only renderReorderList()/endRowDrag() touch reorderCtx. */
+let reorderCtx = null, rowDrag = null, rowDragRAF = null;
+function openReorder(title, items, onConfirm, hint){
+  reorderCtx = { items, onConfirm };
+  document.getElementById('reorderModalTitle').textContent = title;
+  document.getElementById('reorderHint').textContent = hint || 'Drag the ⠿ handle up or down.';
+  renderReorderList();
   document.getElementById('reorderModal').classList.add('open');
+}
+function openChapterReorder(){
+  const order = getChapterOrder();
+  const items = order.map(id=>{ const c=DB.find(x=>x.id===id); return {id, label:c?c.name:id, color:c?c.color:null}; });
+  openReorder('Reorder Chapters', items, (its)=>{ saveChapterOrder(its.map(it=>it.id)); renderHome(); });
+}
+function openDrugReorder(chapterId){
+  const c = DB.find(x=>x.id===chapterId); if(!c || !c.drugs || c.drugs.length<2) return;
+  // Same order the lesson shows: grouped, groups in first-appearance order.
+  const groups = [...new Set(c.drugs.map(d=>d.group||''))];
+  const gi = d=>groups.indexOf(d.group||'');
+  const items = c.drugs.slice().sort((a,b)=>gi(a)-gi(b))
+    .map(d=>({id:d.id, label:d.g, sub:d.group||'No group', color:c.color}));
+  openReorder('Reorder Drugs', items, (its)=>{
+    // Keep group order untouched: drugs only move within their own group.
+    const byId = new Map(c.drugs.map(d=>[d.id,d]));
+    c.drugs = its.map(it=>byId.get(it.id)).sort((a,b)=>gi(a)-gi(b));
+    saveDB(); refreshSessionIfOpen(chapterId); renderSession();
+  }, 'Drag ⠿ up or down. Drugs stay inside their group.');
+}
+function openTableReorder(chapterId){
+  const c = DB.find(x=>x.id===chapterId); if(!c || !c.tables || c.tables.length<2) return;
+  const items = c.tables.map((t,i)=>({id:String(i), label:t.title||('Table '+(i+1)), color:c.color}));
+  openReorder('Reorder Tables', items, (its)=>{
+    const orig = c.tables;
+    c.tables = its.map(it=>orig[Number(it.id)]);
+    saveDB(); refreshSessionIfOpen(chapterId); renderSession();
+  });
+}
+function openBlocksReorder(chapterId){
+  const c = DB.find(x=>x.id===chapterId); if(!c) return;
+  const blocks = ensureBlocks(c); if(blocks.length<2) return;
+  const items = blocks.map(b=>{ const t = BLOCK_TYPES[b.type]||BLOCK_TYPES.notes; return {id:b.id, label:t.ico+' '+(b.title||t.label), color:c.color}; });
+  openReorder('Reorder Blocks', items, (its)=>{
+    c.blocks = its.map(it=>blocks.find(b=>b.id===it.id));
+    saveDB(); refreshSessionIfOpen(chapterId); renderSession();
+  });
+}
+/* Groups: card order follows first appearance of each group in c.drugs,
+   so moving a group = stable-sorting the drugs by the new group order. */
+function openGroupReorder(chapterId){
+  const c = DB.find(x=>x.id===chapterId); if(!c || !c.drugs) return;
+  const groups = [...new Set(c.drugs.map(d=>d.group||''))]; if(groups.length<2) return;
+  const items = groups.map((g,i)=>({id:'g'+i, label:g||'No group', color:c.color}));
+  openReorder('Reorder Groups', items, (its)=>{
+    const order = its.map(it=>groups[Number(it.id.slice(1))]);
+    c.drugs.sort((a,b)=>order.indexOf(a.group||'')-order.indexOf(b.group||''));
+    saveDB(); refreshSessionIfOpen(chapterId); renderSession();
+  });
 }
 function closeChapterReorder(){
   document.getElementById('reorderModal').classList.remove('open');
   if(rowDragRAF){ cancelAnimationFrame(rowDragRAF); rowDragRAF = null; }
   rowDrag = null;
-  chapReorder = null;
+  reorderCtx = null;
 }
-function renderChapterReorderList(){
+function renderReorderList(){
   const list = document.getElementById('reorderList');
-  list.innerHTML = chapReorder.order.map((id,i)=>{
-    const c = DB.find(x=>x.id===id); if(!c) return '';
-    return `<div class="reorder-row" data-i="${i}">
-      <span class="cc-dot" style="background:${c.color};box-shadow:0 0 6px ${c.color}"></span>
-      <span class="reorder-name">${c.name}</span>
+  list.innerHTML = reorderCtx.items.map((it,i)=>{
+    const dot = it.color ? `<span class="cc-dot" style="background:${it.color};box-shadow:0 0 6px ${it.color}"></span>` : '';
+    const newGrp = it.sub!==undefined && i>0 && reorderCtx.items[i-1].sub!==it.sub ? ' grp-start' : '';
+    return `<div class="reorder-row${newGrp}" data-i="${i}">
+      ${dot}
+      <span class="reorder-txt">${it.sub!==undefined?`<span class="reorder-sub">${it.sub}</span>`:''}<span class="reorder-name">${it.label}</span></span>
       <span class="reorder-handle" onpointerdown="startRowDrag(event,${i})" title="Drag to reorder">
         <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><circle cx="8" cy="6" r="1.6"/><circle cx="16" cy="6" r="1.6"/><circle cx="8" cy="12" r="1.6"/><circle cx="16" cy="12" r="1.6"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="18" r="1.6"/></svg>
       </span>
     </div>`;
   }).join('');
 }
-let chapReorder = null, rowDrag = null, rowDragRAF = null;
 function startRowDrag(ev, idx){
   ev.preventDefault(); ev.stopPropagation();
   const handle = ev.currentTarget;
@@ -3092,16 +3327,15 @@ function endRowDrag(){
   handle.removeEventListener('pointercancel', endRowDrag);
   if(rowDragRAF){ cancelAnimationFrame(rowDragRAF); rowDragRAF = null; }
   if(idx !== origIdx){
-    const [moved] = chapReorder.order.splice(origIdx,1);
-    chapReorder.order.splice(idx,0,moved);
+    const [moved] = reorderCtx.items.splice(origIdx,1);
+    reorderCtx.items.splice(idx,0,moved);
   }
   rowDrag = null;
-  renderChapterReorderList(); // clean re-render — DOM now matches the array exactly, no leftover transforms possible
+  renderReorderList(); // clean re-render — DOM now matches the array exactly, no leftover transforms possible
 }
-function confirmChapterReorder(){
-  saveChapterOrder(chapReorder.order);
+function confirmReorder(){
+  if(reorderCtx) reorderCtx.onConfirm(reorderCtx.items);
   closeChapterReorder();
-  renderHome();
 }
 function resetChapterOrder(){
   try{ localStorage.removeItem('pc_chapter_order'); }catch(e){}
@@ -3116,6 +3350,33 @@ function hexA(hex,a){
 /* ---------- shared accordion card renderers ---------- */
 function escAttr(s){ return String(s).replace(/'/g,"&#39;").replace(/"/g,"&quot;"); }
 
+/* Turns a plain-text "info" field into readable blocks: every line stays on
+   its own line (instead of collapsing into one run-on paragraph, which is
+   the default HTML behavior), and any run of consecutive lines containing
+   "|" becomes a small table — so "Dose|Max|Notes" style lines are easy to
+   lay out without needing the full chapter-table editor for a quick aside. */
+function formatInfoText(raw){
+  if(!raw) return '';
+  const lines = String(raw).split(/\r?\n/);
+  let html = '', pipeBuf = [];
+  function flushPipe(){
+    if(!pipeBuf.length) return;
+    html += `<div class="card dtable-wrap info-table-wrap"><table class="dtable"><tbody>${
+      pipeBuf.map(line=>{
+        const cells = line.split('|').map(c=>c.trim());
+        return `<tr>${cells.map((c,i)=>`<td class="${i===0?'strong':''}">${c}</td>`).join('')}</tr>`;
+      }).join('')
+    }</tbody></table></div>`;
+    pipeBuf = [];
+  }
+  lines.forEach(line=>{
+    if(line.includes('|')){ pipeBuf.push(line); return; }
+    flushPipe();
+    if(line.trim()!=='') html += `<div class="info-line">${line}</div>`;
+  });
+  flushPipe();
+  return html;
+}
 function drugAccCard(d, color, uid, chapId, idx, isSearch, searchChapName){
   const editable = editMode && chapId!==undefined;
   const brandChips = (d.brands||[]).map((b,bi)=>
@@ -3146,7 +3407,7 @@ function drugAccCard(d, color, uid, chapId, idx, isSearch, searchChapName){
       <svg class="acc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
     </div>
     <div class="acc-body"><div class="acc-body-inner">
-      <div class="acc-full-info">${d.info}</div>
+      <div class="acc-full-info">${formatInfoText(d.info)}</div>
       ${sectionLink}
       ${brandsHtml}
     </div></div>
@@ -3257,19 +3518,21 @@ function renderSession(){
     return;
   }
   const notOtc = chapter && chapter.type!=='otc';
-  const tablesHtml = (notOtc && chapter.tables && chapter.tables.length) ? renderDataTables(chapter.tables, {kind:'chapter', chapterId:chapter.id}) : '';
-  const addTableBtn = (editMode && notOtc) ? `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="openTableModal('${chapter.id}',null)">+ Add Table</button>` : '';
-  const notesHtml = (notOtc && chapter.notes && chapter.notes.length) ?
-    `<div class="detail-section"><div class="card notes-card"><div class="detail-section-title">📝 Notes${editMode?` <span class="edit-inline" onclick="openNotesModal('${chapter.id}')">✎ edit</span>`:''}</div><ul class="notes-list">${chapter.notes.map(n=>`<li>${n}</li>`).join('')}</ul></div></div>` : '';
-  const addNotesBtn = (editMode && notOtc && !(chapter.notes&&chapter.notes.length)) ?
-    `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="openNotesModal('${chapter.id}')">+ Add Notes</button>` : '';
+  const reorderLink = (cond, fn, label='reorder') => (editMode && cond) ? ` <span class="edit-inline" onclick="${fn}">↕ ${label}</span>` : '';
+  const tablesHtml = (notOtc && chapter.tables && chapter.tables.length) ?
+    `${editMode?`<div class="detail-section-title" style="margin-bottom:-4px;">Tables${reorderLink(chapter.tables.length>1, `openTableReorder('${chapter.id}')`)}</div>`:''}${renderDataTables(chapter.tables, {kind:'chapter', chapterId:chapter.id})}` : '';
+  const addRowBtns = (editMode && notOtc) ? `<div class="add-row"><button class="pill-btn ghost" onclick="openTableModal('${chapter.id}',null)">+ Add Table</button><button class="pill-btn ghost" onclick="openBlockPicker('${chapter.id}')">+ Add block</button></div>` : '';
+  const blocksHtml = notOtc ? renderBlocksHtml(chapter, editMode) : '';
+  const nDrugs = chapter && chapter.drugs ? chapter.drugs.length : 0;
+  const nGroups = nDrugs ? new Set(chapter.drugs.map(d=>d.group||'')).size : 0;
+  const drugReorderLink = reorderLink(nGroups>1, `openGroupReorder('${chapter&&chapter.id}')`, 'groups') + reorderLink(nDrugs>1, `openDrugReorder('${chapter&&chapter.id}')`, 'drugs');
   const addDrugBtn = (editMode && notOtc) ?
-    `<button class="pill-btn primary" style="width:100%;margin-bottom:14px;" onclick="openDrugModal('${chapter.id}',null)">+ Add Drug</button>` : '';
+    `<button class="pill-btn primary" style="width:100%;margin-bottom:${drugReorderLink?'2px':'14px'};" onclick="openDrugModal('${chapter.id}',null)">+ Add Drug</button>${drugReorderLink?`<div style="margin:0 0 14px;text-align:right;display:flex;justify-content:flex-end;gap:12px;">${drugReorderLink}</div>`:''}` : '';
   const addTopicBtn = (editMode && chapter && chapter.type==='otc') ?
     `<button class="pill-btn primary" style="width:100%;margin-bottom:14px;" onclick="openTopicModal('${chapter.id}',null)">+ Add Topic</button>` : '';
   const emptyHint = !total ? (editMode ? `<div class="empty-hint">No ${chapter && chapter.type==='otc'?'topics':'drugs'} yet — use "+ Add ${chapter && chapter.type==='otc'?'Topic':'Drug'}" above to start this chapter.</div>` : `<div class="empty-hint">No ${chapter && chapter.type==='otc'?'topics':'drugs'} in this chapter yet.</div>`) : '';
   const shareBtn = chapter ? `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="shareOrDownload([DB.find(c=>c.id==='${chapter.id}')],'pharmacore-${chapter.id}.json','PharmaCore — ${chapter.name} chapter')">Share This Chapter</button>` : '';
-  area.innerHTML = shareBtn + addDrugBtn + addTopicBtn + addTableBtn + tablesHtml + addNotesBtn + notesHtml + emptyHint + renderCardList(cards, {prefix:'sess', grouped:true});
+  area.innerHTML = shareBtn + addDrugBtn + addTopicBtn + addRowBtns + tablesHtml + blocksHtml + emptyHint + renderCardList(cards, {prefix:'sess', grouped:true});
 }
 
 /* ---------- Quick review shortcut still opens a lesson-style stacked list ---------- */
@@ -3349,8 +3612,7 @@ function renderPediatric(){
   const cards = chapters.flatMap(c=>flattenCards(c));
   const pedChapter = DB.find(c=>c.id==='pediatric');
   const tablesHtml = (pedChapter && pedChapter.tables && pedChapter.tables.length) ? renderDataTables(pedChapter.tables) : '';
-  const notesHtml = (pedChapter && pedChapter.notes && pedChapter.notes.length) ?
-    `<div class="detail-section"><div class="card notes-card"><div class="detail-section-title">📝 Notes</div><ul class="notes-list">${pedChapter.notes.map(n=>`<li>${n}</li>`).join('')}</ul></div></div>` : '';
+  const notesHtml = pedChapter ? renderBlocksHtml(pedChapter, false) : '';
   document.getElementById('pediatricArea').innerHTML = tablesHtml + notesHtml + renderCardList(cards, {prefix:'ped', grouped:true});
 }
 
@@ -4287,6 +4549,11 @@ document.addEventListener('visibilitychange', ()=>{
   if(document.hidden){ saveDB(); }
   else { gdriveTrySilentResume(); }
 });
+// The Drive access token lives for ~1hr. Nudge a silent renewal well before
+// that while the app sits open and idle, so the token is usually already
+// fresh by the time anything needs it — instead of only discovering it has
+// expired the next time an edit tries to sync.
+setInterval(()=>{ if(!document.hidden) gdriveTrySilentResume(); }, 20*60*1000);
 
 </script>
 </body>
