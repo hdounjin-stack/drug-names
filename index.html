@@ -4280,8 +4280,14 @@ function renderScan(){
     return;
   }
   area.innerHTML = `
+    <div class="card" style="padding:16px;margin-bottom:12px;">
+      <div class="detail-section-title">✨ Paste text from a book or notes</div>
+      <div class="modal-hint">Paste as much as you like — several drugs at once is fine. It pulls out each drug, its brand names and the key dose details, then you choose where each one goes. Nothing is saved until you confirm.</div>
+      <textarea id="scanText" class="text-input" dir="auto" style="min-height:150px;" placeholder="Paste text here…"></textarea>
+      <button class="pill-btn primary" style="width:100%;margin-top:10px;" onclick="handleScanText()">Extract drugs</button>
+    </div>
     <div class="card" style="padding:16px;">
-      <div class="detail-section-title">Take or upload a photo</div>
+      <div class="detail-section-title">Or take / upload a photo</div>
       <div class="modal-hint">Works best with the drug name(s) clearly visible. Multiple drugs on one prescription is fine — you'll review each one before anything is saved.</div>
       <input type="file" id="scanFile" accept="image/*" style="display:none;" onchange="handleScanFile(this)">
       <button class="pill-btn primary" style="width:100%;" onclick="document.getElementById('scanFile').click()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z"/><circle cx="12" cy="13" r="3.5"/></svg> Open Camera / Choose Photo</button>
@@ -4377,7 +4383,7 @@ Use your own pharmacological knowledge for pregnancyCategory even if it is not w
 If nothing on the category list fits well, set "isNewChapter":true and put a short new category name in "suggestedChapter". Read every line of the image before responding — do not skip drugs because handwriting is imperfect, give your best reading instead. If you genuinely cannot read anything reliably, return [].`;
 }
 
-async function callClaude(key, b64, mime, model){
+async function callClaude(key, b64, mime, model, prompt, maxTokens){
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method:'POST',
     headers:{
@@ -4388,10 +4394,10 @@ async function callClaude(key, b64, mime, model){
     },
     body: JSON.stringify({
       model: model || defaultModelFor('claude'),
-      max_tokens: 2000,
+      max_tokens: maxTokens || 2000,
       messages:[{role:'user', content:[
-        {type:'image', source:{type:'base64', media_type:mime, data:b64}},
-        {type:'text', text: scanPrompt()}
+        ...(b64 ? [{type:'image', source:{type:'base64', media_type:mime, data:b64}}] : []),
+        {type:'text', text: prompt || scanPrompt()}
       ]}]
     })
   });
@@ -4399,16 +4405,16 @@ async function callClaude(key, b64, mime, model){
   const data = await res.json();
   return data.content.map(c=>c.text||'').join('');
 }
-async function callOpenAI(key, b64, mime, model){
+async function callOpenAI(key, b64, mime, model, prompt, maxTokens){
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method:'POST',
     headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+key },
     body: JSON.stringify({
       model: model || defaultModelFor('openai'),
-      max_tokens: 2000,
+      max_tokens: maxTokens || 2000,
       messages:[{role:'user', content:[
-        {type:'text', text: scanPrompt()},
-        {type:'image_url', image_url:{url:'data:'+mime+';base64,'+b64}}
+        {type:'text', text: prompt || scanPrompt()},
+        ...(b64 ? [{type:'image_url', image_url:{url:'data:'+mime+';base64,'+b64}}] : [])
       ]}]
     })
   });
@@ -4416,16 +4422,17 @@ async function callOpenAI(key, b64, mime, model){
   const data = await res.json();
   return data.choices[0].message.content;
 }
-async function callGemini(key, b64, mime, model){
+async function callGemini(key, b64, mime, model, prompt, maxTokens){
   const m = model || defaultModelFor('gemini');
   const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(m)+':generateContent?key='+key, {
     method:'POST',
     headers:{ 'Content-Type':'application/json' },
     body: JSON.stringify({
       contents:[{parts:[
-        {text: scanPrompt()},
-        {inline_data:{mime_type:mime, data:b64}}
-      ]}]
+        {text: prompt || scanPrompt()},
+        ...(b64 ? [{inline_data:{mime_type:mime, data:b64}}] : [])
+      ]}],
+      generationConfig:{maxOutputTokens: maxTokens || 2000}
     })
   });
   if(!res.ok) throw new Error('Gemini API error: '+res.status+' '+(await res.text()).slice(0,200));
@@ -4433,6 +4440,11 @@ async function callGemini(key, b64, mime, model){
   return data.candidates[0].content.parts.map(p=>p.text||'').join('');
 }
 
+async function runAi(cfg, b64, mime, prompt, maxTokens){
+  const model = cfg.model || defaultModelFor(cfg.provider);
+  const call = cfg.provider==='claude' ? callClaude : cfg.provider==='openai' ? callOpenAI : callGemini;
+  return call(cfg.key, b64, mime, model, prompt, maxTokens);
+}
 function parseAiJson(text){
   const cleaned = text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
   const start = cleaned.indexOf('['), end = cleaned.lastIndexOf(']');
@@ -4448,10 +4460,7 @@ async function handleScanFile(input){
   resultArea.innerHTML = `<div class="card" style="padding:20px;text-align:center;"><div class="detail-section-title" style="justify-content:center;">Reading prescription…</div><div class="modal-hint">Sending photo to ${cfg.provider} (${model}). This can take a few seconds.</div></div>`;
   try{
     const {b64, mime} = await preprocessImage(file);
-    let raw;
-    if(cfg.provider==='claude') raw = await callClaude(cfg.key, b64, mime, model);
-    else if(cfg.provider==='openai') raw = await callOpenAI(cfg.key, b64, mime, model);
-    else raw = await callGemini(cfg.key, b64, mime, model);
+    const raw = await runAi(cfg, b64, mime, scanPrompt(), 2000);
     const items = parseAiJson(raw);
     renderScanResults(items);
   }catch(e){
@@ -4502,95 +4511,169 @@ function findExistingDrug(generic,brands){
   return null;
 }
 
+/* ---- Text mode: paste book text / notes, AI pulls out each drug in the user's own study style ---- */
+function textPrompt(text){
+  const lib = DB.filter(c=>c.type!=='otc').map(c=>{
+    const gs = [...new Set((c.drugs||[]).map(d=>d.group).filter(Boolean))];
+    return '- '+c.name+(gs.length?' (groups: '+gs.join('; ')+')':'');
+  }).join('\n');
+  return `You are helping a pharmacy student build a personal drug-study library. Below is text pasted from a book, lecture or notes (English, Arabic or mixed). Extract EVERY distinct drug it covers.
+
+For each drug return:
+- "generic": the generic (scientific) name in English, cleanly written, without dose.
+- "brands": brand/trade names ONLY if they appear in the text (keep their spelling and form, e.g. "Ketolac amp"). Empty array if none. Never invent brands.
+- "info": the key study details, taken from the text only, as short lines separated by "\\n". The first line is the most important dose/usage fact in compact form (e.g. "Dose from 10-30 mg daily"). When the text pairs doses, forms or routes with indications, write them as pipe lines "label | value". Other short facts go on their own short plain line (keep a leading "·" if the source uses bullets). Keep Arabic exactly as written, do not translate. Be concise: a few lines, never a paragraph. Do NOT add doses, claims or warnings that are not in the text.
+- "pregnancyCategory": A, B, C, D or X only if the text states it, otherwise "".
+- "group": the drug class / subcategory (e.g. "NSAID") if stated or obvious from the text, otherwise "".
+- "suggestedChapter": the best matching chapter from the library list below, spelled exactly as listed. If none fits, set "isNewChapter":true and give a short new chapter name instead.
+
+Library chapters:
+${lib}
+
+Respond with ONLY a JSON array, no markdown fences, no commentary:
+[{"generic":"","brands":[],"info":"","pregnancyCategory":"","group":"","suggestedChapter":"","isNewChapter":false}]
+
+TEXT:
+"""
+${text}
+"""`;
+}
+async function handleScanText(){
+  const ta = document.getElementById('scanText');
+  const text = (ta && ta.value || '').trim();
+  if(!text){ alert('Paste some text first.'); return; }
+  const cfg = loadAiConfig();
+  const area = document.getElementById('scanResultArea');
+  area.innerHTML = `<div class="card" style="padding:20px;text-align:center;"><div class="detail-section-title" style="justify-content:center;">Reading your text…</div><div class="modal-hint">Long text can take a little while.</div></div>`;
+  try{
+    const raw = await runAi(cfg, null, null, textPrompt(text.slice(0,30000)), 6000);
+    renderScanResults(parseAiJson(raw));
+    area.scrollIntoView({behavior:'smooth', block:'start'});
+  }catch(e){
+    area.innerHTML = `<div class="card warn-card" style="padding:16px;"><div class="detail-section-title">⚠️ Couldn't read that</div><div class="modal-hint">${escapeHtml(String(e.message||e).slice(0,300))}</div></div>`;
+  }
+}
+
+/* ---- review screen (shared by photo + text) ---- */
+let lastScanItems = [];
+function findDrugById(id){
+  for(const c of DB){ const d = (c.drugs||[]).find(x=>x.id===id); if(d) return {drug:d, chapter:c}; }
+  return null;
+}
+function scanChapChange(i){
+  const sel = document.getElementById('si_chap_'+i), nm = document.getElementById('si_newname_'+i);
+  if(nm) nm.style.display = sel.value==='__new__' ? '' : 'none';
+}
 function renderScanResults(items){
+  lastScanItems = items;
   const resultArea = document.getElementById('scanResultArea');
   if(!items.length){
-    resultArea.innerHTML = `<div class="card notes-card" style="padding:16px;">No medications could be confidently read from that photo. Try a clearer, closer photo of just the drug names.</div>`;
+    resultArea.innerHTML = `<div class="card notes-card" style="padding:16px;">Nothing that looks like a drug was found. Try a clearer photo, or paste text that names the drugs.</div>`;
     return;
   }
-  const chapterOptions = DB.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-  resultArea.innerHTML = `<div class="modal-hint" style="margin-top:16px;">Found ${items.length} item${items.length>1?'s':''}. Review and edit before adding — nothing is saved yet.</div>` +
+  const chapterOptions = DB.filter(c=>c.type!=='otc').map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  const groupOpts = [...new Set(DB.flatMap(c=>(c.drugs||[]).map(d=>d.group).filter(Boolean)))].map(g=>`<option value="${escAttr(g)}">`).join('');
+  resultArea.innerHTML = `<datalist id="scanGroups">${groupOpts}</datalist><div class="modal-hint" style="margin-top:16px;">Found ${items.length} item${items.length>1?'s':''}. Review and edit before adding — nothing is saved yet.</div>` +
     items.map((it,i)=>{
       const dup = findExistingDrug(it.generic, it.brands);
-      if(dup) it._dupId = dup.drug.id; // remember for commit
+      it._dupId = dup ? dup.drug.id : null;
+      it._dupChapter = dup ? dup.chapter.id : null;
+      const dupHtml = dup ? `<div class="modal-hint" style="color:var(--accent);">⚠ Already in your library: <b>${escapeHtml(dup.drug.g)}</b> (in "${escapeHtml(dup.chapter.name)}"). Choose what to do:</div>
+        <div class="field-card"><select class="text-input" id="si_dup_${i}">
+          <option value="merge">Merge into existing (add brands &amp; details)</option>
+          <option value="skip">Skip it</option>
+          <option value="new">Add as a separate drug anyway</option>
+        </select></div>` : '';
       return `<div class="card scan-item" style="padding:14px 16px;margin-bottom:10px;${dup?'border-color:var(--accent-line);':''}" id="scanItem${i}">
-        ${dup?`<div class="modal-hint" style="color:var(--accent);">⚠ "<b>${it.generic||''}</b>" looks like <b>${dup.drug.g}</b> already in your library (in "${dup.chapter.name}")${dup.matchedOn&&(dup.matchedOn.toLowerCase()!==(it.generic||'').toLowerCase())?` — matched via "${dup.matchedOn}"`:''}. Saving will merge brands into it instead of duplicating.</div>`:''}
-        <div class="field-card"><div class="field-label">Generic name</div><input class="text-input" id="si_g_${i}" value="${(it.generic||'').replace(/"/g,'&quot;')}"></div>
-        <div class="field-card"><div class="field-label">Info / dose / class</div><input class="text-input" id="si_info_${i}" value="${(it.info||'').replace(/"/g,'&quot;')}"></div>
-        <div class="field-card"><div class="field-label">Pregnancy category</div><input class="text-input" id="si_preg_${i}" value="${(it.pregnancyCategory||'').replace(/"/g,'&quot;')}" placeholder="A / B / C / D / X" style="max-width:110px;"></div>
-        <div class="field-card"><div class="field-label">Brand names (comma separated)</div><input class="text-input" id="si_b_${i}" value="${(it.brands||[]).join(', ')}"></div>
-        <div class="field-card"><div class="field-label">Category</div>
-          <select class="text-input" id="si_chap_${i}">
+        ${dupHtml}
+        <div class="field-card"><div class="field-label">Generic name</div><input class="text-input" dir="auto" id="si_g_${i}" value="${escAttr(it.generic||'')}"></div>
+        <div class="field-card"><div class="field-label">Details (one line each · use "label | value" for small tables)</div><textarea class="text-input" dir="auto" id="si_info_${i}" style="min-height:96px;">${escapeHtml(it.info||'')}</textarea></div>
+        <div class="field-card"><div class="field-label">Brand names (comma separated)</div><input class="text-input" dir="auto" id="si_b_${i}" value="${escAttr((it.brands||[]).join(', '))}"></div>
+        <div class="modal-row">
+          <div class="field-card"><div class="field-label">Group / subcategory</div><input class="text-input" dir="auto" id="si_grp_${i}" list="scanGroups" value="${escAttr(it.group||'')}"></div>
+          <div class="field-card"><div class="field-label">Pregnancy cat.</div><input class="text-input" id="si_preg_${i}" value="${escAttr(it.pregnancyCategory||'')}" placeholder="A / B / C / D / X"></div>
+        </div>
+        <div class="field-card"><div class="field-label">Add to</div>
+          <select class="text-input" id="si_chap_${i}" onchange="scanChapChange(${i})">
             ${chapterOptions}
-            <option value="__new__" ${it.isNewChapter?'selected':''}>➕ New category: ${it.suggestedChapter||''}</option>
+            <option value="__new__">➕ New section…</option>
           </select>
+          <input class="text-input" dir="auto" id="si_newname_${i}" style="display:none;margin-top:8px;" placeholder="New section name" value="${escAttr(it.suggestedChapter||'')}">
         </div>
         <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;margin-top:6px;"><input type="checkbox" id="si_inc_${i}" checked style="width:16px;height:16px;accent-color:var(--accent);"> Include this one</label>
       </div>`;
     }).join('') +
-    `<button class="pill-btn primary" style="width:100%;margin-top:6px;" onclick='commitScanResults(${JSON.stringify(items).replace(/'/g,"&apos;")})'>✅ Add Selected to Library</button>`;
-  // pre-select AI-suggested existing chapter by name match
+    `<button class="pill-btn primary" style="width:100%;margin-top:6px;" onclick="commitScanResults()">✅ Add Selected to Library</button>`;
   items.forEach((it,i)=>{
-    if(!it.isNewChapter){
-      const match = DB.find(c=>c.name.toLowerCase()===((it.suggestedChapter||'').toLowerCase()));
-      if(match) document.getElementById('si_chap_'+i).value = match.id;
+    const sel = document.getElementById('si_chap_'+i);
+    if(it.isNewChapter) sel.value = '__new__';
+    else {
+      const match = DB.find(c=>c.type!=='otc' && c.name.toLowerCase()===((it.suggestedChapter||'').toLowerCase()));
+      if(match) sel.value = match.id;
+      else if(it._dupChapter) sel.value = it._dupChapter;
     }
+    scanChapChange(i);
   });
 }
 
+function mergeIntoDrug(existing, info, brands, group){
+  const seen = new Set((existing.brands||[]).map(b=>b.toLowerCase()));
+  existing.brands = [...(existing.brands||[]), ...brands.filter(b=>!seen.has(b.toLowerCase()))];
+  if(info){
+    const flat = s=>s.toLowerCase().replace(/[^a-z0-9؀-ۿ]+/g,'');
+    const have = existing.info || '', haveFlat = flat(have);
+    const add = info.split('\n').map(l=>l.trim()).filter(l=>l && !haveFlat.includes(flat(l)));
+    if(add.length) existing.info = (have ? have+'\n' : '')+add.join('\n');
+  }
+  if(group && !existing.group) existing.group = group;
+}
 function commitScanResults(items){
-  let added=0, updated=0, newChapters=0;
-  const newChapterCache = {}; // reuse one new chapter across multiple drugs sharing the same suggested name
+  items = items || lastScanItems || [];
+  snapshotForUndo();
+  let added=0, updated=0, skipped=0, newChapters=0;
+  const newChapterCache = {};
   items.forEach((it,i)=>{
     const inc = document.getElementById('si_inc_'+i);
     if(!inc || !inc.checked) return;
     const g = document.getElementById('si_g_'+i).value.trim(); if(!g) return;
     let info = document.getElementById('si_info_'+i).value.trim();
     const preg = document.getElementById('si_preg_'+i).value.trim().toUpperCase();
-    if(preg && !/cat[:\s]*[abcdx]/i.test(info)){
-      info = info ? `${info} (Cat:${preg})` : `(Cat:${preg})`;
-    }
+    if(preg && !/cat[:\s]*[abcdx]/i.test(info)) info = info ? `${info}\n(Cat:${preg})` : `(Cat:${preg})`;
     const brands = document.getElementById('si_b_'+i).value.split(',').map(s=>s.trim()).filter(Boolean);
+    const group = document.getElementById('si_grp_'+i).value.trim();
     const chapSel = document.getElementById('si_chap_'+i).value;
 
-    // Smart duplicate check FIRST, across the whole library — tolerant of
-    // doses ("500mg"), 1-char typos and brand-vs-generic — and wins over
-    // whatever chapter is selected, so the drug always merges into wherever
-    // it already lives instead of getting a second copy in a new category.
-    const hit = findExistingDrug(g, brands);
-    const existing = hit ? hit.drug : null;
-    if(existing){
-      existing.brands = Array.from(new Set([...(existing.brands||[]), ...brands]));
-      if(info && (!existing.info || info.trim().length > existing.info.trim().length)) existing.info = info;
-      updated++;
-      return;
+    // Duplicate flagged on the review screen: do what the user chose.
+    // Not flagged there (e.g. the same drug twice in one batch): merge silently, never create a second copy.
+    const dupSel = document.getElementById('si_dup_'+i);
+    const action = dupSel ? dupSel.value : 'merge';
+    const found = it._dupId ? findDrugById(it._dupId) : null;
+    const hit = found ? found.drug : (dupSel ? null : (findExistingDrug(g, brands)||{}).drug);
+    if(hit && action!=='new'){
+      if(action==='skip'){ skipped++; return; }
+      mergeIntoDrug(hit, info, brands, group); updated++; return;
     }
 
     let chapter;
     if(chapSel==='__new__'){
-      const name = (items[i].suggestedChapter || 'New Category').trim();
+      const name = (document.getElementById('si_newname_'+i).value.trim() || 'New Section');
       const key = name.toLowerCase();
-      const existingByName = DB.find(c=>c.name.toLowerCase()===key);
-      if(existingByName){
-        chapter = existingByName;
-      } else if(newChapterCache[key]){
-        chapter = newChapterCache[key];
-      } else {
+      chapter = DB.find(c=>c.type!=='otc' && c.name.toLowerCase()===key) || newChapterCache[key];
+      if(!chapter){
         chapter = {id:uid(), name, color:'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'), type:'drug', drugs:[]};
         DB.push(chapter); newChapterCache[key] = chapter; newChapters++;
       }
-    } else {
-      chapter = DB.find(c=>c.id===chapSel);
-    }
+    } else chapter = DB.find(c=>c.id===chapSel);
     if(!chapter) return;
-    if(!chapter.drugs) chapter.drugs=[];
-    chapter.drugs.push({id:uid(), g, info, brands});
+    if(!chapter.drugs) chapter.drugs = [];
+    chapter.drugs.push({id:uid(), g, info, brands, ...(group?{group}:{})});
     added++;
   });
   saveDB();
-  document.getElementById('scanResultArea').innerHTML = `<div class="card notes-card" style="padding:16px;">✅ Done — ${added} added, ${updated} merged into existing drugs${newChapters?`, ${newChapters} new categor${newChapters>1?'ies':'y'} created`:''}.</div>
-    <button class="pill-btn ghost" style="width:100%;margin-top:10px;" onclick="renderScan()">Scan another</button>
-    <button class="pill-btn primary" style="width:100%;margin-top:8px;" onclick="goto('home')">Back to Home</button>`;
+  document.getElementById('scanResultArea').innerHTML = `<div class="card notes-card" style="padding:16px;">✅ Done — ${added} added, ${updated} merged into existing drugs${skipped?`, ${skipped} skipped`:''}${newChapters?`, ${newChapters} new section${newChapters>1?'s':''} created`:''}.
+    <button class="pill-btn ghost" style="width:100%;margin-top:10px;" onclick="renderScan()">Add more</button>
+    <button class="pill-btn primary" style="width:100%;margin-top:8px;" onclick="goto('home')">Back to Home</button></div>`;
+  showUndoToast(`Added ${added}, merged ${updated}`);
 }
 
 /* init */
