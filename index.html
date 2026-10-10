@@ -9,7 +9,16 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+/* Low-end device detection: few cores / little RAM => "lite" look (no blur layers, grain, or entrance animations).
+   Override: localStorage pc_lite = '1' (force on) or '0' (force off). */
+(function(){try{
+  var o=localStorage.getItem('pc_lite'), n=navigator, lite;
+  if(o==='1') lite=true; else if(o==='0') lite=false;
+  else lite=(n.deviceMemory&&n.deviceMemory<=3)||(n.hardwareConcurrency&&n.hardwareConcurrency<=4);
+  if(lite) document.documentElement.classList.add('lite');
+}catch(e){}})();
+</script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -23,7 +32,8 @@ if ('serviceWorker' in navigator) {
 <meta name="apple-mobile-web-app-title" content="PharmaCore">
 <meta name="theme-color" content="#211a13" id="metaTheme">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
   --paper:#f3ecdf;
@@ -101,7 +111,7 @@ body{
 }
 /* subtle paper grain */
 body::before{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;mix-blend-mode:multiply;
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0.13  0 0 0 0 0.10  0 0 0 0 0.07  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 html[data-theme="clinical"] body::before{opacity:.25;}
@@ -408,7 +418,7 @@ h1,h2,h3,.display{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0
 .lesson-meta{font-size:0.6875rem;color:var(--muted);margin:2px 0 16px;font-weight:500;}
 
 /* ---------- Accordion stacked drug/otc cards ---------- */
-.acc-card{padding:0;margin-bottom:11px;overflow:hidden;cursor:pointer;animation:fadeUp .32s ease backwards;scroll-margin-top:80px;}
+.acc-card{content-visibility:auto;contain-intrinsic-size:auto 74px;padding:0;margin-bottom:11px;overflow:hidden;cursor:pointer;animation:fadeUp .32s ease backwards;scroll-margin-top:80px;}
 /* Deep-link target flash: two soft pulses of the accent ring, then settle */
 @keyframes pulseHighlight{
   0%{box-shadow:0 0 0 0 var(--accent-soft);border-color:var(--accent);}
@@ -486,7 +496,7 @@ html[data-theme="dark"] .warn-card .detail-section-title{color:#ff8a65;}
 .blk-title{flex:1;min-width:0;unicode-bidi:plaintext;}
 .blk-ctl{margin:0 -2px 0 auto;flex-shrink:0;}
 .edit-btns button:disabled{opacity:.3;cursor:default;}
-.blk-bar{display:flex;justify-content:flex-end;gap:12px;margin:-4px 0 8px;}
+.blk-bar{display:flex;justify-content:flex-end;gap:12px;margin:4px 0 14px;}
 .blk-list,.blk-steps{margin:0;padding:0;list-style:none;}
 .blk-list li,.blk-steps li{font-size:.75rem;color:var(--ink-soft);line-height:1.6;unicode-bidi:plaintext;}
 .blk-list li{position:relative;padding-inline-start:16px;margin-bottom:5px;}
@@ -797,6 +807,14 @@ body.edit-mode #editModeBtn{color:var(--accent);}
 /* (bottom tab bar already carries its own safe-area padding) */
 
 /* Respect users who prefer minimal motion */
+/* ---------- Lite mode (old / low-memory phones) ---------- */
+html.lite *,html.lite *::before,html.lite *::after{-webkit-backdrop-filter:none !important;backdrop-filter:none !important;}
+html.lite body::before{display:none;}
+html.lite .tabbar,html.lite .sess-header{background:var(--paper);}
+html.lite .card,html.lite .tabbar{box-shadow:0 1px 3px rgba(33,26,19,.14);}
+html.lite .acc-card,html.lite .blk-wrap.blk-new,html.lite .blk-opt{animation:none;}
+html.lite .acc-body{transition:none;}
+html.lite .screen.anim-fwd,html.lite .screen.anim-back{animation:none;}
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
 }
@@ -2277,7 +2295,7 @@ function openTableModal(chapterId, tIdx){
     const cols = val('mTabCols').split(',').map(s=>s.trim()).filter(Boolean);
     const rows = val('mTabRows').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>l.split('|').map(s=>s.trim()));
     if(!c.tables) c.tables=[];
-    if(tIdx===null) c.tables.push({title,cols,rows}); else c.tables[tIdx]={title,cols,rows};
+    if(tIdx===null){ const id=uid(); flowInsert(c,'t:'+id); c.tables.push({id,title,cols,rows}); } else c.tables[tIdx]={...c.tables[tIdx],title,cols,rows};
     saveDB(); closeModal(); refreshSessionIfOpen(chapterId); renderSession();
   });
 }
@@ -2318,20 +2336,53 @@ function blockBodyHtml(b){
   const cls = b.type==='notes' ? 'notes-list' : b.type==='warnings' ? 'warn-list' : 'blk-list';
   return `<ul class="${cls}">${items.map(n=>`<li>${n}</li>`).join('')}</ul>`;
 }
-function renderBlocksHtml(c, editable){
+/* Page flow: one ordered list of everything below the title — tables,
+   blocks and drug groups — so a block can sit anywhere among them.
+   Keys: 't:<tableId>', 'b:<blockId>', 'g:<group name>'. New/unknown items
+   are appended; removed ones are dropped. */
+function ensureFlow(c){
   const blocks = ensureBlocks(c);
-  const bar = (editable && blocks.length>1) ? `<div class="blk-bar"><span class="edit-inline" onclick="openBlocksReorder('${c.id}')">↕ reorder blocks</span></div>` : '';
-  return bar + blocks.map((b,i)=>{
-    const t = BLOCK_TYPES[b.type] || BLOCK_TYPES.notes;
-    const ctl = editable ? `<span class="edit-btns blk-ctl">
-      <button ${i?'':'disabled'} aria-label="Move up" onclick="moveBlock('${c.id}','${b.id}',-1)">▲</button>
-      <button ${i<blocks.length-1?'':'disabled'} aria-label="Move down" onclick="moveBlock('${c.id}','${b.id}',1)">▼</button>
-      <button aria-label="Edit" onclick="openBlockEditor('${c.id}','${b.id}')">✎</button>
-      <button aria-label="Delete" onclick="deleteBlock('${c.id}','${b.id}')">🗑</button></span>` : '';
-    const cardCls = b.type==='notes' ? ' notes-card' : b.type==='warnings' ? ' warn-card' : '';
-    const flash = blkFlashId===b.id ? ' blk-new' : '';
-    return `<div class="detail-section blk-wrap${flash}" data-bid="${b.id}"><div class="card blk blkc-${b.type}${cardCls}"><div class="detail-section-title blk-head"><span class="blk-ico">${t.ico}</span><span class="blk-title">${b.title||t.label}</span>${ctl}</div>${blockBodyHtml(b)}</div></div>`;
-  }).join('');
+  (c.tables||[]).forEach(t=>{ if(!t.id) t.id = uid(); });
+  const want = (c.tables||[]).map(t=>'t:'+t.id)
+    .concat(blocks.map(b=>'b:'+b.id))
+    .concat([...new Set((c.drugs||[]).map(d=>d.group||''))].map(g=>'g:'+g));
+  const have = new Set(want);
+  const prev = Array.isArray(c.flow) ? c.flow.filter(k=>have.has(k)) : [];
+  const seen = new Set(prev);
+  c.flow = prev.concat(want.filter(k=>!seen.has(k)));
+  return c.flow;
+}
+/* New tables/blocks land just above the drugs (the old default); the user moves them from there. */
+function flowInsert(c, key){
+  const f = ensureFlow(c), gi = f.findIndex(k=>k[0]==='g');
+  f.splice(gi<0 ? f.length : gi, 0, key);
+}
+function renderBlockHtml(c, b, i, n, editable){
+  const t = BLOCK_TYPES[b.type] || BLOCK_TYPES.notes;
+  const ctl = editable ? `<span class="edit-btns blk-ctl">
+    <button ${i>0?'':'disabled'} aria-label="Move up" onclick="moveBlock('${c.id}','${b.id}',-1)">▲</button>
+    <button ${i<n-1?'':'disabled'} aria-label="Move down" onclick="moveBlock('${c.id}','${b.id}',1)">▼</button>
+    <button aria-label="Edit" onclick="openBlockEditor('${c.id}','${b.id}')">✎</button>
+    <button aria-label="Delete" onclick="deleteBlock('${c.id}','${b.id}')">🗑</button></span>` : '';
+  const cardCls = b.type==='notes' ? ' notes-card' : b.type==='warnings' ? ' warn-card' : '';
+  const flash = blkFlashId===b.id ? ' blk-new' : '';
+  return `<div class="detail-section blk-wrap${flash}" data-bid="${b.id}"><div class="card blk blkc-${b.type}${cardCls}"><div class="detail-section-title blk-head"><span class="blk-ico">${t.ico}</span><span class="blk-title">${b.title||t.label}</span>${ctl}</div>${blockBodyHtml(b)}</div></div>`;
+}
+function renderBlocksHtml(c){ return ensureBlocks(c).map(b=>renderBlockHtml(c,b,0,0,false)).join(''); }
+function flowItemHtml(c, key, i, n){
+  const id = key.slice(2);
+  let html = '';
+  if(key[0]==='t'){
+    const ti = c.tables.findIndex(t=>t.id===id);
+    if(ti>=0) html = renderDataTables([c.tables[ti]], {kind:'chapter', chapterId:c.id, base:ti});
+  } else if(key[0]==='b'){
+    const b = c.blocks.find(x=>x.id===id);
+    if(b) html = renderBlockHtml(c, b, i, n, editMode);
+  } else {
+    const cards = (state.sessionCards||[]).filter(k=>k.kind==='drug' && (k.data.group||'')===id);
+    html = renderCardList(cards, {prefix:'sess', grouped:true});
+  }
+  return html ? `<div class="flow-item" data-fid="${key}">${html}</div>` : '';
 }
 function openBlockPicker(chapterId){
   openModal('Add block', `<div class="blk-pick">${Object.entries(BLOCK_TYPES).map(([k,t],i)=>
@@ -2356,7 +2407,7 @@ function openBlockEditor(chapterId, blockId, type){
     const title = val('mBlkTitle').trim();
     let id;
     if(b){ b.items = items; b.title = title||undefined; id = b.id; }
-    else { id = uid(); blocks.push({id, type:ty, title:title||undefined, items}); }
+    else { id = uid(); flowInsert(c,'b:'+id); blocks.push({id, type:ty, title:title||undefined, items}); }
     blkFlashId = id;
     saveDB(); closeModal(); refreshSessionIfOpen(chapterId); renderSession();
     blkFlashId = null;
@@ -2376,23 +2427,23 @@ function deleteBlock(chapterId, blockId){
    slide every block from its old position to its new one. */
 function moveBlock(chapterId, blockId, dir){
   const c = DB.find(x=>x.id===chapterId); if(!c) return;
-  const blocks = ensureBlocks(c);
-  const i = blocks.findIndex(x=>x.id===blockId), j = i+dir;
-  if(i<0 || j<0 || j>=blocks.length) return;
-  const sel = '#sessCardArea [data-bid]';
+  const flow = ensureFlow(c), key = 'b:'+blockId;
+  const i = flow.indexOf(key), j = i+dir;
+  if(i<0 || j<0 || j>=flow.length) return;
+  const sel = '#sessCardArea [data-fid]';
   const first = {};
-  document.querySelectorAll(sel).forEach(e=>{ first[e.dataset.bid] = e.getBoundingClientRect().top; });
-  [blocks[i],blocks[j]] = [blocks[j],blocks[i]];
+  document.querySelectorAll(sel).forEach(e=>{ first[e.dataset.fid] = e.getBoundingClientRect().top; });
+  [flow[i],flow[j]] = [flow[j],flow[i]];
   saveDB(); renderSession();
   document.querySelectorAll(sel).forEach(e=>{
-    const d = first[e.dataset.bid] - e.getBoundingClientRect().top;
+    const d = first[e.dataset.fid] - e.getBoundingClientRect().top;
     if(!d) return;
     e.style.transition = 'none'; e.style.transform = `translateY(${d}px)`;
     e.getBoundingClientRect();
     e.style.transition = 'transform .34s cubic-bezier(.22,1,.36,1)'; e.style.transform = '';
     setTimeout(()=>{ e.style.transition = ''; }, 380);
   });
-  const moved = document.querySelector(`${sel}[data-bid="${blockId}"]`);
+  const moved = document.querySelector(`${sel}[data-fid="${key}"]`);
   if(moved) moved.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
@@ -2546,14 +2597,17 @@ function updateTabbarHeightVar(){
   const tb = document.querySelector('.tabbar');
   if(tb) document.documentElement.style.setProperty('--tabbar-h', tb.offsetHeight+'px');
 }
-function updateCompactHeaders(){
+function updateCompactHeaders(skipTables){
   const y = window.scrollY || document.documentElement.scrollTop || 0;
   document.querySelectorAll('.screen.active .sess-header').forEach(h=>{
     h.classList.toggle('compact', y > 24);
   });
-  document.querySelectorAll('.dtable-wrap').forEach(w=>{
-    w.classList.toggle('scrollable', w.scrollWidth > w.clientWidth + 2);
-  });
+  // scrollWidth/clientWidth force a layout — only needed after a render/resize, never per scroll frame
+  if(skipTables!==true){
+    document.querySelectorAll('.dtable-wrap').forEach(w=>{
+      w.classList.toggle('scrollable', w.scrollWidth > w.clientWidth + 2);
+    });
+  }
   updateScrollTopBtn(y);
 }
 /* ---------- Scroll-to-top floating button ----------
@@ -2570,7 +2624,12 @@ function scrollToTop(){
   window.scrollTo({top:0, behavior:'smooth'});
 }
 window.addEventListener('resize', ()=>{ updateTabbarHeightVar(); positionTabBlob(); });
-window.addEventListener('scroll', ()=>requestAnimationFrame(updateCompactHeaders), {passive:true});
+let _scrollQueued = false;
+window.addEventListener('scroll', ()=>{
+  if(_scrollQueued) return;
+  _scrollQueued = true;
+  requestAnimationFrame(()=>{ _scrollQueued = false; updateCompactHeaders(true); });
+}, {passive:true});
 
 /* ---------- Navigation: order-aware transitions ---------- */
 const navOrder = ['home','setup','pedcalc'];
@@ -3102,6 +3161,7 @@ function renderSyncModalBodyHtml(){
   `;
 }
 function openSyncModal(){
+  gdriveLoadLib(); // make sure it's ready before the sign-in tap (popups need the tap's user gesture)
   openModal('Cloud Sync', renderSyncModalBodyHtml(), null);
 }
 function refreshSyncModalIfOpen(){
@@ -3110,7 +3170,15 @@ function refreshSyncModalIfOpen(){
     document.getElementById('modalBody').innerHTML = renderSyncModalBodyHtml();
   }
 }
+function gdriveLoadLib(){
+  if(window.google && google.accounts) return;
+  if(document.getElementById('gisScript')) return;
+  const sc = document.createElement('script');
+  sc.id = 'gisScript'; sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true;
+  document.head.appendChild(sc);
+}
 function gdriveWaitForLib(timeoutMs){
+  gdriveLoadLib();
   return new Promise(resolve=>{
     const started = Date.now();
     (function check(){
@@ -3174,7 +3242,7 @@ function openChapterReorder(){
 function openDrugReorder(chapterId){
   const c = DB.find(x=>x.id===chapterId); if(!c || !c.drugs || c.drugs.length<2) return;
   // Same order the lesson shows: grouped, groups in first-appearance order.
-  const groups = [...new Set(c.drugs.map(d=>d.group||''))];
+  const groups = ensureFlow(c).filter(k=>k[0]==='g').map(k=>k.slice(2));
   const gi = d=>groups.indexOf(d.group||'');
   const items = c.drugs.slice().sort((a,b)=>gi(a)-gi(b))
     .map(d=>({id:d.id, label:d.g, sub:d.group||'No group', color:c.color}));
@@ -3185,35 +3253,25 @@ function openDrugReorder(chapterId){
     saveDB(); refreshSessionIfOpen(chapterId); renderSession();
   }, 'Drag ⠿ up or down. Drugs stay inside their group.');
 }
-function openTableReorder(chapterId){
-  const c = DB.find(x=>x.id===chapterId); if(!c || !c.tables || c.tables.length<2) return;
-  const items = c.tables.map((t,i)=>({id:String(i), label:t.title||('Table '+(i+1)), color:c.color}));
-  openReorder('Reorder Tables', items, (its)=>{
-    const orig = c.tables;
-    c.tables = its.map(it=>orig[Number(it.id)]);
-    saveDB(); refreshSessionIfOpen(chapterId); renderSession();
-  });
-}
-function openBlocksReorder(chapterId){
+function openFlowReorder(chapterId){
   const c = DB.find(x=>x.id===chapterId); if(!c) return;
-  const blocks = ensureBlocks(c); if(blocks.length<2) return;
-  const items = blocks.map(b=>{ const t = BLOCK_TYPES[b.type]||BLOCK_TYPES.notes; return {id:b.id, label:t.ico+' '+(b.title||t.label), color:c.color}; });
-  openReorder('Reorder Blocks', items, (its)=>{
-    c.blocks = its.map(it=>blocks.find(b=>b.id===it.id));
-    saveDB(); refreshSessionIfOpen(chapterId); renderSession();
+  const flow = ensureFlow(c); if(flow.length<2) return;
+  const items = flow.map(key=>{
+    const id = key.slice(2); let label = key;
+    if(key[0]==='t'){ const t = c.tables.find(x=>x.id===id); label = t ? t.title : 'Table'; }
+    else if(key[0]==='b'){ const b = c.blocks.find(x=>x.id===id), ty = b && BLOCK_TYPES[b.type]; label = b ? ty.ico+' '+(b.title||ty.label) : 'Block'; }
+    else { const n = c.drugs.filter(d=>(d.group||'')===id).length; label = '💊 '+(id||'Ungrouped')+' ('+n+')'; }
+    return {id:key, label, color:c.color};
   });
-}
-/* Groups: card order follows first appearance of each group in c.drugs,
-   so moving a group = stable-sorting the drugs by the new group order. */
-function openGroupReorder(chapterId){
-  const c = DB.find(x=>x.id===chapterId); if(!c || !c.drugs) return;
-  const groups = [...new Set(c.drugs.map(d=>d.group||''))]; if(groups.length<2) return;
-  const items = groups.map((g,i)=>({id:'g'+i, label:g||'No group', color:c.color}));
-  openReorder('Reorder Groups', items, (its)=>{
-    const order = its.map(it=>groups[Number(it.id.slice(1))]);
-    c.drugs.sort((a,b)=>order.indexOf(a.group||'')-order.indexOf(b.group||''));
+  openReorder('Reorder Page', items, (its)=>{
+    c.flow = its.map(it=>it.id);
+    // keep the underlying arrays in the same order (other screens read them directly)
+    const ix = k=>c.flow.indexOf(k);
+    c.tables.sort((a,b)=>ix('t:'+a.id)-ix('t:'+b.id));
+    c.blocks.sort((a,b)=>ix('b:'+a.id)-ix('b:'+b.id));
+    c.drugs.sort((a,b)=>ix('g:'+(a.group||''))-ix('g:'+(b.group||'')));
     saveDB(); refreshSessionIfOpen(chapterId); renderSession();
-  });
+  }, 'Move tables, blocks and drug groups where you want them.');
 }
 function closeChapterReorder(){
   document.getElementById('reorderModal').classList.remove('open');
@@ -3485,8 +3543,8 @@ function renderDataTables(tables, ctx){
   return tables.map((t,ti)=>{
     let editHtml = '';
     if(editMode && ctx){
-      const editCall = ctx.kind==='topic' ? `openTopicTableModal('${ctx.chapterId}','${ctx.topicId}',${ti})` : `openTableModal('${ctx.chapterId}',${ti})`;
-      const delCall = ctx.kind==='topic' ? `deleteTopicTable('${ctx.chapterId}','${ctx.topicId}',${ti})` : `deleteTable('${ctx.chapterId}',${ti})`;
+      const editCall = ctx.kind==='topic' ? `openTopicTableModal('${ctx.chapterId}','${ctx.topicId}',${ti})` : `openTableModal('${ctx.chapterId}',${ti+(ctx.base||0)})`;
+      const base = ctx.base||0; const delCall = ctx.kind==='topic' ? `deleteTopicTable('${ctx.chapterId}','${ctx.topicId}',${ti})` : `deleteTable('${ctx.chapterId}',${ti+base})`;
       editHtml = ` <span class="edit-inline" onclick="${editCall}">✎ edit</span> <span class="edit-inline" onclick="${delCall}">🗑</span>`;
     }
     return `
@@ -3519,20 +3577,19 @@ function renderSession(){
   }
   const notOtc = chapter && chapter.type!=='otc';
   const reorderLink = (cond, fn, label='reorder') => (editMode && cond) ? ` <span class="edit-inline" onclick="${fn}">↕ ${label}</span>` : '';
-  const tablesHtml = (notOtc && chapter.tables && chapter.tables.length) ?
-    `${editMode?`<div class="detail-section-title" style="margin-bottom:-4px;">Tables${reorderLink(chapter.tables.length>1, `openTableReorder('${chapter.id}')`)}</div>`:''}${renderDataTables(chapter.tables, {kind:'chapter', chapterId:chapter.id})}` : '';
   const addRowBtns = (editMode && notOtc) ? `<div class="add-row"><button class="pill-btn ghost" onclick="openTableModal('${chapter.id}',null)">+ Add Table</button><button class="pill-btn ghost" onclick="openBlockPicker('${chapter.id}')">+ Add block</button></div>` : '';
-  const blocksHtml = notOtc ? renderBlocksHtml(chapter, editMode) : '';
+  const flow = notOtc ? ensureFlow(chapter) : [];
+  const flowBar = (editMode && flow.length>1) ? `<div class="blk-bar"><span class="edit-inline" onclick="openFlowReorder('${chapter.id}')">↕ reorder page</span></div>` : '';
+  const flowHtml = notOtc ? flowBar + flow.map((k,i)=>flowItemHtml(chapter,k,i,flow.length)).join('') : '';
   const nDrugs = chapter && chapter.drugs ? chapter.drugs.length : 0;
-  const nGroups = nDrugs ? new Set(chapter.drugs.map(d=>d.group||'')).size : 0;
-  const drugReorderLink = reorderLink(nGroups>1, `openGroupReorder('${chapter&&chapter.id}')`, 'groups') + reorderLink(nDrugs>1, `openDrugReorder('${chapter&&chapter.id}')`, 'drugs');
+  const drugReorderLink = reorderLink(nDrugs>1, `openDrugReorder('${chapter&&chapter.id}')`, 'drugs');
   const addDrugBtn = (editMode && notOtc) ?
-    `<button class="pill-btn primary" style="width:100%;margin-bottom:${drugReorderLink?'2px':'14px'};" onclick="openDrugModal('${chapter.id}',null)">+ Add Drug</button>${drugReorderLink?`<div style="margin:0 0 14px;text-align:right;display:flex;justify-content:flex-end;gap:12px;">${drugReorderLink}</div>`:''}` : '';
+    `<button class="pill-btn primary" style="width:100%;margin-bottom:${drugReorderLink?'2px':'14px'};" onclick="openDrugModal('${chapter.id}',null)">+ Add Drug</button>${drugReorderLink?`<div style="margin:0 0 14px;text-align:right;">${drugReorderLink}</div>`:''}` : '';
   const addTopicBtn = (editMode && chapter && chapter.type==='otc') ?
     `<button class="pill-btn primary" style="width:100%;margin-bottom:14px;" onclick="openTopicModal('${chapter.id}',null)">+ Add Topic</button>` : '';
   const emptyHint = !total ? (editMode ? `<div class="empty-hint">No ${chapter && chapter.type==='otc'?'topics':'drugs'} yet — use "+ Add ${chapter && chapter.type==='otc'?'Topic':'Drug'}" above to start this chapter.</div>` : `<div class="empty-hint">No ${chapter && chapter.type==='otc'?'topics':'drugs'} in this chapter yet.</div>`) : '';
   const shareBtn = chapter ? `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="shareOrDownload([DB.find(c=>c.id==='${chapter.id}')],'pharmacore-${chapter.id}.json','PharmaCore — ${chapter.name} chapter')">Share This Chapter</button>` : '';
-  area.innerHTML = shareBtn + addDrugBtn + addTopicBtn + addRowBtns + tablesHtml + blocksHtml + emptyHint + renderCardList(cards, {prefix:'sess', grouped:true});
+  area.innerHTML = shareBtn + addDrugBtn + addTopicBtn + addRowBtns + flowHtml + emptyHint + (notOtc ? '' : renderCardList(cards, {prefix:'sess', grouped:true}));
 }
 
 /* ---------- Quick review shortcut still opens a lesson-style stacked list ---------- */
@@ -3612,7 +3669,7 @@ function renderPediatric(){
   const cards = chapters.flatMap(c=>flattenCards(c));
   const pedChapter = DB.find(c=>c.id==='pediatric');
   const tablesHtml = (pedChapter && pedChapter.tables && pedChapter.tables.length) ? renderDataTables(pedChapter.tables) : '';
-  const notesHtml = pedChapter ? renderBlocksHtml(pedChapter, false) : '';
+  const notesHtml = pedChapter ? renderBlocksHtml(pedChapter) : '';
   document.getElementById('pediatricArea').innerHTML = tablesHtml + notesHtml + renderCardList(cards, {prefix:'ped', grouped:true});
 }
 
@@ -4554,6 +4611,8 @@ document.addEventListener('visibilitychange', ()=>{
 // fresh by the time anything needs it — instead of only discovering it has
 // expired the next time an edit tries to sync.
 setInterval(()=>{ if(!document.hidden) gdriveTrySilentResume(); }, 20*60*1000);
+// Load Google's sign-in script after first paint instead of competing with startup (matters on slow phones).
+setTimeout(gdriveLoadLib, 3000);
 
 </script>
 </body>
