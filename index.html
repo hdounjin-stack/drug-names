@@ -3267,7 +3267,7 @@ function openFlowReorder(chapterId){
     c.flow = its.map(it=>it.id);
     // keep the underlying arrays in the same order (other screens read them directly)
     const ix = k=>c.flow.indexOf(k);
-    c.tables.sort((a,b)=>ix('t:'+a.id)-ix('t:'+b.id));
+    if(c.tables) c.tables.sort((a,b)=>ix('t:'+a.id)-ix('t:'+b.id));
     c.blocks.sort((a,b)=>ix('b:'+a.id)-ix('b:'+b.id));
     c.drugs.sort((a,b)=>ix('g:'+(a.group||''))-ix('g:'+(b.group||'')));
     saveDB(); refreshSessionIfOpen(chapterId); renderSession();
@@ -3392,8 +3392,10 @@ function endRowDrag(){
   renderReorderList(); // clean re-render — DOM now matches the array exactly, no leftover transforms possible
 }
 function confirmReorder(){
-  if(reorderCtx) reorderCtx.onConfirm(reorderCtx.items);
+  // Close first so a failure in the save callback can never leave the modal stuck open.
+  const ctx = reorderCtx;
   closeChapterReorder();
+  if(ctx){ try{ ctx.onConfirm(ctx.items); }catch(e){ console.error('reorder save failed', e); } }
 }
 function resetChapterOrder(){
   try{ localStorage.removeItem('pc_chapter_order'); }catch(e){}
