@@ -654,6 +654,36 @@ body.edit-mode .reset-order-link{display:inline-block !important;}
 #screen-scen #scenArea,#screen-mcq #mcqArea{display:flex;flex-direction:column;flex:1;min-height:0;padding-bottom:10px;}
 .scen-chat-card{display:flex;flex-direction:column;flex:1;min-height:0;padding:14px 16px;}
 .scen-chat-card .chat-log{flex:1;min-height:0;max-height:none;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.scen-seg{display:flex;gap:4px;padding:3px;background:var(--paper-2);border:1px solid var(--line);border-radius:12px;flex:none;}
+.scen-seg button{flex:1;border:none;background:transparent;color:var(--ink-soft);font:inherit;font-size:.78125rem;font-weight:600;padding:8px 10px;border-radius:9px;cursor:pointer;transition:background .2s,color .2s;}
+.scen-seg button.active{background:var(--card);color:var(--accent);box-shadow:0 1px 3px rgba(33,26,19,.14);}
+.scen-modes{margin-bottom:12px;}
+.treat-form{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;flex:none;animation:fadeUp .3s ease both;}
+.treat-form .scen-seg{margin:0;}
+.treat-child{gap:8px;flex-wrap:wrap;}
+.treat-child .text-input{flex:1;min-width:90px;}
+.treat-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex:none;font-size:.8125rem;font-weight:600;}
+.treat-summary span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;unicode-bidi:plaintext;}
+.treat-summary .pill-btn{width:auto;padding:7px 12px;font-size:.75rem;flex:none;}
+.treat-head{font-size:.8125rem;font-weight:600;line-height:1.5;margin-bottom:10px;padding:2px 2px 0;}
+.treat-sub{font-size:.71875rem;font-weight:500;color:var(--muted);margin-top:3px;}
+.treat-item{padding:12px 14px;margin-bottom:10px;animation:fadeUp .3s ease both;}
+.treat-item.in{border-color:rgba(46,125,86,.35);}
+.treat-item.out{border-style:dashed;}
+.treat-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.treat-top b{font-family:'Fraunces',serif;font-size:.9375rem;unicode-bidi:plaintext;}
+.treat-role{font-size:.625rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);flex:none;}
+.treat-dose{font-size:.8125rem;margin-top:4px;line-height:1.55;unicode-bidi:plaintext;}
+.treat-note{font-size:.71875rem;color:var(--ink-soft);margin-top:4px;line-height:1.5;unicode-bidi:plaintext;}
+.treat-lib{font-size:.71875rem;font-weight:600;margin-top:8px;color:#2e7d56;}
+.treat-lib.out{color:var(--muted);}
+.treat-check{display:inline-block;font-size:.6875rem;font-weight:700;margin-top:6px;padding:3px 8px;border-radius:99px;background:var(--paper-2);color:var(--muted);}
+.treat-check.ok{background:rgba(46,125,86,.14);color:#2e7d56;}
+.treat-check.diff{background:rgba(214,69,47,.12);color:#b43a22;}
+.treat-libnote{margin-top:8px;font-size:.75rem;}
+.treat-libnote summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.71875rem;}
+html[data-theme="dark"] .treat-lib,html[data-theme="dark"] .treat-check.ok{color:#6fcf97;}
+html[data-theme="dark"] .treat-check.diff{color:#ff8a65;}
 .scen-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex:none;}
 .scen-toolbar .pill-btn{width:auto;padding:9px 16px;font-size:0.78125rem;}
 #scenAskSelBtn{position:fixed;z-index:999;display:none;align-items:center;gap:6px;background:var(--ink);color:var(--paper);border:none;border-radius:20px;padding:8px 14px;font-size:0.78125rem;font-weight:600;font-family:'Work Sans',sans-serif;box-shadow:0 6px 18px -6px rgba(33,26,19,.45);cursor:pointer;animation:popIn .2s ease both;}
@@ -3707,7 +3737,7 @@ function renderPedCalc(){
       </div>
       <div class="se-text">
         <div class="se-title">Clinical Scenarios</div>
-        <div class="se-sub">AI case tutor — diagnose, prescribe & learn</div>
+        <div class="se-sub">AI case tutor + treatment finder from your own library</div>
       </div>
       <svg class="se-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
     </div>
@@ -3743,9 +3773,12 @@ function renderMcqScreen(){
 function renderScenScreen(){
   const area = document.getElementById('scenArea');
   if(!area) return;
+  const isTreat = scenMode==='treat';
   area.innerHTML = `
     <div class="card scen-chat-card">
-      <div class="scen-toolbar">
+      <div class="scen-seg scen-modes"><button class="${isTreat?'':'active'}" onclick="setScenMode('case')">🎲 Case practice</button><button class="${isTreat?'active':''}" onclick="setScenMode('treat')">💊 Treatment finder</button></div>
+      ${isTreat ? treatFormHtml() : ''}
+      <div class="scen-toolbar" ${isTreat?'style="display:none;"':''}>
         <span class="scen-font-label">Text size</span>
         <div style="display:flex;align-items:center;gap:10px;">
           <div class="scen-font-btns">
@@ -3756,13 +3789,17 @@ function renderScenScreen(){
         </div>
       </div>
       <div id="scenarioChatLog" class="chat-log"></div>
+      <div class="chat-input-row" id="treatExtraRow" style="display:none;">
+        <input type="text" id="treatExtra" class="text-input" dir="auto" placeholder="Add a detail (pregnant? allergy? renal?)" onkeydown="if(event.key==='Enter'){event.preventDefault();rerunTreatment();}">
+        <button class="pill-btn primary" onclick="rerunTreatment()">Re-run</button>
+      </div>
       <div class="chat-input-row" id="scenarioInputRow" style="display:none;">
         <input type="text" id="scenarioInput" class="text-input" placeholder="Your diagnosis / plan / answer..." onkeydown="if(event.key==='Enter'){event.preventDefault();sendScenarioMessage();}">
         <button class="pill-btn primary" onclick="sendScenarioMessage()">Send</button>
       </div>
     </div>
     <button id="scenAskSelBtn" onpointerdown="event.preventDefault();askScenAboutSelection()">❓ Ask about this</button>`;
-  renderScenarioChat();
+  if(isTreat) renderTreatLog(); else renderScenarioChat();
   initScenSelection();
 }
 function pcSetUnit(u){
@@ -3914,14 +3951,177 @@ When the learner responds, give short constructive feedback on their diagnosis a
 
 Formatting: your replies render as Markdown in the app. Use **bold** for drug names and key findings, short bullet lists where helpful, and put each prescription line on its own line starting with "Rx:". Never leave stray asterisks or raw symbols around text.` + forced + avoid + `\n\n${flavor}`;
 }
+/* ---------- Treatment finder ----------
+   1) the AI states the standard treatment + doses for the condition and patient (its own knowledge),
+   2) each suggested drug is matched against the user's library (findExistingDrug),
+   3) found drugs show the library note + an AI dose check against it; missing ones offer "Add to library". */
+let scenMode = 'case';                       // 'case' | 'treat'
+let treatPatient = {group:'adult', age:'', unit:'years', weight:''};
+let treatQuery = null, treatResult = null, treatBusy = false, treatError = '';
+
+function setScenMode(m){
+  if(m===scenMode) return;
+  scenMode = m;
+  renderScenScreen();
+}
+function setTreatGroup(g){
+  treatPatient.group = g;
+  document.querySelectorAll('#treatGroupSeg button').forEach(b=>b.classList.toggle('active', b.dataset.g===g));
+  const ch = document.getElementById('treatChild'); if(ch) ch.style.display = g==='child' ? 'flex' : 'none';
+}
+function treatFormHtml(){
+  const p = treatPatient;
+  if(treatBusy || treatResult || treatError){
+    return `<div class="treat-summary"><span>💊 ${escapeHtml(treatQuery ? treatQuery.disease : '')} · ${escapeHtml(treatQuery ? treatQuery.who : '')}</span><button class="pill-btn ghost" onclick="resetTreatment()">↺ New search</button></div>`;
+  }
+  return `<div class="treat-form">
+    <input id="treatDisease" class="text-input" dir="auto" placeholder="Disease / condition (e.g. otitis media, gastritis)…" onkeydown="if(event.key==='Enter'){event.preventDefault();startTreatment();}">
+    <div class="scen-seg" id="treatGroupSeg">
+      <button data-g="adult" class="${p.group==='adult'?'active':''}" onclick="setTreatGroup('adult')">Adult</button>
+      <button data-g="child" class="${p.group==='child'?'active':''}" onclick="setTreatGroup('child')">Child</button>
+    </div>
+    <div id="treatChild" class="treat-child" style="display:${p.group==='child'?'flex':'none'};">
+      <input id="treatAge" class="text-input" type="number" min="0" step="any" inputmode="decimal" placeholder="Age" value="${escAttr(p.age)}">
+      <select id="treatUnit" class="text-input"><option value="years" ${p.unit==='years'?'selected':''}>years</option><option value="months" ${p.unit==='months'?'selected':''}>months</option></select>
+      <input id="treatWeight" class="text-input" type="number" min="0" step="any" inputmode="decimal" placeholder="Weight kg (optional)" value="${escAttr(p.weight)}">
+    </div>
+    <button class="pill-btn primary" style="width:100%;" onclick="startTreatment()">Suggest treatment</button>
+  </div>`;
+}
+function treatPrompt(q){
+  return `You are a clinical pharmacology tutor. A pharmacy student asks for the standard drug treatment of a condition.
+
+Condition: ${q.disease}
+Patient: ${q.who}${q.extra ? '\nExtra detail: '+q.extra : ''}
+
+Give the standard, guideline-based first-line drug treatment, plus 1-2 alternatives or adjuncts when useful (for example analgesic/antipyretic, or an option for allergy). Doses must be correct for THIS patient. For a child: if the weight is not given, estimate it with the app's formula (months: (age+9)/2 kg; 1-8 years: age×2+8 kg; 9-11 years: age×2+9 kg) and say so; give the weight-based dose AND the final dose for that weight (mg and, for suspensions, mL using the commonly sold strength).
+
+Return ONLY one JSON object, no markdown, no commentary:
+{"summary":"one line: the condition and the approach","weightUsed":"e.g. 16 kg (estimated: 4×2+8), or empty","items":[{"generic":"English generic name only","brands":["brand names commonly sold in Egypt, if known"],"form":"tablet / suspension / ampoule…","dose":"dose, frequency and duration for this patient","role":"first-line | alternative | adjunct","note":"short caution or reason, or empty"}],"cautions":["short cautions / contraindications worth knowing"],"refer":"when to refer instead of treating, or empty"}
+Write note, cautions and refer in the same language the condition was typed in (Arabic or English); keep drug names in English.`;
+}
+function parseAiJsonObj(text){
+  const t = text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+  const a = t.indexOf('{'), b = t.lastIndexOf('}');
+  if(a<0 || b<0) throw new Error('No JSON found in the AI reply');
+  return JSON.parse(t.slice(a, b+1));
+}
+async function runTreatment(){
+  const cfg = loadAiConfig();
+  treatBusy = true; treatError = ''; treatResult = null;
+  renderScenScreen();
+  try{
+    const res = parseAiJsonObj(await runAi(cfg, null, null, treatPrompt(treatQuery), 2500));
+    res.items = (res.items||[]).filter(it=>it && it.generic).map(it=>{
+      const hit = findExistingDrug(it.generic, it.brands);
+      return {...it, match: hit ? {id:hit.drug.id, chapId:hit.chapter.id, chap:hit.chapter.name, name:hit.drug.g, info:hit.drug.info||''} : null, check:null};
+    });
+    treatResult = res; treatBusy = false;
+    renderScenScreen();
+    checkTreatmentDoses(res, cfg);
+  }catch(e){
+    treatBusy = false; treatError = String(e.message||e).slice(0,300);
+    renderScenScreen();
+  }
+}
+/* Second, small AI call: only the matched drugs, comparing the suggested dose with the user's own library note. */
+async function checkTreatmentDoses(res, cfg){
+  const pairs = res.items.map((it,i)=>({i, it})).filter(x=>x.it.match);
+  if(!pairs.length) return;
+  const payload = pairs.map(x=>({generic:x.it.generic, suggested:x.it.dose, library:(x.it.match.info||'').slice(0,700)}));
+  try{
+    const prompt = `A pharmacy student keeps their own drug notes. For each item compare the SUGGESTED dose with the student's LIBRARY note. Be strict but fair: ignore wording differences; flag real differences in dose, frequency, route or patient group, and say when the library note has no dose at all.
+Items: ${JSON.stringify(payload)}
+Return ONLY a JSON array, same order: [{"status":"match | differs | no-dose","note":"one short sentence; if differs, quote the library figure and the suggested figure"}]`;
+    const out = parseAiJson(await runAi(cfg, null, null, prompt, 1200));
+    pairs.forEach((x,k)=>{ x.it.check = out[k] || null; });
+  }catch(e){
+    pairs.forEach(x=>{ x.it.check = {status:'error', note:'Could not compare doses right now.'}; });
+  }
+  if(treatResult===res) renderTreatLog();
+}
+function startTreatment(){
+  const cfg = loadAiConfig();
+  if(!cfg.key){ goto('scan'); return; }
+  const dEl = document.getElementById('treatDisease');
+  const disease = (dEl && dEl.value || '').trim();
+  if(!disease){ if(dEl) dEl.focus(); return; }
+  const p = treatPatient;
+  if(p.group==='child'){
+    p.age = document.getElementById('treatAge').value.trim();
+    p.unit = document.getElementById('treatUnit').value;
+    p.weight = document.getElementById('treatWeight').value.trim();
+    if(!p.age){ document.getElementById('treatAge').focus(); return; }
+  }
+  const who = p.group==='child'
+    ? `Child, ${p.age} ${p.unit}${p.weight ? ', '+p.weight+' kg' : ' (weight not given)'}`
+    : 'Adult';
+  treatQuery = {disease, who, extra:''};
+  runTreatment();
+}
+function rerunTreatment(){
+  const el = document.getElementById('treatExtra');
+  const extra = (el && el.value || '').trim();
+  if(!extra || !treatQuery) return;
+  treatQuery.extra = treatQuery.extra ? treatQuery.extra+'; '+extra : extra;
+  runTreatment();
+}
+function resetTreatment(){
+  treatQuery = null; treatResult = null; treatBusy = false; treatError = '';
+  renderScenScreen();
+}
+function addTreatmentItem(i){
+  const it = treatResult && treatResult.items[i]; if(!it) return;
+  const info = [`${it.form ? it.form+' — ' : ''}${it.dose||''}`.trim(), it.note||''].filter(Boolean).join('\n');
+  goto('scan');
+  renderScan();
+  renderScanResults([{generic:it.generic, brands:it.brands||[], info, pregnancyCategory:'', group:'', suggestedChapter:'', isNewChapter:false}]);
+}
+function renderTreatLog(){
+  const log = document.getElementById('scenarioChatLog'); if(!log) return;
+  let html = '';
+  if(treatBusy) html = `<div class="chat-msg assistant">…thinking</div>`;
+  else if(treatError) html = `<div class="chat-msg assistant">⚠️ ${escapeHtml(treatError)}</div>`;
+  else if(!treatResult) html = `<div class="chat-msg assistant">Type a disease above and pick Adult or Child. I'll suggest the standard treatment with doses, then check each drug against <b>your own library</b> — what you already have, whether your note agrees, and what's missing.</div>`;
+  else {
+    const r = treatResult, found = r.items.filter(x=>x.match).length;
+    const statusChip = c => !c ? `<span class="treat-check">checking your note…</span>`
+      : c.status==='match' ? `<span class="treat-check ok">✓ Matches your library</span>`
+      : c.status==='differs' ? `<span class="treat-check diff">⚠ Differs from your library</span>`
+      : c.status==='no-dose' ? `<span class="treat-check diff">Your note has no dose</span>`
+      : `<span class="treat-check">${escapeHtml(c.note||'')}</span>`;
+    html = `<div class="treat-head"><div>${escapeHtml(r.summary||'')}</div>${r.weightUsed ? `<div class="treat-sub">⚖️ ${escapeHtml(r.weightUsed)}</div>` : ''}<div class="treat-sub">📚 ${found} of ${r.items.length} in your library</div></div>` +
+      r.items.map((it,i)=>{
+        const m = it.match, c = it.check;
+        return `<div class="card treat-item ${m?'in':'out'}">
+          <div class="treat-top"><b>${escapeHtml(it.generic)}</b><span class="treat-role">${escapeHtml(it.role||'')}</span></div>
+          <div class="treat-dose">${escapeHtml([it.form, it.dose].filter(Boolean).join(' — '))}</div>
+          ${it.note ? `<div class="treat-note">${escapeHtml(it.note)}</div>` : ''}
+          ${m ? `<div class="treat-lib">✅ In your library · ${escapeHtml(m.chap)} <span class="edit-inline" onclick="jumpToDrug('${m.chapId}','${m.id}')">open</span></div>
+            <div>${statusChip(c)}${c && c.note && c.status!=='error' ? `<div class="treat-note">${escapeHtml(c.note)}</div>` : ''}</div>
+            ${m.info ? `<details class="treat-libnote"><summary>Your library note</summary>${formatInfoText(m.info)}</details>` : ''}`
+          : `<div class="treat-lib out">➕ Not in your library</div><button class="pill-btn ghost" style="width:100%;margin-top:8px;" onclick="addTreatmentItem(${i})">Add to library</button>`}
+        </div>`;
+      }).join('') +
+      ((r.cautions||[]).length ? `<div class="card warn-card" style="padding:12px 14px;margin-bottom:10px;"><div class="detail-section-title">⚠️ Cautions</div><ul class="warn-list">${r.cautions.map(c=>`<li>${escapeHtml(c)}</li>`).join('')}</ul></div>` : '') +
+      (r.refer ? `<div class="card blkc-redflags" style="padding:12px 14px;margin-bottom:10px;"><div class="detail-section-title">🚩 Refer when</div><div class="treat-note">${escapeHtml(r.refer)}</div></div>` : '') +
+      `<div class="modal-hint">Doses come from the AI's general knowledge — use your library and a current reference to confirm before real patient use.</div>`;
+  }
+  log.innerHTML = html;
+  applyChatFont();
+  const row = document.getElementById('treatExtraRow');
+  if(row) row.style.display = treatResult ? 'flex' : 'none';
+}
+
 async function callAiChat(cfg, messages){
   const model = cfg.model || defaultModelFor(cfg.provider);
   const sys = clinicalScenarioSystemPrompt();
+  const maxTok = 1200;
   if(cfg.provider==='claude'){
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':cfg.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body: JSON.stringify({model, max_tokens:1200, system:sys, messages: messages.map(m=>({role:m.role, content:m.text}))})
+      body: JSON.stringify({model, max_tokens:maxTok, system:sys, messages: messages.map(m=>({role:m.role, content:m.text}))})
     });
     if(!res.ok) throw new Error('Claude error: '+res.status+' '+(await res.text()).slice(0,200));
     const data = await res.json();
@@ -3931,7 +4131,7 @@ async function callAiChat(cfg, messages){
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
-      body: JSON.stringify({model, max_tokens:1200, messages:[{role:'system',content:sys}, ...messages.map(m=>({role:m.role, content:m.text}))]})
+      body: JSON.stringify({model, max_tokens:maxTok, messages:[{role:'system',content:sys}, ...messages.map(m=>({role:m.role, content:m.text}))]})
     });
     if(!res.ok) throw new Error('OpenAI error: '+res.status+' '+(await res.text()).slice(0,200));
     const data = await res.json();
@@ -3939,7 +4139,7 @@ async function callAiChat(cfg, messages){
   }
   const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+cfg.key, {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({system_instruction:{parts:[{text:sys}]}, contents: messages.map(m=>({role: m.role==='assistant'?'model':'user', parts:[{text:m.text}]}))})
+    body: JSON.stringify({system_instruction:{parts:[{text:sys}]}, contents: messages.map(m=>({role: m.role==='assistant'?'model':'user', parts:[{text:m.text}]})), generationConfig:{maxOutputTokens:maxTok}})
   });
   if(!res.ok) throw new Error('Gemini error: '+res.status+' '+(await res.text()).slice(0,200));
   const data = await res.json();
@@ -3973,7 +4173,7 @@ function attachScenSelection(log){
     const sel=window.getSelection();
     const text=sel ? sel.toString().trim() : '';
     // only inside the chat log, and meaningful length
-    if(text.length>=3 && sel.anchorNode && log.contains(sel.anchorNode)){
+    if(scenMode==='case' && text.length>=3 && sel.anchorNode && log.contains(sel.anchorNode)){
       window.__scenLastSel=text; // capture immediately — iOS clears selection on tap
       const r=sel.getRangeAt(0).getBoundingClientRect();
       btn.style.display='flex';
