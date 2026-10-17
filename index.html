@@ -649,11 +649,14 @@ body.edit-mode .reset-order-link{display:inline-block !important;}
 .scen-font-btns button:active{transform:scale(.96);}
 .scen-font-label{font-size:0.65625rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:700;}
 /* full-height chat: fills the space above the bottom tab bar, log scrolls, input pinned */
-#screen-scen.active,#screen-mcq.active{display:flex;flex-direction:column;height:calc(100dvh - var(--tabbar-h,64px) - env(safe-area-inset-top, 0px));padding-bottom:0px;}
-#screen-scen .sess-header,#screen-mcq .sess-header{flex:none;}
-#screen-scen #scenArea,#screen-mcq #mcqArea{display:flex;flex-direction:column;flex:1;min-height:0;padding-bottom:10px;}
-.scen-chat-card{display:flex;flex-direction:column;flex:1;min-height:0;padding:14px 16px;}
-.scen-chat-card .chat-log{flex:1;min-height:0;max-height:none;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#screen-mcq.active{display:flex;flex-direction:column;height:calc(100dvh - var(--tabbar-h,64px) - env(safe-area-inset-top, 0px));padding-bottom:0px;}
+#screen-mcq .sess-header{flex:none;}
+#screen-mcq #mcqArea{display:flex;flex-direction:column;flex:1;min-height:0;padding-bottom:10px;}
+/* Clinical Scenarios is a normal page: the whole page scrolls, no inner scroll box */
+.scen-chat-card{padding:14px 16px;margin-bottom:12px;}
+.scen-chat-card .chat-log{max-height:none;overflow:visible;margin-top:4px;}
+.scen-chat-card .chat-msg{scroll-margin-top:84px;scroll-margin-bottom:150px;}
+.scen-chat-card .chat-input-row{position:sticky;z-index:6;bottom:calc(14px + env(safe-area-inset-bottom, 0px) + var(--tabbar-h, 60px) + 10px);background:var(--card);padding:8px 0 4px;margin-top:8px;}
 .scen-seg{display:flex;gap:4px;padding:3px;background:var(--paper-2);border:1px solid var(--line);border-radius:12px;flex:none;}
 .scen-seg button{flex:1;border:none;background:transparent;color:var(--ink-soft);font:inherit;font-size:.78125rem;font-weight:600;padding:8px 10px;border-radius:9px;cursor:pointer;transition:background .2s,color .2s;}
 .scen-seg button.active{background:var(--card);color:var(--accent);box-shadow:0 1px 3px rgba(33,26,19,.14);}
@@ -684,6 +687,10 @@ body.edit-mode .reset-order-link{display:inline-block !important;}
 .treat-libnote summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.71875rem;}
 html[data-theme="dark"] .treat-lib,html[data-theme="dark"] .treat-check.ok{color:#6fcf97;}
 html[data-theme="dark"] .treat-check.diff{color:#ff8a65;}
+.model-switch{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex:none;}
+.model-switch select{flex:1;min-width:0;margin:0;padding:7px 10px;font-size:.75rem;}
+.model-auto{display:flex;align-items:center;gap:5px;font-size:.6875rem;font-weight:700;color:var(--ink-soft);white-space:nowrap;cursor:pointer;}
+.model-auto input{accent-color:var(--accent);width:15px;height:15px;}
 .scen-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex:none;}
 .scen-toolbar .pill-btn{width:auto;padding:9px 16px;font-size:0.78125rem;}
 #scenAskSelBtn{position:fixed;z-index:999;display:none;align-items:center;gap:6px;background:var(--ink);color:var(--paper);border:none;border-radius:20px;padding:8px 14px;font-size:0.78125rem;font-weight:600;font-family:'Work Sans',sans-serif;box-shadow:0 6px 18px -6px rgba(33,26,19,.45);cursor:pointer;animation:popIn .2s ease both;}
@@ -2991,7 +2998,7 @@ async function gdriveFindFileId(forceRefresh){
   const res = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,name)&q=${q}`, {
     headers:{ Authorization:'Bearer '+token }
   });
-  if(!res.ok) throw new Error('Drive lookup failed ('+res.status+')');
+  if(!res.ok) throw httpErr(res, 'Drive lookup failed ('+res.status+')');
   const j = await res.json();
   const f = (j.files||[])[0];
   if(f){ localStorage.setItem('pc_gdrive_file_id', f.id); return f.id; }
@@ -3010,7 +3017,7 @@ async function gdriveReadRemote(){
     if(!fileId) return null;
     res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers:{ Authorization:'Bearer '+token } });
   }
-  if(!res.ok) throw new Error('Drive read failed ('+res.status+')');
+  if(!res.ok) throw httpErr(res, 'Drive read failed ('+res.status+')');
   try{ return await res.json(); }catch(e){ return null; }
 }
 async function gdriveWriteRemote(payload){
@@ -3023,7 +3030,7 @@ async function gdriveWriteRemote(payload){
       headers:{ Authorization:'Bearer '+token, 'Content-Type':'application/json' },
       body
     });
-    if(!res.ok) throw new Error('Drive save failed ('+res.status+')');
+    if(!res.ok) throw httpErr(res, 'Drive save failed ('+res.status+')');
   } else {
     const boundary = 'pcsync'+Date.now();
     const metadata = { name: GDRIVE_FILE_NAME, parents:['appDataFolder'] };
@@ -3036,7 +3043,7 @@ async function gdriveWriteRemote(payload){
       headers:{ Authorization:'Bearer '+token, 'Content-Type':`multipart/related; boundary=${boundary}` },
       body: multipart
     });
-    if(!res.ok) throw new Error('Drive create failed ('+res.status+')');
+    if(!res.ok) throw httpErr(res, 'Drive create failed ('+res.status+')');
     const j = await res.json();
     if(j.id) localStorage.setItem('pc_gdrive_file_id', j.id);
   }
@@ -3753,6 +3760,7 @@ function renderMcqScreen(){
   area.innerHTML = `
     <div class="card" style="padding:16px;">
       <div id="mcqSetup">
+        ${modelSwitcherHtml()}
         <div class="field-card"><div class="field-label">Scope</div>
           <select id="mcqScope" class="text-input" onchange="renderMcqTopics()"><option value="all">📚 Whole library</option>${DB.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}</select>
         </div>
@@ -3776,6 +3784,7 @@ function renderScenScreen(){
   const isTreat = scenMode==='treat';
   area.innerHTML = `
     <div class="card scen-chat-card">
+      ${modelSwitcherHtml()}
       <div class="scen-seg scen-modes"><button class="${isTreat?'':'active'}" onclick="setScenMode('case')">🎲 Case practice</button><button class="${isTreat?'active':''}" onclick="setScenMode('treat')">💊 Treatment finder</button></div>
       ${isTreat ? treatFormHtml() : ''}
       <div class="scen-toolbar" ${isTreat?'style="display:none;"':''}>
@@ -4113,7 +4122,7 @@ function renderTreatLog(){
   if(row) row.style.display = treatResult ? 'flex' : 'none';
 }
 
-async function callAiChat(cfg, messages){
+async function _callAiChat(cfg, messages){
   const model = cfg.model || defaultModelFor(cfg.provider);
   const sys = clinicalScenarioSystemPrompt();
   const maxTok = 1200;
@@ -4123,7 +4132,7 @@ async function callAiChat(cfg, messages){
       headers:{'Content-Type':'application/json','x-api-key':cfg.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body: JSON.stringify({model, max_tokens:maxTok, system:sys, messages: messages.map(m=>({role:m.role, content:m.text}))})
     });
-    if(!res.ok) throw new Error('Claude error: '+res.status+' '+(await res.text()).slice(0,200));
+    if(!res.ok) throw httpErr(res, 'Claude error: '+res.status+' '+(await res.text()).slice(0,200));
     const data = await res.json();
     return data.content.map(c=>c.text||'').join('');
   }
@@ -4133,7 +4142,7 @@ async function callAiChat(cfg, messages){
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
       body: JSON.stringify({model, max_tokens:maxTok, messages:[{role:'system',content:sys}, ...messages.map(m=>({role:m.role, content:m.text}))]})
     });
-    if(!res.ok) throw new Error('OpenAI error: '+res.status+' '+(await res.text()).slice(0,200));
+    if(!res.ok) throw httpErr(res, 'OpenAI error: '+res.status+' '+(await res.text()).slice(0,200));
     const data = await res.json();
     return data.choices[0].message.content;
   }
@@ -4141,9 +4150,17 @@ async function callAiChat(cfg, messages){
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({system_instruction:{parts:[{text:sys}]}, contents: messages.map(m=>({role: m.role==='assistant'?'model':'user', parts:[{text:m.text}]})), generationConfig:{maxOutputTokens:maxTok}})
   });
-  if(!res.ok) throw new Error('Gemini error: '+res.status+' '+(await res.text()).slice(0,200));
+  if(res.status===429) throw httpErr(res, 'Gemini rate limit reached (free plan). Wait about a minute, or switch to a Flash-Lite model — they allow more requests per minute.');
+  if(!res.ok) throw httpErr(res, 'Gemini error: '+res.status+' '+(await res.text()).slice(0,200));
   const data = await res.json();
   return data.candidates[0].content.parts.map(p=>p.text||'').join('');
+}
+/* Page-level scroll to the newest message: a reply is read from its top, your own message / the loader from its bottom. */
+function scrollChatToLatest(){
+  const log = document.getElementById('scenarioChatLog');
+  const last = log && log.lastElementChild; if(!last) return;
+  const isReply = last.classList.contains('assistant') && last.id!=='scenarioLoading';
+  last.scrollIntoView({block: isReply ? 'start' : 'end', behavior:'smooth'});
 }
 function renderScenarioChat(){
   const log = document.getElementById('scenarioChatLog'); if(!log) return;
@@ -4154,7 +4171,7 @@ function renderScenarioChat(){
   ).join('');
   decorateRx(log);
   applyChatFont();
-  log.scrollTop = log.scrollHeight;
+  if(scenarioMessages.length) scrollChatToLatest();
   const row = document.getElementById('scenarioInputRow');
   if(row) row.style.display = scenarioMessages.length ? 'flex' : 'none';
 }
@@ -4236,7 +4253,7 @@ Rules:
 - Distribute the correct answers EVENLY across A, B, C and D — never cluster them on A or B.
 - Output ONLY a JSON array, no prose around it. Each item: {"q": string, "opts": [4 strings], "answer": "A"|"B"|"C"|"D", "expl": short explanation naming the drug and the key fact, "topic": one of the six above}.`;
 }
-async function callAiJson(cfg, userPrompt, maxTokens){
+async function _callAiJson(cfg, userPrompt, maxTokens){
   const model = cfg.model || defaultModelFor(cfg.provider);
   const wantJsonHeader = {'anthropic-version':'2023-06-01','x-api-key':cfg.key,'anthropic-dangerous-direct-browser-access':'true','Content-Type':'application/json'};
   if(cfg.provider==='claude'){
@@ -4244,7 +4261,7 @@ async function callAiJson(cfg, userPrompt, maxTokens){
       method:'POST', headers:wantJsonHeader,
       body: JSON.stringify({model, max_tokens:maxTokens||4000, system:mcqSystemPrompt(), messages:[{role:'user',content:userPrompt}]})
     });
-    if(!res.ok) throw new Error('Claude error: '+res.status+' '+(await res.text()).slice(0,200));
+    if(!res.ok) throw httpErr(res, 'Claude error: '+res.status+' '+(await res.text()).slice(0,200));
     const data = await res.json();
     return data.content.map(c=>c.text||'').join('');
   }
@@ -4253,14 +4270,14 @@ async function callAiJson(cfg, userPrompt, maxTokens){
       method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
       body: JSON.stringify({model, max_tokens:maxTokens||4000, response_format:{type:'json_object'}, messages:[{role:'system',content:mcqSystemPrompt()},{role:'user',content:userPrompt}]})
     });
-    if(!res.ok) throw new Error('OpenAI error: '+res.status+' '+(await res.text()).slice(0,200));
+    if(!res.ok) throw httpErr(res, 'OpenAI error: '+res.status+' '+(await res.text()).slice(0,200));
     return (await res.json()).choices[0].message.content;
   }
   const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+cfg.key,{
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({system_instruction:{parts:[{text:mcqSystemPrompt()}]}, contents:[{role:'user',parts:[{text:userPrompt}]}], generationConfig:{responseMimeType:'application/json'}})
   });
-  if(!res.ok) throw new Error('Gemini error: '+res.status+' '+(await res.text()).slice(0,200));
+  if(!res.ok) throw httpErr(res, 'Gemini error: '+res.status+' '+(await res.text()).slice(0,200));
   return (await res.json()).candidates[0].content.parts.map(p=>p.text||'').join('');
 }
 function startMcq(){
@@ -4423,7 +4440,7 @@ async function pushScenarioTurn(isNewScenario){
   const cfg = loadAiConfig();
   const log = document.getElementById('scenarioChatLog');
   log.insertAdjacentHTML('beforeend', `<div class="chat-msg assistant" id="scenarioLoading">…thinking</div>`);
-  log.scrollTop = log.scrollHeight;
+  scrollChatToLatest();
   try{
     const reply = await callAiChat(cfg, scenarioMessages);
     scenarioMessages.push({role:'assistant', text:reply});
@@ -4494,6 +4511,7 @@ function renderScan(){
       <input type="file" id="scanFile" accept="image/*" style="display:none;" onchange="handleScanFile(this)">
       <button class="pill-btn primary" style="width:100%;" onclick="document.getElementById('scanFile').click()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z"/><circle cx="12" cy="13" r="3.5"/></svg> Open Camera / Choose Photo</button>
     </div>
+    ${modelSwitcherHtml()}
     <div class="pc-link" onclick="renderScanSettingsOnly()">⚙️ Change AI provider / key / model (using ${cfg.provider} · ${cfg.model||defaultModelFor(cfg.provider)})</div>
     <div id="scanResultArea"></div>
   `;
@@ -4505,6 +4523,70 @@ function onScanProviderChange(){
   const p = document.getElementById('scanProvider').value;
   const modelField = document.getElementById('scanModel');
   if(modelField && !modelField.dataset.touched) modelField.value = defaultModelFor(p);
+  const pick = document.getElementById('scanModelPick');
+  if(pick) pick.innerHTML = modelPickOptions(p, modelField && modelField.value);
+}
+
+/* ---- model picker: a few known presets + the live list from the provider for THIS key ---- */
+const MODEL_PRESETS = {
+  gemini: ['gemini-3.8-flash','gemini-3.7-flash','gemini-3.6-flash','gemini-3.5-flash-lite','gemini-3.1-flash-lite','gemini-2.5-flash','gemini-2.5-flash-lite'],
+  openai: ['gpt-4o','gpt-4o-mini'],
+  claude: ['claude-sonnet-4-5','claude-haiku-4-5']
+};
+function loadedModels(provider){
+  try{ return JSON.parse(localStorage.getItem('pc_models_'+provider)||'[]'); }catch(e){ return []; }
+}
+function modelPickOptions(provider, current){
+  const loaded = loadedModels(provider), presets = MODEL_PRESETS[provider]||[];
+  const opt = m=>`<option value="${escAttr(m)}" ${m===current?'selected':''}>${escapeHtml(m)}</option>`;
+  const rest = presets.filter(m=>!loaded.includes(m));
+  return `<option value="">Pick a model…</option>` +
+    (loaded.length ? `<optgroup label="Available for your key">${loaded.map(opt).join('')}</optgroup>` : '') +
+    `<optgroup label="${loaded.length?'Other known names':'Known names'}">${rest.map(opt).join('')}</optgroup>`;
+}
+function pickScanModel(v){
+  if(!v) return;
+  const f = document.getElementById('scanModel');
+  f.value = v; f.dataset.touched = '1';
+}
+async function fetchModelList(provider, key){
+  if(provider==='gemini'){
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000&key='+encodeURIComponent(key));
+    if(!res.ok) throw httpErr(res, 'Gemini '+res.status+' — check the API key.');
+    const data = await res.json();
+    return (data.models||[])
+      .filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent'))
+      .map(m=>m.name.replace(/^models\//,''))
+      .filter(n=>/^(gemini|gemma)/.test(n) && !/embed|tts|audio|live|image|imagen|veo|robotics|computer|deep-research|aqa|native/.test(n))
+      .sort().reverse();
+  }
+  if(provider==='openai'){
+    const res = await fetch('https://api.openai.com/v1/models', {headers:{Authorization:'Bearer '+key}});
+    if(!res.ok) throw httpErr(res, 'OpenAI '+res.status+' — check the API key.');
+    const data = await res.json();
+    return (data.data||[]).map(m=>m.id).filter(n=>/^(gpt|o\d)/.test(n) && !/audio|realtime|tts|whisper|image|embed|moderation|transcribe|search|instruct/.test(n)).sort().reverse();
+  }
+  const res = await fetch('https://api.anthropic.com/v1/models?limit=1000', {headers:{'x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}});
+  if(!res.ok) throw httpErr(res, 'Claude '+res.status+' — check the API key.');
+  const data = await res.json();
+  return (data.data||[]).map(m=>m.id);
+}
+async function loadModelList(){
+  const provider = document.getElementById('scanProvider').value;
+  const key = document.getElementById('scanKey').value.trim();
+  const msg = document.getElementById('scanModelMsg'), btn = document.getElementById('scanModelLoadBtn');
+  if(!key){ msg.textContent = 'Paste your API key first.'; return; }
+  btn.disabled = true; msg.textContent = 'Loading…';
+  try{
+    const ids = await fetchModelList(provider, key);
+    try{ localStorage.setItem('pc_models_'+provider, JSON.stringify(ids)); }catch(e){}
+    const f = document.getElementById('scanModel');
+    document.getElementById('scanModelPick').innerHTML = modelPickOptions(provider, f.value);
+    msg.textContent = ids.length ? `${ids.length} models available for your key — pick one from the list above.` : 'The provider returned no usable models.';
+  }catch(e){
+    msg.textContent = '⚠️ '+String(e.message||e).slice(0,160);
+  }
+  btn.disabled = false;
 }
 function scanSettingsHtml(cfg, isChange){
   const providers = [
@@ -4526,6 +4608,9 @@ function scanSettingsHtml(cfg, isChange){
       </div>
       <div class="field-card"><div class="field-label">Model</div>
         <input type="text" id="scanModel" class="text-input" value="${cfg.model || defaultModelFor(cfg.provider)}" oninput="this.dataset.touched='1'" placeholder="${defaultModelFor(cfg.provider)}">
+        <select id="scanModelPick" class="text-input" style="margin-top:8px;" onchange="pickScanModel(this.value)">${modelPickOptions(cfg.provider, cfg.model)}</select>
+        <button class="pill-btn ghost" id="scanModelLoadBtn" style="width:100%;margin-top:8px;" onclick="loadModelList()">↻ Load the models available for my key</button>
+        <div class="modal-hint" id="scanModelMsg" style="margin:6px 0 0;"></div>
       </div>
       <div class="modal-hint" style="margin-top:-8px;">Pre-filled with today's default, but model names change over time — check your provider's docs and type the current one here whenever you want to switch (e.g. a newer Gemini/Claude/GPT version).</div>
       <button class="pill-btn primary" style="width:100%;" onclick="saveScanSettings()">Save & Continue</button>
@@ -4603,7 +4688,7 @@ async function callClaude(key, b64, mime, model, prompt, maxTokens){
       ]}]
     })
   });
-  if(!res.ok) throw new Error('Claude API error: '+res.status+' '+(await res.text()).slice(0,200));
+  if(!res.ok) throw httpErr(res, 'Claude API error: '+res.status+' '+(await res.text()).slice(0,200));
   const data = await res.json();
   return data.content.map(c=>c.text||'').join('');
 }
@@ -4620,7 +4705,7 @@ async function callOpenAI(key, b64, mime, model, prompt, maxTokens){
       ]}]
     })
   });
-  if(!res.ok) throw new Error('OpenAI API error: '+res.status+' '+(await res.text()).slice(0,200));
+  if(!res.ok) throw httpErr(res, 'OpenAI API error: '+res.status+' '+(await res.text()).slice(0,200));
   const data = await res.json();
   return data.choices[0].message.content;
 }
@@ -4637,15 +4722,74 @@ async function callGemini(key, b64, mime, model, prompt, maxTokens){
       generationConfig:{maxOutputTokens: maxTokens || 2000}
     })
   });
-  if(!res.ok) throw new Error('Gemini API error: '+res.status+' '+(await res.text()).slice(0,200));
+  if(res.status===429) throw httpErr(res, 'Gemini rate limit reached (free plan). Wait about a minute, or switch to a Flash-Lite model — they allow more requests per minute.');
+  if(!res.ok) throw httpErr(res, 'Gemini API error: '+res.status+' '+(await res.text()).slice(0,200));
   const data = await res.json();
   return data.candidates[0].content.parts.map(p=>p.text||'').join('');
 }
 
 async function runAi(cfg, b64, mime, prompt, maxTokens){
-  const model = cfg.model || defaultModelFor(cfg.provider);
   const call = cfg.provider==='claude' ? callClaude : cfg.provider==='openai' ? callOpenAI : callGemini;
-  return call(cfg.key, b64, mime, model, prompt, maxTokens);
+  return withFallback(cfg, c=>call(c.key, b64, mime, c.model || defaultModelFor(c.provider), prompt, maxTokens));
+}
+const callAiChat = (cfg, messages)=>withFallback(cfg, c=>_callAiChat(c, messages));
+const callAiJson = (cfg, userPrompt, maxTokens)=>withFallback(cfg, c=>_callAiJson(c, userPrompt, maxTokens));
+
+/* ---- switching models while you work ---- */
+function httpErr(res, msg){ const e = new Error(msg); e.status = res.status; return e; }
+const FALLBACK_ORDER = {
+  gemini: ['gemini-3.1-flash-lite','gemini-3.5-flash-lite','gemini-2.5-flash-lite','gemini-3.8-flash','gemini-3.7-flash','gemini-3.6-flash','gemini-2.5-flash'],
+  openai: ['gpt-4o-mini','gpt-4o'],
+  claude: ['claude-haiku-4-5','claude-sonnet-4-5']
+};
+function autoFallbackOn(){ try{ return localStorage.getItem('pc_auto_fallback')!=='0'; }catch(e){ return true; } }
+function setAutoFallback(on){ try{ localStorage.setItem('pc_auto_fallback', on?'1':'0'); }catch(e){} refreshModelSwitchers(); }
+function fallbackModels(provider){
+  const order = FALLBACK_ORDER[provider]||[], loaded = loadedModels(provider);
+  const f = loaded.length ? order.filter(m=>loaded.includes(m)) : order;
+  return f.length ? f : order;
+}
+/* If the current model hits its limit (429) or is overloaded (503/529), retry on the next model and keep it. */
+async function withFallback(cfg, fn){
+  const tried = [cfg.model || defaultModelFor(cfg.provider)];
+  let cur = cfg;
+  for(;;){
+    try{
+      const out = await fn(cur);
+      if(cur!==cfg){
+        saveAiConfig({...loadAiConfig(), model:cur.model});
+        refreshModelSwitchers();
+        showInfoToast(`Limit reached — switched to ${cur.model}`);
+      }
+      return out;
+    }catch(e){
+      if(![429,503,529].includes(e.status) || !autoFallbackOn()) throw e;
+      const next = fallbackModels(cfg.provider).find(m=>!tried.includes(m));
+      if(!next) throw e;
+      tried.push(next); cur = {...cfg, model:next};
+    }
+  }
+}
+function showInfoToast(msg){
+  let t = document.getElementById('infoToast');
+  if(!t){ t = document.createElement('div'); t.id = 'infoToast'; t.className = 'undo-toast'; document.body.appendChild(t); }
+  t.innerHTML = `<span>${escapeHtml(msg)}</span>`;
+  requestAnimationFrame(()=>t.classList.add('show'));
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), 4500);
+}
+function modelSwitcherHtml(){
+  const cfg = loadAiConfig(); if(!cfg.key) return '';
+  const cur = cfg.model || defaultModelFor(cfg.provider);
+  const list = [...new Set([cur, ...loadedModels(cfg.provider), ...(MODEL_PRESETS[cfg.provider]||[])])];
+  return `<div class="model-switch"><span title="AI model">🤖</span><select class="text-input" aria-label="AI model" onchange="quickSetModel(this.value)">${list.map(m=>`<option value="${escAttr(m)}" ${m===cur?'selected':''}>${escapeHtml(m)}</option>`).join('')}</select><label class="model-auto" title="If a model hits its limit, retry on another one automatically"><input type="checkbox" ${autoFallbackOn()?'checked':''} onchange="setAutoFallback(this.checked)"> Auto</label></div>`;
+}
+function quickSetModel(m){
+  const cfg = loadAiConfig(); if(!m || !cfg.key) return;
+  saveAiConfig({...cfg, model:m});
+  refreshModelSwitchers();
+}
+function refreshModelSwitchers(){
+  document.querySelectorAll('.model-switch').forEach(el=>{ el.outerHTML = modelSwitcherHtml(); });
 }
 function parseAiJson(text){
   const cleaned = text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
