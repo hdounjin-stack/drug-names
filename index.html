@@ -855,6 +855,40 @@ html.lite .screen.anim-fwd,html.lite .screen.anim-back{animation:none;}
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
 }
+
+/* Rx cards */
+.rxc{padding:0;margin-bottom:9px;overflow:hidden;}
+.rxc-head{display:flex;align-items:center;gap:11px;padding:12px 13px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.rxc-ico{flex:none;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.05rem;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line);}
+.rxc-hinfo{flex:1;min-width:0;}
+.rxc-title{font-weight:700;font-size:0.9375rem;color:var(--ink);line-height:1.25;unicode-bidi:plaintext;}
+.rxc-dx{font-size:0.75rem;color:var(--muted);margin-top:2px;line-height:1.35;unicode-bidi:plaintext;}
+.rxc-chev{flex:none;width:18px;height:18px;color:var(--muted);transition:transform .22s ease;}
+.rxc.open .rxc-chev{transform:rotate(180deg);}
+.rxc-body{display:none;padding:2px 14px 14px;border-top:1px dashed var(--line);}
+.rxc.open .rxc-body{display:block;animation:rxcIn .2s ease;}
+@keyframes rxcIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+.rxc-lab{font-size:0.625rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:12px 0 6px;}
+.rxc-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.rxc-chips span{font-size:0.75rem;padding:4px 9px;border-radius:999px;background:var(--paper-2);color:var(--ink-soft);line-height:1.3;unicode-bidi:plaintext;}
+.rxc-rx{border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--paper);}
+.rxc-row{padding:9px 11px;border-bottom:1px solid var(--line);}
+.rxc-row:last-child{border-bottom:0;}
+.rxc-drug{font-weight:600;font-size:0.8125rem;color:var(--ink);line-height:1.3;unicode-bidi:plaintext;}
+.rxc-form{margin-left:7px;font-size:0.625rem;font-weight:700;padding:1px 6px;border-radius:5px;background:var(--accent-soft);color:var(--accent);vertical-align:1px;}
+.rxc-sig{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--accent);margin-top:3px;font-weight:600;}
+.rxc-note{font-size:0.71875rem;color:var(--muted);margin-top:2px;line-height:1.35;}
+.rxc-adv{margin:0;padding-left:18px;font-size:0.78125rem;color:var(--ink-soft);line-height:1.5;}
+.rxc-ref{margin-top:12px;padding:9px 11px;border-radius:var(--radius-sm);background:rgba(214,69,47,0.09);border:1px solid rgba(214,69,47,0.3);font-size:0.78125rem;font-weight:600;color:#b8321f;line-height:1.4;}
+html[data-theme="dark"] .rxc-ref{color:#ff9b8a;background:rgba(255,99,71,0.12);border-color:rgba(255,99,71,0.4);}
+.rxc.red{border-color:rgba(214,69,47,0.45);}
+.rxc.red .rxc-ico{background:rgba(214,69,47,0.12);color:#d6452f;border-color:rgba(214,69,47,0.4);}
+.rxc-ctl{display:flex;gap:4px;flex:none;}
+.rxc-ctl button{width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);font-size:0.8rem;cursor:pointer;}
+.rxc-ctl button:disabled{opacity:.3;}
+.rxc-tools{margin-left:auto;font-size:0.65rem;font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted);}
+.rxc-tools span{cursor:pointer;text-decoration:underline;}
+@media (prefers-reduced-motion:reduce){.rxc.open .rxc-body{animation:none;}}
 </style>
 </head>
 <body>
@@ -1962,6 +1996,316 @@ const DATA = [
  ]}
 ];
 
+/* ---------- BUILT-IN CONTENT PATCH v2: Rx cards for OTC + Antihyperlipidemic chapter ---------- */
+/* Card = {id,title,dx,sym:[symptoms],rx:[[drug,form,dose/sig,note]],adv:[advice],ref:'refer / warning',red:bool}
+   ⚠ in a note = verify against the drug chapter before use. */
+function RX(id,title,dx,sym,rx,adv,ref,red){ const o={id,title,dx,sym:sym||[],rx:rx||[],adv:adv||[]}; if(ref) o.ref=ref; if(red) o.red=true; return o; }
+const OTC_PATCH = [
+{topic:"otc-history",
+ notes:["Patient types: hypochondriac (stress drug side effects, reassure) · neglectful (stress complications) · talkative (closed yes/no questions, redirect) · exaggerator (filter; a sudden NEW severe symptom worries more than a years-old one) · normal (no drug needed) · tester (stay alert) · doctor-shopper (refer UP, never down).","Never let the patient dictate the diagnosis or the drug. Symptom → disease → treatment. Not sure or out of scope → refer honestly.","No answers matter more than Yes answers: each \"No\" removes diseases from the list."],
+ rx:[
+ RX("rx-hist-1","6-step History (fast checklist)","Use for ANY complaint",["Step 1: What exactly is the complaint?","Step 2: Analyze it — Character/Amount, Duration, Cause (new drug? food?)","Step 3: Other symptoms in the SAME system","Step 4: Symptoms in OTHER systems (ask each, 'No' is valuable)","Step 5: Chronic diseases (DM, HTN, asthma, kidney…)","Step 6: Current drugs (≈30% of complaints are drug-caused + check interactions)"],[],["Closed questions (yes/no) for talkative patients","Convert the symptom into a disease before choosing a drug"],"Not improving / cause unknown / child <1 y / surgical / trauma → refer")
+ ]},
+
+{topic:"otc-abdpain",
+ dd:[["Periumbilical pain + vomiting + diarrhea + fever","Gastroenteritis"],["Pain worse with movement, better with rest","Abdominal muscle spasm"],["Right lower pain + vomiting + fever + tenderness","Appendicitis → refer"]],
+ red:["Mid-chest/epigastric pain + heartburn + sweating ± left shoulder/arm pain = suspected MI. Atypical MI has NO shoulder pain → elderly, diabetic, hypertensive: never treat as simple gastritis before ECG."],
+ notes:["Patient says: 'برد في المعدة' = gastritis · 'وجع في الخاتم' = rectal pain · 'تعانية/تقل/دوة' = tenesmus."],
+ rx:[
+ RX("rx-abd-gastritis","Gastritis","Epigastric pain + heartburn, worse after food",["Pain in epigastrium / mid-chest","Heartburn","Worse after eating","± vomiting"],
+  [["Antodine amp (ranitidine) ⚠","Amp","Once (emergency only)","Cause: ↓ acid. ⚠ ranitidine withdrawn in some markets"],["Danset (Ondansetron)","Amp","Once (if vomiting)","Symptom: vomiting"],["Controloc 40 / Zurcal (Pantoprazole)","Tab","1×1 morning, empty stomach × 4 wk","PPI = treats cause"],["Mucosta (Rebamipide)","Tab","1×3 × 4 wk","Mucosal protective"],["Motilium / Metilium (Domperidone)","Tab","1×3 × 2–3 d","Only if vomiting"]],
+  ["Ask risk factors: spicy food, coffee, cold drinks, frequent painkillers, stress","Avoid spicy food, smoking, NSAIDs, cold drinks","Mild case: skip the emergency part · No vomiting: skip antiemetic"],"Rule out MI first in elderly / diabetic / HTN / sweating"),
+ RX("rx-abd-mi","SUSPECTED MI (do not treat as gastritis)","Same as gastritis + radiation to LEFT shoulder/arm, sweating",["Mid-chest / epigastric pain + heartburn","Radiates to left shoulder / arm","Sweating","Atypical: elderly, diabetic, hypertensive — may have no shoulder pain"],
+  [["Aspocid 75 (Aspirin)","Tab","4 tabs CHEWED now","While waiting for ambulance"],["Sublingual nitrate ⚠","Tab","2 tabs under tongue ⚠ verify","Only if BP not low and no sildenafil use"]],
+  ["Sit the patient, keep him STILL — do not walk him to a car","Do NOT give antacid / H2 injection","ECG in hospital decides"],"CALL AMBULANCE NOW → nearest hospital. Every minute counts.",true),
+ RX("rx-abd-renal","Renal stone / UTI","Flank pain radiating to back ± burning urine, mild fever",["Flank pain (R or L) radiating to back","Burning urination","Mild fever"],
+  [["Epimag (Magnesium citrate) effervescent","Tab","1 morning & evening","Ca oxalate stone"],["Urivin effervescent","Tab","Per label","Uric acid stone"],["Rowatinex","Tab","1×3","Stones & UTI"],["Levanic (Levofloxacin)","Tab","1×1 × 5 d","UTI"],["Spasmofen","Amp","Once","Colic"]],
+  ["Urine analysis helps choose"],"Fever high / vomiting / no improvement → refer"),
+ RX("rx-abd-spasm","Abdominal muscle spasm","Pain worse with movement, better with rest (gym, lifting)",["Pain increases when walking/moving","Relieved at rest","After exertion or wrong exercise"],
+  [["Algason cream","Cream","Local massage 2–3×/day",""],["Dimra (Methocarbamol + Diclofenac)","Tab","1×3",""],["Norflex (Orphenadrine)","Amp","Once (acute spasm)",""],["Warm compress","—","Morning & evening",""]],[],""),
+ RX("rx-abd-ge","Gastroenteritis","Periumbilical pain + vomiting + diarrhea + fever (4 together)",["Periumbilical pain","Vomiting","Diarrhea","Fever"],
+  [["Motilium (Domperidone)","Tab","1×3",""],["Antinal (Nifuroxazide)","Tab","1×3",""],["Visceralgine (Tiemonium)","Tab","1×3","Colic"],["Brufen (Ibuprofen)","Tab","1×3","Fever / pain"],["ORS","Sachet","After each episode","Prevent dehydration"],["Ciprobay (Ciprofloxacin) ⚠","Tab","1×2 × 7 d","Mostly viral → antibiotic only if bacterial"]],
+  ["Same disease can present as vomiting, diarrhea, fever OR abdominal pain — ask all four"],"Dehydration / blood in stool / no improvement 48–72 h → refer"),
+ RX("rx-abd-ibs","IBS","Diffuse pain + bloating + diarrhea or constipation (chronic)",["Whole-abdomen pain / colic","Distention, gas","Diarrhea or constipation (changes between visits)"],
+  [["Coloverin (Mebeverine) / Colospasmin / Duspatalin","Tab","1×3","Spasm"],["Disflatyl","Tab","2×3","Distention"],["Imodium (Loperamide)","Tab","Per episode","Diarrhea-predominant"],["Gast-Reg","Tab","1×3","Constipation-predominant"],["Librax ⚠","Tab","Per label","Alternative antispasmodic"]],
+  ["Chronic disease: ask which drugs he tried before and did NOT help → write a different one","Rule out menses / ovulation / ectopic pregnancy in females first"],""),
+ RX("rx-abd-gb","Cholecystitis","RUQ pain after fatty meal",["Right upper abdominal pain","After fatty meal","± vomiting"],
+  [["Visceralgine amp (Tiemonium)","Amp","Emergency","Antispasmodic"],["Rowachol","Cap","1×3","Home (biliary agent)"]],
+  ["Avoid fatty food"],"Refer to surgeon (gallstones may need surgery)"),
+ RX("rx-abd-appy","Appendicitis","Right lower pain + vomiting + fever + tenderness",["RLQ pain","Vomiting","Fever","Tenderness on pressing RLQ"],[],[],"REFER to surgery at once. No painkiller-only treatment.",true)
+ ]},
+
+{topic:"otc-vomiting",
+ red:["Vomiting + constipation + NO flatus (esp. infants & elderly) = intestinal obstruction → refer at once. Do NOT give laxative or antiemetic.","Suspected poisoning/toxin: do NOT give antiemetic — the vomiting is protective. Refer to poison center."],
+ rx:[
+ RX("rx-vom-only","Vomiting only (no other symptoms)","No toxin, no other complaint",["Vomiting only"],
+  [["Danset (Ondansetron)","Amp","Once","Emergency"],["Metilium / Motilium (Domperidone)","Tab","1×3 × 2–3 d","Home"]],
+  ["Ask about toxins/drugs BEFORE giving antiemetic"],"Not better in 2–3 days → GI doctor"),
+ RX("rx-vom-gastritis","Vomiting from gastritis","Vomiting + epigastric pain + heartburn",["Epigastric pain","Heartburn","Vomiting"],[["See Gastritis card","—","PPI + Mucosta + antiemetic",""]],[],""),
+ RX("rx-vom-drug","Drug-induced vomiting","Vomiting started after a drug (iron very common)",["Vomits each time he takes the drug","No other symptoms","Children: bad-tasting syrup"],[],["Stop or change the drug / formulation","Iron: take after food"],"Treatment of the cause = stop/replace the drug"),
+ RX("rx-vom-ge","Gastroenteritis","Vomiting + fever + cramps + diarrhea",["Vomiting","Diarrhea","Cramps","Fever"],[["See Gastroenteritis card","—","",""]],[],""),
+ RX("rx-vom-preg","Pregnancy","Vomiting + missed period",["Vomiting","Period late (amenorrhea)"],
+  [["Pregnancy test","—","Confirm",""],["Pregnancy-safe antiemetic tab ⚠ (e.g. Navidoxine)","Tab","Per label ⚠",""],["Danset / Zofran","Amp","Per doctor","Injection"]],["Any drug must be pregnancy-safe","Follow-up with OB/GYN"],""),
+ RX("rx-vom-io","INTESTINAL OBSTRUCTION","Vomiting + constipation + no flatus",["Vomiting","No stool for days","No gas passage","Common in infants & elderly"],[],["Do NOT give lactulose / Bisacodyl / Danset — it delays surgery"],"REFER immediately to hospital (X-ray + surgery).",true),
+ RX("rx-vom-motion","Motion sickness","Vomiting during travel",["Vomiting / nausea in car, bus, boat","Starts with travel"],[["Dramamine (Dimenhydrinate)","Tab","1–2 tabs 30 min before travel","Best choice. Sedating"]],["Do NOT drive after taking it"],""),
+ RX("rx-vom-gb","Cholecystitis / Hepatitis A","RUQ pain ± jaundice",["RUQ pain after fatty meal","Jaundice (yellow eyes/face)","Often children for Hep A"],[],["Hep A: ↑ fluids, no fats/oils, 6 small meals, liver support (Hepa Mix / Hepaticum ⚠)"],"Cholecystitis → surgeon. Jaundice → LFT + pediatrician.")
+ ]},
+
+{topic:"otc-diarrhea",
+ dd:[["After sweets/binge, lactose intolerance","Osmotic diarrhea"],["After antibiotic (penicillin / macrolide)","Drug-induced diarrhea"]],
+ notes:["Diarrhea = more than 3 stools/day. Tenesmus = painful incomplete evacuation (patients: 'تقل/تعانية').","Amoeba risk: unwashed vegetables/fruit, street ful-cart salad, grape season.","Only diarrhea not better in 2–3 days → refer (don't keep switching drugs: a rectal cancer case)."],
+ rx:[
+ RX("rx-dia-amoeba","Amoebiasis","Diarrhea + tenesmus",["Diarrhea","Tenesmus (painful incomplete evacuation)","Ate unwashed veg/fruit, street ful, grapes"],
+  [["Secnidazole / Tinidazole (Fasigyn) ⚠","Tab","VEGETATIVE (first time): 2 g once","Antiprotozoal"],["Secnidazole / Tinidazole ⚠","Tab","CYST (recurrent) or unsure: 2 g/day × 3 d","Cyst course also covers vegetative"]],
+  ["First episode ≈ vegetative; recurrent ≈ cyst; stool analysis if possible","Wash vegetables and fruit well"],""),
+ RX("rx-dia-drug","Antibiotic-induced diarrhea","Diarrhea after penicillin / macrolide / clindamycin",["Diarrhea started days after antibiotic","Original infection improved"],
+  [["Stop OR switch antibiotic (e.g. cephalosporin)","—","—","Cause"],["Lactiol Forte (probiotic)","Sachet/cap","1–2 once daily","Restore flora"]],["No need to switch if course is ending (e.g. azithromycin 3 d)"],""),
+ RX("rx-dia-ge","Gastroenteritis","Diarrhea + fever + vomiting + abdominal pain",["Diarrhea","Fever","Vomiting","Cramps"],[["See Gastroenteritis card (abdominal pain topic)","—","",""]],["Mostly viral"],""),
+ RX("rx-dia-osmotic","Osmotic diarrhea","After lots of sweets / lactose",["Watery diarrhea after wedding buffet / gym cheat day / milk (lactose intolerance)"],[["ORS / plenty of fluids","—","",""]],["Self-limited (2–3 days)","Stop the trigger (sweets or milk)"],""),
+ RX("rx-dia-travel","Traveler's diarrhea","Diarrhea after travel / new city",["Started after moving to a new place"],[["Gastrobiotic ⚠ identity/dose","Tab","1×3 × 3 d ⚠ verify",""]],["Fluids"],""),
+ RX("rx-dia-ibs","IBS (diarrhea-predominant)","Diarrhea + distention + colic",["Diarrhea","Bloating","Colic"],[["See IBS card","—","Different drug from the failed one",""]],[],""),
+ RX("rx-dia-dm","Diabetic diarrhea","Watery diarrhea in long-standing diabetic",["Watery diarrhea","DM many years","Often tingling in feet (neuropathy)"],[["Imodium (Loperamide)","Tab","Per episode","Slows gut motility"]],["Control blood glucose first","Do NOT use antiseptics (Antinal etc.) — not infectious"],""),
+ RX("rx-dia-only","Diarrhea only","No other symptoms",["Diarrhea only"],[["Intestinal antiseptic / loperamide","Tab","2–3 days",""],["ORS","Sachet","After each stool",""]],[],"Not better after 2–3 days → STOP and refer")
+ ]},
+
+{topic:"otc-constipation",
+ notes:["Constipation = <3 stools/week or >3 days without stool, unless that is his normal. Acute <3 weeks, chronic >3 months.","Constipation causes hemorrhoids and hemorrhoids cause constipation (vicious circle).","Hemorrhoid grade 3–4 = surgery; even grade 1–2 advise surgeon (patients are shy)."],
+ rx:[
+ RX("rx-con-hem","Hemorrhoids (grade 1–2)","Chronic constipation + rectal pain + itching + prolapse",["Chronic constipation","Rectal pain (patient: 'وجع في الخاتم')","Itching","Something comes out of anus"],
+  [["Laxative (Minalax / bisacodyl) ⚠","Tab","2 tabs at night","#1: treat the constipation"],["Hemorrhoid ointment (Procto-4)","Ointment","1×3 or at toilet",""],["Daflon (Diosmin)","Tab","1×2 × 10 d ⚠","Venotonic"],["Brufen","Tab","PRN pain",""]],
+  ["Grade 3–4 → surgery"],"Advise surgeon visit early"),
+ RX("rx-con-iron","Drug-induced (iron)","Constipation after iron tablets",["Started iron for anemia"],
+  [["Iron AFTER meals","—","",""],["Minalax-type laxative","Tab","2 at night",""]],["Drink plenty of water, move, fruit + vegetables, salad"],""),
+ RX("rx-con-life","Elderly / lifestyle","Chronic, no movement, low fiber",["Chronic constipation","Sedentary, retired","Little fruit/veg"],
+  [["Lactulose (Duphalac)","Syrup","15–30 ml once",""],["Bran tablets (if no syrup)","Tab","Per label",""]],["Move more, fluids, fiber"],""),
+ RX("rx-con-ibs","IBS-constipation","Constipation + distention + abdominal pain",["Constipation","Distention","Abdominal pain"],[["See IBS card (Gast-Reg etc.)","—","",""]],[],""),
+ RX("rx-con-io","INTESTINAL OBSTRUCTION","Constipation + vomiting + no flatus",["Vomiting","No stool","No gas"],[],["No laxative, no antiemetic"],"REFER at once",true),
+ RX("rx-con-only","Constipation only","Nothing else",["No stool >3 days","No other symptoms"],[["Minalax or glycerin suppository ⚠","—","× 3 d",""]],[],"No improvement → GI doctor")
+ ]},
+
+{topic:"otc-fever",
+ notes:["Fever = infection until proven otherwise — but NOT always bacterial. Don't give reflex ceftriaxone / antibiotic to every fever (viral EBV case: 3 antibiotics, no response).","Fever >3 days with no localizing symptom = fever of unknown origin → refer."],
+ rx:[
+ RX("rx-fev-cold","Common cold with fever","Fever + fatigue + runny nose",["Fever","Body ache / fatigue","Rhinorrhea"],
+  [["Voltaren amp ⚠ (single, no Dexa)","Amp","Once, only if NEW high fever + body ache","Then cold drug"],["Cold tablets (Antiflu etc.)","Tab","1×4 / per label","By dominant symptom"]],[],""),
+ RX("rx-fev-abscess","Abscess / boil","Fever + painful red swelling",["Painful red swelling (boil)","± fever","May be hidden under clothes — ask!"],
+  [["Cefadroxil (Duricef / Curisafe)","Tab/Cap","Per label × 5–7 d","Oral anti-staph"],["Fucidin (Fusidic acid)","Ointment","1×3","Topical"],["Brufen 400","Tab","PRN","Pain/fever"],["Trypsin (Alphintern) / Ambezim ⚠","Tab","PRN","Swelling"],["Warm compress","—","Morning & evening","Very important"]],
+  ["Small boil, no fever: topical + compress only","Big but not ripe: compress 2–3 d; improving = continue"],"Pus-filled / ripe, ON FACE, or DIABETIC → surgeon now. Not improving in 2–3 d → surgeon."),
+ RX("rx-fev-teeth","Teething (≈6 months)","Fever + red swollen gums in infant",["Infant ~6 months","Fever","Red swollen gums","Crying, drooling"],
+  [["Cetal / Brufen / Dolphin (antipyretic, by weight)","Syrup/supp","Per pediatric table",""],["Dentinox teething gel","Gel","On gums 5–6×/day after feeds",""]],["Reassure the mother: normal with teething"],""),
+ RX("rx-fev-only","Fever only","No other symptoms",["Fever alone"],[["Paracetamol (Panadol / Cetal) or Brufen","Tab/Syrup","Per dose table",""],["Cold compress","—","",""]],["Follow up for 2 days; new symptom → re-diagnose"],"Still fever after 3 days with no other symptom = FUO → refer"),
+ RX("rx-fev-uti","UTI / Otitis media","Fever + burning urine, or ear pain",["Burning urine ± flank pain","Ear pain after cold"],[["See Renal/UTI card; Ear → Otitis media card","—","",""]],[],""),
+ RX("rx-fev-resp","Respiratory infection","Fever + cough + fast breathing",["Fever","Cough","Fast breathing (>20/min adult)"],[],["Assess severity; differential comes in the cough chapter"],"Fast breathing / child → refer")
+ ]},
+
+{topic:"otc-headache",
+ notes:["Order of likelihood: ANEMIA, EYE PROBLEM, HYPERTENSION → explain ~6–8 of every 10 headaches. Ask these first.","Also always ask: cold symptoms, last bowel movement, new drugs.","Panadol Sinus = paracetamol + pseudoephedrine (decongestant + analgesic).","Otrivin nasal drops ≤5 days — rebound congestion and loss of smell if longer. No pregnancy / no <6 months → baby saline."],
+ red:["ER first: headache + very high fever / stiff neck / persistent vomiting / loss of consciousness / seizures / sudden thunderclap / worst of life."],
+ rx:[
+ RX("rx-hd-anemia","Anemia","Headache + pale + orthostatic dizziness",["Pale (check inner lower eyelid: white not red)","Dizzy/blurred vision when standing up","Headache"],
+  [["CBC (blood picture)","—","Find the TYPE first",""],["Iron (Ferroglobin etc.) if IRON-deficiency","Cap/Tab","1–2 before meal with vitamin C",""],["Folic acid / B12 if those are low","—","Per label",""]],["Treat the CAUSE: menses >7 days/heavy (gynecologist), worms, malnutrition, GI bleeding","Iron alone without fixing the cause never cures"],"Refer to find the cause"),
+ RX("rx-hd-eye","Refractive error","Headache worse with visual strain, better with rest",["Worse with phone/study/screen","Better with rest","Cannot read distant text / TV subtitles"],[],["Eye doctor, glasses (or update the old prescription)"],"No drug — glasses"),
+ RX("rx-hd-htn","Hypertension","Occipital headache + high BP",["Back-of-head headache","BP >140"],[["Antihypertensive per doctor","—","",""]],["Measure BP in every headache"],"BP >180 → urgent medical care"),
+ RX("rx-hd-hypo","Hypoglycemia","Fasting / before iftar",["Headache while fasting or skipped meal"],[["Sugary drink / juice, then eat","—","",""]],[],""),
+ RX("rx-hd-sinus-v","Sinusitis — viral (≈90%)","Facial pain ↑ bending forward + nasal symptoms < 10 days",["Pain over sinuses ↑ bending forward","Blocked nose, discharge","Post-nasal drip","Less than 10 days"],
+  [["Panadol Sinus","Tab","1×3",""],["Otrivin nasal drops (adult)","Drops","2 drops each nostril ×3 × MAX 5 d","If severe congestion"]],["Rest + warm fluids"],""),
+ RX("rx-hd-sinus-b","Sinusitis — bacterial","More than 10 days, or new fever",["More than 10 days","Fever","Same sinus pain"],[["Panadol Sinus","Tab","1×3",""],["Augmentin / Zisrocin (gram +)","Tab","Per label",""],["Otrivin drops","Drops","≤5 d",""]],[],""),
+ RX("rx-hd-sinus-a","Sinusitis — allergic","Sneezing + tearing, triggered by dust/smoke",["Sneezing","Watery eyes","Triggers: smoke, dust, smell"],[["Decongestal-type (decongestant + antihistamine) ⚠","Tab","Per label",""],["Analgesic (Brufen / Panadol)","Tab","PRN",""]],["Often chronic and on steroid nasal spray"],""),
+ RX("rx-hd-dental","Dental abscess","Headache + jaw swelling + toothache",["Swollen face/jaw","Tooth pain"],[["Dentist: drain + anaerobe antibiotic (Dalacin / Flagyl) + mouthwash + Brufen","—","",""]],[],"Refer to dentist FIRST (needs drainage)"),
+ RX("rx-hd-neck","Neck muscle spasm","Headache + neck pain/stiffness, wrong sleep position",["Stiff painful neck, limited movement","Occipital headache"],[["Algason / gel","Cream","Morning & evening",""],["Myofen / Mylogen / Dimra ⚠","Tab","1×3",""],["Norflex","Amp","If severe",""]],[],""),
+ RX("rx-hd-drug","Drug-induced headache","Headache after a drug",["After nitrates (Dinitra), sildenafil (Viagra), or birth-control pill"],[["Painkiller (Panadol / Cataflam) with the drug","Tab","With the dose",""]],["Nitrates: headache only in first ~week","Pill: gynecologist changes it (or injection)"],""),
+ RX("rx-hd-migraine","Migraine","Throbbing, ONE side, severe, nausea / light–sound sensitivity",["Pulsating, one side","Severe — stops normal life","Nausea/vomiting OR light/sound sensitivity","Attack 4 h – 3 days","Other causes excluded"],
+  [["Voltaren amp + Dexa amp ⚠ (clinic only)","Amp","Once, severe attack","Field practice, verify"],["Known migraine: his triptan (No-Migrain / Zomig / Imigran)","Tab","At onset; repeat per label ⚠",""],["Inderal 10 (Propranolol)","Tab","Daily if >4 attacks/month","Prophylaxis"],["Antiemetic if nausea","Tab","",""]],["Avoid triggers: bright light, loud sound"],""),
+ RX("rx-hd-tension","Tension headache","Tight band around head, stress",["Band-like pressure","Stress, poor sleep","± neck pain"],[["Panadol / Brufen","Tab","Take EARLY, per label",""],["Myofen / Mylogen / Dimra ⚠","Tab","If neck pain too",""]],["Reduce stress; take the tablet at the start, not when it peaks"],""),
+ RX("rx-hd-cluster","Cluster headache","ONE eye: tearing + runny nostril, wakes at night, man 30–40s",["Severe pain behind one eye","Tearing, red eye, same-side runny nose","Wakes patient from sleep","Man, late 30s–early 40s"],[["100% oxygen 15 min (hospital)","—","",""],["Sumatriptan injection — medical supervision only","Amp","Not OTC",""]],["Ordinary analgesics do NOT work — don't dispense them"],"Refer to hospital / neurologist"),
+ RX("rx-hd-cold","Common cold","Headache + cold symptoms",["Runny nose, sore throat, body ache"],[["See cold treatment","—","",""]],["Ask for cold symptoms in every headache"],""),
+ RX("rx-hd-const","Constipation headache","Headache + days without stool",["Headache started with constipation","Relieved after defecation"],[["Laxative (Minalax / lactulose)","—","",""]],["Treat the constipation, NOT the headache"],""),
+ RX("rx-hd-only","Headache only","Nothing else found",["Headache alone"],[["Any analgesic (Panadol / Brufen)","Tab","1–2 days",""]],[],"Not better → neurologist (wider differential)")
+ ]}
+];
+OTC_PATCH.push(
+{topic:"otc-tinea",
+ dd:[["Round hairless scaly patch, child","Tinea capitis"],["Back/chest/shoulders adult, patches","Tinea versicolor"],["Face of a young child, white patches","Pityriasis alba (NOT tinea)"],["Groin, sharp raised edge + itch","Tinea cruris"],["Groin, blurred edge + burning/pain","Intertrigo (chafing, 'تسلخات')"]],
+ notes:["RULE: hair or nails → local + systemic ALWAYS. Body skin: mild = local only (most cases); extensive / new / failed local / recurrent = local + systemic.","Terbinafine is preferred: 1 week only. Azoles (Daktarin, Canesten) work but need ≥2 weeks.","NEVER give Kenacomb (steroid combo) for tinea: the itch fades, immunity falls, the fungus stays. The steroid-combo is for chafing/ear cases only (per lecture) ⚠ verify.","Patients call groin tinea 'تسلخات'. Tell them apart: tinea = drawn raised edge + ITCH; intertrigo = blurred edge + BURNING pain, patient walks legs apart.","Terbinafine: Lamisil / Lamifen / Terbin. Azole tabs: Itranox, Diflucan."],
+ rx:[
+ RX("rx-tin-pedis","Tinea pedis (athlete's foot)","Maceration + itch + bad odor between toes (4th–5th)",["Skin between toes white/soggy (maceration)","Itching","Bad odor","Sweaty feet, wet shoes/socks, low immunity"],
+  [["Terbinafine cream (Lamisil / Lamifen / Terbin)","Cream","1–2×/day × 1 week","Preferred"],["or Daktarin / Canesten cream","Cream","1×2 × ≥2 wk","Azole alternative"],["Antifungal powder (Evafoot / Fine Foot)","Powder","In socks/shoes + between toes after the cream","Prevention only — not a treatment"],["Systemic (Lamisil tab / Diflucan) ⚠","Tab","Only if severe or failed local",""]],
+  ["Dry feet well (own towel) after wudu / shower / toilet","Cotton socks, open shoes/sandals; don't wear closed shoes 16–18 h","Powder alone is OK as prevention when there is no infection now"],""),
+ RX("rx-tin-vers","Tinea versicolor","Patches on chest / back / shoulders (adult)",["Patches different colour from skin","Chest, back, shoulders","Adult (not face of a child)"],
+  [["Ketoconazole shampoo (Nizoral / Nizapex)","Shampoo","Apply, leave 5 min, rinse — daily","FIRST (area is large)"],["Antifungal cream","Cream","1×2 after shampoo × 1–2 wk",""],["Systemic ⚠","Tab","Only if severe / not responding",""]],
+  ["Avoid sun — it makes it worse","Wash towels & sheets in hot water, dry the area well"],""),
+ RX("rx-tin-alba","Pityriasis alba (looks like versicolor)","White patches on FACE of a young child",["White dry patches on face","Child"],
+  [["Panthenol cream (moisturizer)","Cream","3×/day","No antifungal"]],["Rule: face + child = alba; back/chest/shoulders + adult = versicolor"],""),
+ RX("rx-tin-corp","Tinea corporis (body)","Round patch with raised, well-defined edge",["Circular patch","Raised drawn border","Itching","Contagious (touch / shared clothes)"],
+  [["Antifungal shampoo (wash)","Shampoo","Once daily × 2–4 wk",""],["Antifungal ointment (e.g. Canesten / Lamisil)","Ointment","1×2 × 2–4 wk",""],["Add systemic (Lamisil / Diflucan) ⚠","Tab","If no response after 2 weeks",""]],["Don't share clothes/towels"],""),
+ RX("rx-tin-cruris","Tinea cruris","Groin — drawn raised edge + ITCH",["Groin / inner thigh","Sharp raised edge","Itch (not pain)"],
+  [["Terbinafine ointment (Lamisil / Terbin)","Ointment","1×2 × 1 wk",""],["Systemic (same drug as tablet) ⚠","Tab","If no response / extensive",""]],["Dry well after bath/toilet, cotton underwear, reduce sweating","Do NOT use Kenacomb"],""),
+ RX("rx-tin-inter","Intertrigo / chafing (patients: 'تسلخات')","Blurred edge + BURNING / PAIN, from friction",["Edge not defined, level with skin","Pain + burning (not itch)","Walks legs apart","Friction between skin folds"],
+  [["Zinc-Olive (zinc oxide)","Cream","Several times/day","Barrier"],["Sudocrem","Cream","Stronger option","If severe"]],["Keep dry, cotton clothes"],""),
+ RX("rx-tin-cap","Tinea capitis (scalp)","Round hairless scaly patch — child",["Round area with no hair","White scales","More in children"],
+  [["Nizoral shampoo","Shampoo","3×/week, leave 5–10 min then rinse","LOCAL (always)"],["Terbinafine tablets (Lamisil / Lamifen)","Tab","1×1 daily × 4–6 wk ⚠ verify (lecture also said 2–4)","SYSTEMIC (always)"],["Child can't swallow: Griseofulvin syrup (Grisovin)","Syrup","Per weight × 8–12 wk ⚠","Terbinafine has no syrup"]],["Both local + systemic together are mandatory"],""),
+ RX("rx-tin-nail","Onychomycosis (nails)","Thick, yellow, split nail",["Nail thick + yellow","Cracks / split","Hands or feet"],
+  [["Terbinafine tab","Tab","1×1 daily: fingers 6 wk / toes 12 wk ⚠","SYSTEMIC"],["Loceryl (Amorolfine) nail lacquer","Lacquer","1–2×/week ⚠ lecture inconsistent; fingers 6 mo / toes 9 mo","LOCAL"],["Cheaper nail lacquer alternative ⚠","Lacquer","Per label",""]],["Creams do NOT reach the nail — use lacquer","Keep away from water, dry well"],"Best: dermatologist (LFT + KFT before systemic, long course)")
+ ]},
+
+{topic:"otc-foot",
+ notes:["Fish-eye / plantar wart = viral wart: incubation up to ~6 months, contagious. Don't share bathroom slippers.","Varicose: imported compression stockings are better than local ones."],
+ rx:[
+ RX("rx-foot-tinea","Tinea pedis","See Tinea card",["Maceration + itch + odor between toes"],[["See Tinea pedis card","—","",""]],[],""),
+ RX("rx-foot-gout","Gout","Acute red, hot, swollen big toe joint",["Big toe joint","Redness, heat, swelling, pain (acute)"],
+  [["Colchicine","Tab","1×3 before meal","Acute attack"],["Zyloric (Allopurinol)","Tab","100–900 mg/day (between attacks)","Prevention — only AFTER uric acid test"]],["Cut protein: meat, poultry","Uric acid test in blood"],"Refer for uric acid level"),
+ RX("rx-foot-wart","Plantar wart ('fish eye')","Feels like stepping on a nail",["Painful spot under foot","Feels like a nail","Small black dots"],
+  [["Clomac (keratolytic) ⚠","Solution","Daily on the wart until gone",""]],["Don't share slippers/bathroom","Contagious"],"Dermatology: cryotherapy / removal"),
+ RX("rx-foot-varic","Varicose veins","Dilated veins, heavy painful legs from long standing",["Prominent twisted veins","Pain after long standing","Barber, cook, officer, pharmacist"],
+  [["Daflon (Diosmin)","Tab","1×2 × 6 months","Venotonic"],["Compression stockings (knee or thigh)","—","Wear when standing","Imported better"]],["Reduce standing; sit and raise legs"],"Not improving → vascular surgeon (Doppler)"),
+ RX("rx-foot-only","Leg pain only","After walking a lot",["Leg pain only"],[["Analgesic","Tab","1–2 days",""]],[],"Persistent → refer")
+ ]},
+
+{topic:"otc-oral",
+ notes:["Cracked lips + nail-biting + gum bleeding: lecture calls it vitamin C deficiency/scurvy. Also consider iron / B-vitamin deficiency and dryness ⚠.","Aphthous ulcer: lecture file gives antifungal gels (Daktarin, Miconaz, Oracure) + lidocaine spray; the 3-step table above (dexamethasone trick) is also in the course."],
+ rx:[
+ RX("rx-oral-herpes","Herpes labialis","Vesicles on ONE half of the lip",["Fluid-filled blisters on one side of lip","'Heat/burning' in lip","After cold / stress / low immunity (brides)"],
+  [["Acyclovir ointment (Zovirax)","Ointment","5×/day × 5 days",""],["or Acyclovir tablets","Tab","Per dose table",""],["Antihistamine / antibiotic","—","Only if itch / pus",""]],["Self-limited 6–7 days","Protect immunity"],""),
+ RX("rx-oral-thrush","Oral thrush (infant)","White cheesy patches in mouth",["White patches in baby's mouth","Breast/bottle-fed infant"],
+  [["Nystatin drops","Drops","By age/weight table",""]],["Clean baby's mouth with sterile gauze after each feed"],""),
+ RX("rx-oral-ulcer","Aphthous ulcer","Painful mouth ulcer",["Painful sore inside mouth / tongue"],
+  [["Daktarin oral gel / Miconaz oral gel / Oracure gel","Gel","On ulcer 3–4×/day (lecture)",""],["Lidocaine spray","Spray","Before meals ⚠","Pain relief"],["Dexamethasone ampoule dab","—","1 min on cotton, repeat","Course trick (see table)"]],["Stress and vitamins may play a role"],""),
+ RX("rx-oral-lips","Cracked, dry lips","Chapped lips + nail biting ± gum bleeding",["Dry cracked peeling lips","Bites nails","Gums bleed"],
+  [["Vitamin C (Vita C effervescent / C-Retard)","Tab","1/day","Treat the cause"],["Fucidin ointment","Ointment","On lips 2–3×/day","Antibiotic + moisturizer"]],["Not just cocoa butter — treat the deficiency"],"")
+ ]},
+
+{topic:"otc-ear",
+ notes:["Otitis media: pain starts AFTER a cold. Otitis externa: pain INCREASES WITH CHEWING (tell him not to chew gum). Ask the patient to chew to separate them.","Local ear drops don't reach the middle ear unless eardrum is perforated — otitis media is usually viral and treated at the nose ⚠.","Kenacomb (steroid) is allowed for otitis externa / otomycosis per lecture; never for tinea."],
+ rx:[
+ RX("rx-ear-media","Otitis media","Ear pain AFTER a cold",["Ear pain 3–4 days after cold","Child hits his ear","Hearing slightly reduced"],
+  [["Otrivin nasal drops (adult)","Drops","2 drops each nostril ×3 × MAX 5 d","Open Eustachian tube"],["Cold tablet with pseudoephedrine","Tab","Per label","Decongestant"],["Otal ear drops ⚠","Drops","4×4 (existing course dose)","Only if bacterial/perforated"]],["Chew gum — helps drain","Usually viral: treat the cause (congestion)"],""),
+ RX("rx-ear-ext","Otitis externa","Pain INCREASES when chewing",["Red swollen ear canal","Pain on chewing or touching the ear"],
+  [["Viotic / Otal (antibiotic + steroid) drops","Drops","3×2×7 (existing dose)",""],["Fucicort / Kenacomb ⚠","Cream","Locally",""],["Systemic antibiotic","Tab","If severe",""]],["Do NOT chew gum"],""),
+ RX("rx-ear-wax","Wax impaction","Gradual hearing loss, no pain",["Hearing slowly reduced","No pain"],[["Remowax / Remox drops","Drops","3×3×3 (3 drops, 3×/day, 3 days)",""]],[],"Not better after 2–3 days → ENT for syringing"),
+ RX("rx-ear-myc","Otomycosis (fungal)","Intense itching + white scaling",["Very itchy ear","White scales, swelling"],
+  [["Batrafen drops ⚠","Drops","1×2",""],["Kenacomb / Maxiderm / Dacta-cort ⚠","Cream","Locally",""],["Systemic antifungal","Tab","Per antifungal chapter",""]],[],"")
+ ]},
+
+{topic:"otc-eye",
+ rx:[
+ RX("rx-eye-bact","Bacterial conjunctivitis / stye","Discharge, swelling, growing painful red bump",["Pus discharge (غمص)","Swollen painful eyelid","Bump gets bigger each day","Redness + heat"],
+  [["Tobrex (Tobramycin) drops","Drops","2×4–6 ⚠","Or Vigamox (Moxifloxacin) / Zymar (Gatifloxacin)"],["Tobrex ointment","Ointment","At BEDTIME","Longer effect"],["Warm moist compress","—","Several times daily","↑ blood flow / immunity"]],["Compress: warm wet cloth. NEVER press a hot iron on the eye"],"Not better in 2–3 days → ophthalmologist (surgical drainage)"),
+ RX("rx-eye-chal","Chalazion (cyst)","Painless stable lump, NO redness/heat",["Lump on lid","No redness, no heat","Not growing"],[],[],"Ophthalmologist removes it (surgical)"),
+ RX("rx-eye-allergy","Allergic / viral conjunctivitis","Itch + tearing + redness, NO discharge",["Itching","Tearing","Red eye","No discharge"],
+  [["Tri-Allerg / Naphcon A drops","Drops","2×3–4 ⚠","Same treatment for allergic AND viral"]],[],""),
+ RX("rx-eye-dry","Dry eye","Feels the blink / gritty / discomfort",["Eye discomfort","Feels the lid moving","Sun/heat/screens/poor sleep/ICU"],
+  [["Hi-Fresh / Refresh / Systane (artificial tears)","Drops","3–4×/day","Also add in infections"]],[],""),
+ RX("rx-eye-fb","Foreign body / Glaucoma","Something entered the eye / severe pain + halos",["Foreign body (metal, glass…)","Acute severe eye pain"],[],["First aid only: rinse with running water ~5 min, do not rub"],"REFER ophthalmology at once (exam, ulcer risk)",true)
+ ]},
+
+{topic:"otc-back",
+ notes:["Sciatica: lying down, straight leg raise 45–60° → electric shock/tingling = positive.","Sciatica: pure muscle relaxant (WITHOUT analgesic) + strong analgesic separately — Dimra/Myofen already contain an analgesic (double dose).","Back pain is NOT disease: find the cause (spasm, kidney/UTI, sciatica) and treat that."],
+ red:["Back pain + leg weakness or loss of bladder/bowel control → urgent referral."],
+ rx:[
+ RX("rx-back-spasm","Muscle spasm","After exertion / heavy lifting / wrong posture",["Back pain after effort","Worse with movement"],
+  [["Algason / local gel","Gel/cream","Morning & evening",""],["Myofen / Mylogen / Dimra ⚠ (relaxant + analgesic)","Tab","1×3","Oral"],["Norflex","Amp","Once if severe (until relaxant works)",""],["Warm compress","—","Morning & evening",""]],["Move gently"],""),
+ RX("rx-back-kidney","Kidney stone / UTI","Back + flank pain ± burning urine",["Flank pain","Burning urine","Mild fever"],[["See Renal stone / UTI card","—","",""]],[],"Fever / vomiting → refer"),
+ RX("rx-back-sciatica","Sciatica","Back pain with leg electric / tingling",["Back pain radiating down leg","Tingling, pins & needles","Positive straight-leg raise"],
+  [["Brufen 600 / Cataflam 50 (strong analgesic) ⚠","Tab","1×2 after food ⚠ verify",""],["Pure muscle relaxant (Relaxon / Mydocalm) ⚠","Tab","Per label — NOT Dimra/Myofen",""],["Neurobion / Neuroton (nerve vitamin)","Tab","1×3",""],["Lyrica (course alt.) ⚠","Cap","Max 300 mg/day","Per course table"]],["Take for 3–5 days","Keep gently moving; don't rest completely in bed","This is symptomatic only"],"Refer to orthopedic / neuro to find the cause (disc, vertebrae)"),
+ RX("rx-back-only","Back pain only","No other symptoms",["Back pain alone"],[["Relaxant + warm compress","—","3 days",""]],[],"Not better in 3 days → refer")
+ ]},
+
+{topic:"otc-vaginitis",isNew:true,t:"Vaginal Discharge (Vaginitis)",
+ ar:"الإفرازات المهبلية 4 احتمالات بس: Bacterial vaginosis / Candida / Trichomonas / Chlamydia. الرائحة والقوام والهرش بيفرقوا بينهم، والعلاج بيتغير حسب متجوزة/حامل.",
+ dd:[["Thin grey-white + FISHY odor, no itch","Bacterial vaginosis"],["Thick white curd + intense itch, no odor","Candida"],["Frothy yellow-green + foul (not fishy) odor ± itch","Trichomonas"],["Thick/yellow, no itch, unsafe intercourse","Chlamydia"],["Clear mucus, no odor, ↑ ovulation/intercourse","Normal discharge — no treatment"]],
+ management:[],
+ steps:["Ask: married? pregnant? last period? recent intercourse?","Married + pregnant → LOCAL only (avoid systemic)","Not married → SYSTEMIC only (no vaginal products)","Married, not pregnant → systemic or local by severity; both if severe","STD (trichomonas, chlamydia) → treat the HUSBAND too"],
+ redFlags:["Bad odor + pelvic pain / fever / bleeding → refer to gynecologist"],
+ notes:["Bacterial vaginosis (anaerobes, 10–25% of women): risk = alkaline medium: right after menses, frequent intercourse, over-douching. Honeymoon!","Candida: low immunity, diabetes, pregnancy, long antibiotic use, pre-menstrual (acidic).","Alkaline-loving: BV + Trichomonas. Acid-loving: Candida.","Chlamydia: standard first line is doxycycline 100 mg 1×2×7 (azithromycin 1 g alternative) ⚠ lecture used azithromycin.","Routine partner treatment is not standard for BV ⚠ — lecture treats for STDs."],
+ rx:[
+ RX("rx-vag-bv","Bacterial vaginosis","Fishy-smelling thin grey-white discharge",["Thin grey-white discharge","FISHY odor (also after intercourse/menses)","No itching","Risk: after period, frequent intercourse, douching"],
+  [["Flagyl (Metronidazole) 500","Tab","1×2×7","Systemic (not-married or severe)"],["Metronidazole vaginal tab / cream","Vaginal","1 tab nightly × 5 d / cream × 7 d","Local (pregnant)"],["Acidic vaginal wash (douche)","Wash","Daily","Lower pH"]],["Pregnant + married → local only","Not married → systemic only"],""),
+ RX("rx-vag-can","Candida (vaginal)","Thick white curd + itch",["Thick white 'cheese' discharge","INTENSE itching","No bad odor","Diabetes / pregnancy / antibiotics / low immunity"],
+  [["Fluconazole 150 (Diflucan)","Cap","Single dose","Systemic"],["Gyno-type clotrimazole suppository","Vaginal","1 nightly × 3 d","Local"],["Canesten cream","Cream","Daily × 3 d","Local"],["Vaginal wash (baking-soda/alkaline) ⚠","Wash","Daily","Candida likes acid"]],["Married + pregnant → local only","Not married → systemic only"],""),
+ RX("rx-vag-tri","Trichomonas","Frothy foul discharge — sexually transmitted",["Frothy yellow-green discharge","Bad odor (not fishy)","Itching","Unsafe intercourse"],
+  [["Metronidazole 500","Tab","1×2×7","Or Fasigyn (Tinidazole) 2 g single"],["Same for HUSBAND","Tab","Same course","Both partners"],["Acidic vaginal wash","Wash","Daily","Wife only"]],["Treat BOTH partners or it recurs"],""),
+ RX("rx-vag-chl","Chlamydia","Thick yellowish discharge, NO itch — sexually transmitted",["Yellowish discharge","No itching","Unsafe intercourse"],
+  [["Zisrocin (Azithromycin) 500 — 1 g single ⚠","Tab","2 tabs once, wife AND husband",""],["Doxycycline 100 ⚠ standard first line","Cap","1×2×7","Verify with doctor"]],["Treat both partners"],"")
+ ]}
+);
+/* Antihyperlipidemic chapter (new, separate) */
+const LIPID_CHAPTER = {id:"antihyperlipidemic",name:"Antihyperlipidemic Drugs",color:"#f5b942",type:"drug",
+ tables:[
+  {title:"🧪 Lipid Profile — what to read",cols:["Test","Normal","Borderline","High risk"],rows:[
+   ["Total cholesterol","< 200","200 – 239","≥ 240"],
+   ["Triglycerides (TG)","< 150","150 – 199","≥ 200 high · ≥ 500 very high (lecture said >300)"],
+   ["HDL (good)","> 60","35 – 45 (lecture)","< 35 (standard: <40 M / <50 F)"],
+   ["LDL (bad)","60 – 130 (lecture) · optimal <100","130 – 159","≥ 160"]
+  ]},
+  {title:"🗂️ 5 families + the new one — quick map",cols:["Family","Mechanism","Main agents","Dose / form"],rows:[
+   ["Statins ★ (cornerstone)","Block HMG-CoA reductase → ↓ cholesterol synthesis","Atorvastatin · Rosuvastatin · Simvastatin · Pravastatin · Fluvastatin","10 / 20 / 40 mg · 1 tab at NIGHT · NOT in pregnancy"],
+   ["Cholesterol absorption inhibitor","Block intestinal absorption","Ezetimibe","10 mg once daily · combos with statin"],
+   ["Fibrates","Activate lipoprotein lipase → ↓ TG (use in HIGH TG)","Fenofibrate · Gemfibrozil","Once daily"],
+   ["Bile-acid sequestrants","Bind bile salts, ↑ fecal loss (rarely used)","Cholestyramine","1 sachet 1–2×/day"],
+   ["Others (adjuncts)","↑ HDL, ↓ LDL & TG","Niacin (B3) · Fish oil (Omega-3) · Garlic extract","1–2 caps/day · garlic tab 2–3×/day"],
+   ["PCSK9 inhibitors (NEW)","Antibodies; block PCSK9 so LDL receptors survive → clear more LDL","Evolocumab · Alirocumab","Injection SC every 2 weeks · fridge · expensive"]
+  ]},
+  {title:"❄️ PCSK9 injections — know 3 things",cols:["Point","Detail"],rows:[
+   ["Names","Repatha (evolocumab) · Praluent (alirocumab) — Praluent is the more popular one"],
+   ["Cost","VERY expensive"],
+   ["Storage / use","Fridge drug. Take it out 20 min before injecting (cold injection hurts). SC every 2 weeks"]
+  ]}
+ ],
+ blocks:[
+  {id:"lip-sum",type:"summary",title:"Exam trio",items:["Top 3 cholesterol drugs: Ator (Atorvastatin) → Lipitor → Crestor (Rosuvastatin). Know them by heart.","Statins: all 10/20/40 mg, 1 tablet at night, pregnancy category X (forbidden).","Injection brand names (Repatha / Praluent) are enough for interviews: expensive, fridge, SC every 2 weeks."]},
+  {id:"lip-notes",type:"notes",items:["Adjuncts (Omega-3, garlic, niacin) are written as add-on in cholesterol, hypertension and atherosclerosis prescriptions — never as the only drug.","Ezetimibe is sold more as a COMBINATION with simvastatin (Inegy 10/10…); the combo is also taken once daily in the evening.","Statin + Gemfibrozil → higher myopathy/rhabdomyolysis risk ⚠ (standard).","Monitoring ⚠ (standard): baseline LFT, CK if muscle pain, lipid panel 6–12 weeks after starting.","Statin names end with '-statin' — that is how you recognise the family."]},
+  {id:"lip-warn",type:"warnings",items:["Statins: contraindicated in pregnancy (category X per lecture).","Cholestyramine: take other drugs 1 h before or 4 h after ⚠ (standard).","PCSK9 injection: keep refrigerated; wait 20 minutes before injecting."]}
+ ],
+ drugs:[
+  {group:"Statins",g:"Atorvastatin",info:"Statin • HMG-CoA reductase inhibitor • 10 / 20 / 40 mg • 1 tab at night • Pregnancy X • ★ #1 and #2 (Ator, Lipitor)",brands:["Ator","Atorstat","Lipitor","Lipinorm"]},
+  {group:"Statins",g:"Rosuvastatin",info:"Statin • 10 / 20 / 40 mg • 1 tab at night • Pregnancy X • ★ #3 (Crestor)",brands:["Crestor","Crestolip","Rosutor"]},
+  {group:"Statins",g:"Simvastatin",info:"Statin • 10 / 20 / 40 mg • 1 tab at night • Pregnancy X • Zocor is the key brand",brands:["Zocor","Simvastatin"]},
+  {group:"Statins",g:"Pravastatin",info:"Statin • 10 / 20 / 40 mg • 1 tab at night • Pregnancy X",brands:["Lipostat"]},
+  {group:"Statins",g:"Fluvastatin",info:"Statin • 1 tab at night • Pregnancy X • Lescol XL is the key brand",brands:["Fluvastatin","Lescol XL"]},
+  {group:"Cholesterol Absorption Inhibitor",g:"Ezetimibe",info:"Blocks intestinal cholesterol absorption • ONE strength only: 10 mg • once daily",brands:["Ezetrol","Ezetimibe"]},
+  {group:"Cholesterol Absorption Inhibitor",g:"Ezetimibe + Simvastatin",info:"Combination (10 / 10 …) • once daily in the evening • Inegy is the one to know",brands:["Inegy"]},
+  {group:"Fibrates",g:"Fenofibrate",info:"Activates lipoprotein lipase • ↓ Triglycerides • use in HIGH TG • once daily",brands:["Lipanthyl"]},
+  {group:"Fibrates",g:"Gemfibrozil",info:"Fibrate • ↓ Triglycerides • once daily • statin combination ↑ myopathy risk",brands:["Lopid"]},
+  {group:"Bile-Acid Sequestrants",g:"Cholestyramine",info:"Binds bile salts in gut → excreted in stool • 1 sachet 1–2×/day • rarely used",brands:["Cholestyramine sachets"]},
+  {group:"Others (adjuncts)",g:"Niacin (Vitamin B3)",info:"↑ HDL, ↓ LDL, ↓ TG • adjunct only",brands:[]},
+  {group:"Others (adjuncts)",g:"Fish oil (Omega-3)",info:"↑ HDL, ↓ LDL, ↓ TG • 1–2 caps once daily • adjunct only",brands:["Omega-3 Plus","Omega RX","Limitless Omega"]},
+  {group:"Others (adjuncts)",g:"Garlic extract",info:"Adjunct in cholesterol, hypertension, atherosclerosis • 1 tab 2–3×/day",brands:["Tomax Plus"]},
+  {group:"PCSK9 Inhibitors (new)",g:"Evolocumab",info:"PCSK9 monoclonal antibody • SC injection every 2 weeks • fridge • very expensive • wait 20 min before injecting",brands:["Repatha"]},
+  {group:"PCSK9 Inhibitors (new)",g:"Alirocumab",info:"PCSK9 monoclonal antibody • SC injection every 2 weeks • fridge • very expensive • the more popular injection",brands:["Praluent"]}
+ ]};
+
+/* ---------- Apply built-in content patch once (merge, never overwrite user edits) ---------- */
+function applyContentPatch(data){
+  let changed=false, done=false;
+  try{ done = localStorage.getItem('pc_patch_v2')==='1'; }catch(e){}
+  const otc = data.find(c=>c.id==='otc-approach') || data.find(c=>c.type==='otc');
+  OTC_PATCH.forEach(p=>{
+    let t=null;
+    for(const c of data){ if(c.type==='otc'){ const f=(c.topics||[]).find(x=>x.id===p.topic); if(f){ t=f; break; } } }
+    if(!t){
+      if(done || !p.isNew || !otc) return;
+      t = {id:p.topic,t:p.t,ar:p.ar||'',dd:[],management:[],redFlags:[],notes:[],tables:[]};
+      otc.topics.push(t); changed=true;
+    }
+    if(t.rxv>=2) return;
+    const cl = x=>JSON.parse(JSON.stringify(x));
+    if(!t.rx) t.rx=[];
+    (p.rx||[]).forEach(cd=>{ if(!t.rx.some(x=>x.id===cd.id)) t.rx.push(cl(cd)); });
+    if(p.steps && !(t.steps&&t.steps.length)) t.steps = cl(p.steps);
+    if(p.management && !(t.management&&t.management.length)) t.management = cl(p.management);
+    if(!t.dd) t.dd=[];
+    (p.dd||[]).forEach(r=>{ if(!t.dd.some(x=>x[0]===r[0])) t.dd.push(cl(r)); });
+    if(!t.redFlags) t.redFlags=[];
+    (p.red||p.redFlags||[]).forEach(r=>{ if(!t.redFlags.includes(r)) t.redFlags.push(r); });
+    if(!t.notes) t.notes=[];
+    (p.notes||[]).forEach(r=>{ if(!t.notes.includes(r)) t.notes.push(r); });
+    t.rxv=2; changed=true;
+  });
+  if(!done && !data.some(c=>c.id===LIPID_CHAPTER.id)){ data.push(JSON.parse(JSON.stringify(LIPID_CHAPTER))); changed=true; }
+  try{ localStorage.setItem('pc_patch_v2','1'); }catch(e){}
+  return changed;
+}
+
 /* ---------- DB: mutable working copy of DATA, persisted to localStorage ---------- */
 function loadDB(){
   let data;
@@ -1975,6 +2319,7 @@ function loadDB(){
     (c.drugs||[]).forEach(d=>{ if(!d.id){ d.id = uid(); stamped = true; } });
     (c.topics||[]).forEach(t=>{ if(!t.id){ t.id = uid(); stamped = true; } });
   });
+  try{ if(applyContentPatch(data)) stamped = true; }catch(e){ console.error(e); }
   if(stamped){ try{ localStorage.setItem('pc_db', JSON.stringify(data)); }catch(e){} }
   return data;
 }
@@ -2520,6 +2865,75 @@ function deleteTopicTable(chapterId, topicId, tIdx){
   t.tables.splice(tIdx,1); saveDB(); refreshOtcDetailIfOpen(topicId);
   showUndoToast('Deleted table');
 }
+
+/* ---------- Rx cards (prescription cards per disease) ---------- */
+function rxCardHtml(card, chapterId, topicId, i, n, ed){
+  const E = escapeHtml;
+  const ctl = ed ? `<span class="rxc-ctl" onclick="event.stopPropagation()">
+      <button ${i>0?'':'disabled'} aria-label="Move up" onclick="moveRxCard('${chapterId}','${topicId}',${i},-1)">▲</button>
+      <button ${i<n-1?'':'disabled'} aria-label="Move down" onclick="moveRxCard('${chapterId}','${topicId}',${i},1)">▼</button>
+      <button aria-label="Edit" onclick="openRxModal('${chapterId}','${topicId}',${i})">✎</button>
+      <button aria-label="Delete" onclick="deleteRxCard('${chapterId}','${topicId}',${i})">🗑</button></span>` : '';
+  const sym = (card.sym||[]).length ? `<div class="rxc-lab">🔎 Symptoms</div><div class="rxc-chips">${card.sym.map(x=>`<span>${E(x)}</span>`).join('')}</div>` : '';
+  const rows = (card.rx||[]).length ? `<div class="rxc-lab">℞ Prescription</div><div class="rxc-rx">${card.rx.map(r=>`
+      <div class="rxc-row"><div class="rxc-drug">${E(r[0]||'')}${r[1]?`<span class="rxc-form">${E(r[1])}</span>`:''}</div>
+      ${r[2]?`<div class="rxc-sig">${E(r[2])}</div>`:''}${r[3]?`<div class="rxc-note">${E(r[3])}</div>`:''}</div>`).join('')}</div>` : '';
+  const adv = (card.adv||[]).length ? `<div class="rxc-lab">💬 Advice</div><ul class="rxc-adv">${card.adv.map(x=>`<li>${E(x)}</li>`).join('')}</ul>` : '';
+  const ref = card.ref ? `<div class="rxc-ref">${card.red?'🚑':'➜'} ${E(card.ref)}</div>` : '';
+  return `<div class="card rxc${card.red?' red':''}" id="rxc-${card.id}">
+    <div class="rxc-head" onclick="this.parentNode.classList.toggle('open')">
+      <span class="rxc-ico">${card.red?'⚠':'℞'}</span>
+      <div class="rxc-hinfo"><div class="rxc-title">${E(card.title)}</div>${card.dx?`<div class="rxc-dx">${E(card.dx)}</div>`:''}</div>
+      ${ctl}<svg class="rxc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="rxc-body">${sym}${rows}${adv}${ref}</div></div>`;
+}
+function renderRxSection(topic, chapterId, ed){
+  const cards = topic.rx || [];
+  if(!cards.length && !ed) return '';
+  const add = ed ? `<button class="pill-btn ghost" style="width:100%;margin:4px 0 10px;" onclick="openRxModal('${chapterId}','${topic.id}',null)">+ Add Rx Card</button>` : '';
+  const tools = cards.length>1 ? `<span class="rxc-tools"><span onclick="rxToggleAll(true)">expand all</span> · <span onclick="rxToggleAll(false)">collapse all</span></span>` : '';
+  return `<div class="detail-section"><div class="detail-section-title">🧾 Prescription Cards · ${cards.length}${tools}</div>
+    ${cards.map((c,i)=>rxCardHtml(c, chapterId, topic.id, i, cards.length, ed)).join('')}${add}</div>`;
+}
+function rxToggleAll(open){ document.querySelectorAll('#otcDetArea .rxc').forEach(el=>el.classList.toggle('open', !!open)); }
+function moveRxCard(chapterId, topicId, i, d){
+  const t = findTopic(chapterId, topicId); if(!t||!t.rx) return;
+  const j=i+d; if(j<0||j>=t.rx.length) return;
+  const [x]=t.rx.splice(i,1); t.rx.splice(j,0,x);
+  saveDB(); refreshOtcDetailIfOpen(topicId);
+}
+function deleteRxCard(chapterId, topicId, i){
+  if(!confirm('Delete this Rx card?')) return;
+  const t = findTopic(chapterId, topicId); if(!t||!t.rx) return;
+  snapshotForUndo(); t.rx.splice(i,1); saveDB(); refreshOtcDetailIfOpen(topicId);
+  showUndoToast('Deleted Rx card');
+}
+function openRxModal(chapterId, topicId, i){
+  const t = findTopic(chapterId, topicId); if(!t) return;
+  const c = i===null ? {title:'',dx:'',sym:[],rx:[],adv:[],ref:'',red:false} : t.rx[i];
+  const E = escapeHtml;
+  openModal(i===null?'Add Rx Card':'Edit Rx Card', `
+    <div class="field-card"><div class="field-label">Disease / title</div><input id="mRxT" class="text-input" value="${E(c.title||'')}" placeholder="e.g. Gastritis"></div>
+    <div class="field-card"><div class="field-label">Key clue → diagnosis (one line)</div><input id="mRxDx" class="text-input" value="${E(c.dx||'')}" placeholder="Epigastric pain + heartburn, worse after food"></div>
+    <div class="field-card"><div class="field-label">Symptoms — one per line</div><textarea id="mRxSym" class="text-input" style="min-height:90px;">${E((c.sym||[]).join('\n'))}</textarea></div>
+    <div class="field-card"><div class="field-label">Prescription — one per line: Drug | Form | Dose (e.g. 1×3×7) | Note</div><textarea id="mRxRx" class="text-input" style="min-height:130px;">${E((c.rx||[]).map(r=>r.join(' | ')).join('\n'))}</textarea></div>
+    <div class="field-card"><div class="field-label">Advice — one per line</div><textarea id="mRxAdv" class="text-input" style="min-height:70px;">${E((c.adv||[]).join('\n'))}</textarea></div>
+    <div class="field-card"><div class="field-label">Refer / warning (optional)</div><input id="mRxRef" class="text-input" value="${E(c.ref||'')}"></div>
+    <label class="field-card" style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="mRxRed" ${c.red?'checked':''}> <span>Emergency / refer-only card (red)</span></label>
+  `, ()=>{
+    const title = val('mRxT').trim(); if(!title) return;
+    const lines = id=>val(id).split('\n').map(l=>l.trim()).filter(Boolean);
+    const card = {id: i===null ? 'rx-'+uid() : c.id, title, dx:val('mRxDx').trim(), sym:lines('mRxSym'),
+      rx: lines('mRxRx').map(l=>{ const p=l.split('|').map(x=>x.trim()); return [p[0]||'',p[1]||'',p[2]||'',p[3]||'']; }),
+      adv: lines('mRxAdv')};
+    const ref = val('mRxRef').trim(); if(ref) card.ref = ref;
+    if(document.getElementById('mRxRed').checked) card.red = true;
+    if(!t.rx) t.rx=[];
+    if(i===null) t.rx.push(card); else t.rx[i]=card;
+    saveDB(); closeModal(); refreshOtcDetailIfOpen(topicId);
+  });
+}
 function openTopicNotesModal(chapterId, topicId){
   const t = findTopic(chapterId, topicId); if(!t) return;
   openModal('Edit Clinical Notes', `
@@ -2813,6 +3227,8 @@ function renderOtcDetail(topic){
       </tbody></table></div></div>`;
   } else { html += addBtn('Differential Diagnosis', `openTopicDdModal('${chapterId}','${topic.id}')`); }
 
+  html += renderRxSection(topic, chapterId, ed);
+
   if(topic.steps && topic.steps.length){
     html += `<div class="detail-section"><div class="detail-section-title">📋 Approach Steps${editLink(`openTopicStepsModal('${chapterId}','${topic.id}')`)}</div>
       <div class="card notes-card"><ol class="step-list">${topic.steps.map(s=>`<li>${s}</li>`).join('')}</ol></div></div>`;
@@ -3078,7 +3494,7 @@ function gdriveSignOut(){
 }
 
 function applyRemoteData(remote){
-  if(Array.isArray(remote.db)){ DB = remote.db; try{ localStorage.setItem('pc_db', JSON.stringify(DB)); }catch(e){} }
+  if(Array.isArray(remote.db)){ DB = remote.db; try{ applyContentPatch(DB); }catch(e){} try{ localStorage.setItem('pc_db', JSON.stringify(DB)); }catch(e){} }
   if(Array.isArray(remote.chapterOrder)){ try{ localStorage.setItem('pc_chapter_order', JSON.stringify(remote.chapterOrder)); }catch(e){} }
   try{ renderHome(); }catch(e){}
   try{ if(state.screen==='session') refreshSessionIfOpen(state.sessionChapterId); }catch(e){}
@@ -3520,7 +3936,7 @@ function otcAccCard(t, color, uid, chapId){
     <div class="dot" style="color:${color};background:${color}"></div>
     <div class="acc-head-info">
       <div class="acc-head-name">${t.t}</div>
-      <div class="acc-head-preview">${(t.dd&&t.dd.length)? t.dd.length+' differential points · tap for full detail' : 'tap for full detail'}</div>
+      <div class="acc-head-preview">${(t.rx&&t.rx.length? t.rx.length+' Rx cards · ' : '')+((t.dd&&t.dd.length)? t.dd.length+' differential points · tap for full detail' : 'tap for full detail')}</div>
     </div>
     ${editBtns}
     <svg class="otc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>
@@ -3679,7 +4095,8 @@ function renderResults(){
       return fuzzyIncludes(c.data.g, q) || fuzzyIncludes(brandStr, q) || c.cat.toLowerCase().includes(q) || (c.data.info||'').toLowerCase().includes(q);
     }
     const ddStr = (c.data.dd||[]).map(r=>r.join(' ')).join(' ').toLowerCase();
-    return fuzzyIncludes(c.data.t, q) || ddStr.includes(q) || c.cat.toLowerCase().includes(q);
+    const rxStr = (c.data.rx||[]).map(r=>[r.title,r.dx,(r.sym||[]).join(' '),(r.rx||[]).map(x=>x[0]).join(' ')].join(' ')).join(' ').toLowerCase();
+    return fuzzyIncludes(c.data.t, q) || ddStr.includes(q) || rxStr.includes(q) || c.cat.toLowerCase().includes(q);
   });
   if(!cards.length){
     area.innerHTML = `<div class="empty-hint">No matches for "${q}".</div>`;
