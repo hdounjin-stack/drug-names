@@ -124,8 +124,7 @@ html[data-theme="clinical"] body{
 html[data-theme="clinical"] .card,
 html[data-theme="clinical"] .chapter-card,
 html[data-theme="clinical"] .util-tile,
-html[data-theme="clinical"] .text-input,
-html[data-theme="clinical"] .mcq-opt{
+html[data-theme="clinical"] .text-input{
   border-radius:var(--radius-sm);
   box-shadow:none;
 }
@@ -146,8 +145,7 @@ html[data-theme="dark"] body{
 html[data-theme="dark"] .card,
 html[data-theme="dark"] .chapter-card,
 html[data-theme="dark"] .util-tile,
-html[data-theme="dark"] .text-input,
-html[data-theme="dark"] .mcq-opt{
+html[data-theme="dark"] .text-input{
   box-shadow:none;
   border:1px solid var(--line);
 }
@@ -649,9 +647,6 @@ body.edit-mode .reset-order-link{display:inline-block !important;}
 .scen-font-btns button:active{transform:scale(.96);}
 .scen-font-label{font-size:0.65625rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:700;}
 /* full-height chat: fills the space above the bottom tab bar, log scrolls, input pinned */
-#screen-mcq.active{display:flex;flex-direction:column;height:calc(100dvh - var(--tabbar-h,64px) - env(safe-area-inset-top, 0px));padding-bottom:0px;}
-#screen-mcq .sess-header{flex:none;}
-#screen-mcq #mcqArea{display:flex;flex-direction:column;flex:1;min-height:0;padding-bottom:10px;}
 /* Clinical Scenarios is a normal page: the whole page scrolls, no inner scroll box */
 .scen-chat-card{padding:14px 16px;margin-bottom:12px;}
 .scen-chat-card .chat-log{max-height:none;overflow:visible;margin-top:4px;}
@@ -696,15 +691,14 @@ html[data-theme="dark"] .treat-check.diff{color:#ff8a65;}
 #scenAskSelBtn{position:fixed;z-index:999;display:none;align-items:center;gap:6px;background:var(--ink);color:var(--paper);border:none;border-radius:20px;padding:8px 14px;font-size:0.78125rem;font-weight:600;font-family:'Work Sans',sans-serif;box-shadow:0 6px 18px -6px rgba(33,26,19,.45);cursor:pointer;animation:popIn .2s ease both;}
 #scenAskSelBtn:active{transform:scale(.96);}
 /* big entry card for Clinical Scenarios */
-.scen-entry,.mcq-entry{display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:16px;border-radius:var(--radius-lg);background:linear-gradient(135deg,rgba(179,80,44,0.10),rgba(156,107,18,0.08) 55%,var(--card) 100%);border:1px solid var(--accent-line);box-shadow:0 2px 0 rgba(179,80,44,0.05), 0 12px 26px -20px rgba(33,26,19,0.4);cursor:pointer;transition:transform .15s, box-shadow .15s, border-color .2s;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) backwards;}
-.scen-entry:active,.mcq-entry:active{transform:scale(.98);}
-.scen-entry .se-icon,.mcq-entry .se-icon{flex:none;width:52px;height:52px;border-radius:16px;background:var(--card);border:1px solid var(--accent-line);box-shadow:inset 0 0 0 3px var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:1.625rem;}
-.scen-entry .se-text,.mcq-entry .se-text{flex:1;min-width:0;}
-.scen-entry .se-title,.mcq-entry .se-title{font-family:'Fraunces',serif;font-weight:700;font-size:1.03125rem;color:var(--ink);}
-.scen-entry .se-sub,.mcq-entry .se-sub{font-size:0.71875rem;color:var(--muted);margin-top:3px;line-height:1.5;}
-.scen-entry .se-arrow,.mcq-entry .se-arrow{flex:none;color:var(--accent);}
-.mcq-entry{background:linear-gradient(135deg,rgba(156,107,18,0.10),rgba(179,80,44,0.07) 55%,var(--card) 100%);}
-.scen-entry .se-icon svg,.mcq-entry .se-icon svg,.scan-entry .se-icon svg{width:26px;height:26px;color:var(--accent);}
+.scen-entry{display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:16px;border-radius:var(--radius-lg);background:linear-gradient(135deg,rgba(179,80,44,0.10),rgba(156,107,18,0.08) 55%,var(--card) 100%);border:1px solid var(--accent-line);box-shadow:0 2px 0 rgba(179,80,44,0.05), 0 12px 26px -20px rgba(33,26,19,0.4);cursor:pointer;transition:transform .15s, box-shadow .15s, border-color .2s;animation:pcIn .35s cubic-bezier(.2,.8,.3,1) backwards;}
+.scen-entry:active:active{transform:scale(.98);}
+.scen-entry .se-icon .se-icon{flex:none;width:52px;height:52px;border-radius:16px;background:var(--card);border:1px solid var(--accent-line);box-shadow:inset 0 0 0 3px var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:1.625rem;}
+.scen-entry .se-text .se-text{flex:1;min-width:0;}
+.scen-entry .se-title .se-title{font-family:'Fraunces',serif;font-weight:700;font-size:1.03125rem;color:var(--ink);}
+.scen-entry .se-sub .se-sub{font-size:0.71875rem;color:var(--muted);margin-top:3px;line-height:1.5;}
+.scen-entry .se-arrow .se-arrow{flex:none;color:var(--accent);}
+.scen-entry .se-icon svg .se-icon svg,.scan-entry .se-icon svg{width:26px;height:26px;color:var(--accent);}
 .avatar svg{color:var(--card);}
 .scan-entry{background:linear-gradient(135deg,rgba(179,80,44,0.15),rgba(156,107,18,0.06) 55%,var(--card) 100%);}
 .sync-entry{background:linear-gradient(135deg,rgba(66,133,244,0.12),rgba(52,168,83,0.06) 55%,var(--card) 100%);margin-top:10px;}
@@ -714,7 +708,7 @@ html[data-theme="dark"] .treat-check.diff{color:#ff8a65;}
 .util-tile{
   background:var(--card);border:1px solid var(--line-strong);border-radius:var(--radius-md);
   padding:11px 4px 9px;display:flex;flex-direction:column;align-items:center;gap:6px;
-  cursor:pointer;transition:border-color .18s, transform .12s;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) backwards;
+  cursor:pointer;transition:border-color .18s, transform .12s;animation:pcIn .35s cubic-bezier(.2,.8,.3,1) backwards;
 }
 .util-tile:nth-child(2){animation-delay:.05s}.util-tile:nth-child(3){animation-delay:.1s}.util-tile:nth-child(4){animation-delay:.15s}
 .util-tile:active{transform:scale(.94);}
@@ -722,59 +716,8 @@ html[data-theme="dark"] .treat-check.diff{color:#ff8a65;}
 .util-tile svg{width:19px;height:19px;color:var(--accent);}
 .util-tile span{font-size:0.625rem;font-weight:700;color:var(--ink-soft);letter-spacing:.02em;}
 
-/* ---------- MCQ Practice ---------- */
-.mcq-qcard{padding:15px 16px;margin-bottom:10px;animation:mcqIn .35s cubic-bezier(.2,.8,.3,1) backwards;}
-@keyframes mcqIn{from{opacity:0;transform:translateY(10px) scale(.985);}to{opacity:1;transform:none;}}
-.mcq-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:9px;}
-.mcq-chip{font-size:0.59375rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:20px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line);}
-.mcq-chip.topic{background:rgba(156,107,18,0.09);color:var(--amber);border-color:rgba(156,107,18,0.3);}
-.mcq-qtext{font-size:0.8125rem;font-weight:600;line-height:1.55;}
-.mcq-opts{display:flex;flex-direction:column;gap:7px;margin-top:11px;}
-.mcq-opt{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:var(--paper);border:1px solid var(--line-strong);border-radius:var(--radius-md);padding:9px 12px;font-family:'Work Sans',sans-serif;font-size:0.78125rem;color:var(--ink-soft);cursor:pointer;transition:border-color .18s, background .18s, transform .18s, color .18s;animation:optIn .3s ease backwards;}
-.mcq-opt > span:last-child{flex:1;}
-.mcq-opt > span:last-child p{margin:0;}
-.mcq-opt:nth-child(1){animation-delay:.04s}.mcq-opt:nth-child(2){animation-delay:.1s}
-.mcq-opt:nth-child(3){animation-delay:.16s}.mcq-opt:nth-child(4){animation-delay:.22s}
-.mcq-opt:nth-child(5){animation-delay:.28s}
-@keyframes optIn{from{opacity:0;transform:translateX(-7px);}to{opacity:1;transform:none;}}
-.mcq-opt:active{transform:scale(.985);}
-.mcq-key{flex:none;width:21px;height:21px;border-radius:7px;border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.65625rem;color:var(--muted);transition:inherit;}
-.mcq-opt.sel-correct{background:rgba(52,168,83,0.10);border-color:rgba(52,140,63,0.65);color:var(--ink);}
-.mcq-opt.sel-correct .mcq-key{background:#2f8c3f;border-color:#2f8c3f;color:#fff;}
-.mcq-opt.sel-wrong{background:rgba(179,60,44,0.08);border-color:rgba(179,60,44,0.6);}
-.mcq-opt.sel-wrong .mcq-key{background:var(--accent);border-color:var(--accent);color:#fff;}
-.mcq-opt.reveal-correct{background:rgba(52,168,83,0.07);border-color:rgba(52,140,63,0.45);}
-.mcq-opt.reveal-correct .mcq-key{background:#2f8c3f;border-color:#2f8c3f;color:#fff;}
-.mcq-opt.dim{opacity:.42;pointer-events:none;}
-.mcq-opt.shake{animation:mcqShake .38s ease;}
-@keyframes mcqShake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}50%{transform:translateX(4px);}75%{transform:translateX(-2px);}}
-.mcq-expl{margin-top:11px;padding:10px 12px;border-radius:var(--radius-md);background:var(--paper-2);border:1px dashed var(--line-strong);font-size:0.75rem;line-height:1.6;color:var(--ink-soft);animation:mcqIn .32s ease backwards;}
-.mcq-expl b,.mcq-expl strong{color:var(--ink);}
-.mcq-expl .rx-line{background:var(--card);}
-.mcq-score-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 12px;}
-.mcq-score-num{font-family:'Fraunces',serif;font-weight:700;font-size:1.0625rem;color:var(--ink);}
-.mcq-score-num small{font-size:0.6875rem;color:var(--muted);font-family:'Work Sans',sans-serif;font-weight:600;}
-.mcq-progress{flex:1;height:6px;border-radius:6px;background:var(--paper-2);border:1px solid var(--line);overflow:hidden;}
-.mcq-progress-fill{height:100%;width:0%;border-radius:6px;background:linear-gradient(90deg,var(--accent),#d4794e);transition:width .45s cubic-bezier(.2,.8,.3,1);}
-.mcq-done-card{text-align:center;padding:26px 18px !important;animation:mcqIn .4s cubic-bezier(.2,.8,.3,1) backwards;}
-.mcq-done-emoji{font-size:2.125rem;display:block;margin-bottom:6px;animation:popIn .45s cubic-bezier(.2,1.4,.4,1) both .15s;}
+@keyframes pcIn{from{opacity:0;transform:translateY(10px) scale(.985);}to{opacity:1;transform:none;}}
 @keyframes popIn{from{opacity:0;transform:scale(.4);}to{opacity:1;transform:scale(1);}}
-.mcq-done-title{font-family:'Fraunces',serif;font-size:1.0625rem;font-weight:700;margin-bottom:4px;}
-.mcq-done-sub{font-size:0.75rem;color:var(--muted);margin-bottom:14px;line-height:1.6;}
-/* Per-topic breakdown on the results screen */
-.mcq-topic-breakdown{text-align:left;background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:14px;}
-.mcq-topic-row{display:flex;align-items:center;justify-content:space-between;font-size:0.75rem;font-weight:600;color:var(--ink-soft);padding:4px 0;}
-.mcq-topic-row.weak{color:var(--accent);}
-/* Full answer review, shown after "Review answers" */
-.mcq-review-list{display:flex;flex-direction:column;gap:10px;}
-.mcq-review-item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);padding:12px 13px;}
-.mcq-review-item.wrong{border-color:var(--accent-line);}
-.mcq-review-q{font-size:0.8125rem;font-weight:600;color:var(--ink);margin-bottom:8px;line-height:1.5;}
-.mcq-review-opt{display:flex;align-items:center;gap:8px;font-size:0.75rem;color:var(--ink-soft);padding:5px 8px;border-radius:8px;margin-bottom:3px;}
-.mcq-review-opt.reveal-correct{background:rgba(52,168,83,0.1);color:var(--ink);}
-.mcq-review-opt.reveal-correct .mcq-key{background:#2f8c3f;border-color:#2f8c3f;color:#fff;}
-.mcq-review-opt.sel-wrong{background:rgba(179,60,44,0.08);color:var(--ink);}
-.mcq-review-opt.sel-wrong .mcq-key{background:var(--accent);border-color:var(--accent);color:#fff;}
 .chat-input-row{display:none;gap:8px;margin-top:12px;}
 .chat-input-row .text-input{flex:1;margin-bottom:0;}
 .pc-link{font-size:0.75rem;color:var(--accent);text-decoration:underline;cursor:pointer;text-align:center;margin-top:18px;}
@@ -889,6 +832,46 @@ html[data-theme="dark"] .rxc-ref{color:#ff9b8a;background:rgba(255,99,71,0.12);b
 .rxc-tools{margin-left:auto;font-size:0.65rem;font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted);}
 .rxc-tools span{cursor:pointer;text-decoration:underline;}
 @media (prefers-reduced-motion:reduce){.rxc.open .rxc-body{animation:none;}}
+/* ---------- AI Medical Organizer ---------- */
+.org-stepper{display:flex;gap:6px;margin:0 0 12px;overflow-x:auto;}
+.org-stepper span{flex:1;min-width:max-content;text-align:center;font-size:0.65625rem;font-weight:700;letter-spacing:.03em;padding:6px 8px;border-radius:20px;background:var(--paper-2);border:1px solid var(--line);color:var(--muted);}
+.org-stepper span.done{color:var(--ink-soft);}
+.org-stepper span.cur{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent);}
+.org-note{font-size:0.71875rem;line-height:1.55;padding:10px 12px;border-radius:var(--radius-md);background:rgba(156,107,18,0.10);border:1px dashed var(--accent-line);color:var(--ink-soft);margin-bottom:10px;}
+.org-top{display:flex;gap:8px;margin-bottom:10px;}.org-top .pill-btn{flex:1;}
+.org-title-row{margin:10px 0 4px;}
+.org-count{font-size:0.6875rem;color:var(--muted);margin:6px 2px 8px;font-weight:600;}
+.org-blk{padding:12px 13px;margin-bottom:10px;}
+.org-blk.off{opacity:.45;}
+.org-blk.ai{border-color:rgba(156,107,18,0.55);}
+.org-on{width:18px;height:18px;flex:none;accent-color:var(--accent);margin-right:2px;}
+.org-meta{margin:-2px 0 8px;}
+.org-badge{display:inline-block;font-size:0.5625rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:var(--paper-2);border:1px solid var(--line);color:var(--muted);}
+.org-badge.ai{background:rgba(156,107,18,0.12);border-color:rgba(156,107,18,0.45);color:var(--amber);}
+.org-aitag{font-size:0.5625rem;font-weight:700;padding:1px 5px;border-radius:6px;background:rgba(156,107,18,0.15);color:var(--amber);}
+mark.org-q{background:rgba(179,60,44,0.16);color:var(--accent);border-radius:4px;padding:0 3px;font-weight:700;}
+.org-tw{overflow-x:auto;}
+.org-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px;}
+.org-card2{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius-md);padding:10px 12px;}
+.org-card2-t{font-family:'Fraunces',serif;font-weight:700;font-size:0.84375rem;margin-bottom:5px;color:var(--ink);}
+.org-flow{display:flex;flex-direction:column;align-items:center;gap:0;overflow-x:auto;padding:4px 2px 8px;}
+.org-fn{max-width:260px;text-align:center;font-size:0.75rem;line-height:1.45;padding:8px 12px;border-radius:12px;background:var(--card);border:1.5px solid var(--line-strong);color:var(--ink);}
+.org-fn.start{background:rgba(52,168,83,0.10);border-color:rgba(52,140,63,0.55);font-weight:700;}
+.org-fn.end{background:rgba(179,60,44,0.08);border-color:rgba(179,60,44,0.55);font-weight:700;}
+.org-fn.decision{background:rgba(156,107,18,0.10);border:1.5px dashed var(--amber);font-weight:600;}
+.org-fn.ref{opacity:.65;font-style:italic;border-style:dotted;}
+.org-arrow{display:flex;flex-direction:column;align-items:center;color:var(--accent);font-weight:700;line-height:1.1;padding:3px 0;}
+.org-arrow span{font-size:0.65625rem;color:var(--muted);font-weight:700;}
+.org-branches{display:flex;gap:10px;align-items:flex-start;justify-content:center;flex-wrap:wrap;width:100%;}
+.org-br{display:flex;flex-direction:column;align-items:center;min-width:130px;flex:1;max-width:280px;padding:6px 6px 2px;border-top:2px solid var(--line-strong);}
+.org-brl{font-size:0.65625rem;font-weight:700;color:var(--accent);margin-bottom:4px;}
+.org-sep{height:10px;}
+.org-review{padding:12px 14px;margin:10px 0;}
+.org-chk{display:flex;align-items:center;gap:8px;font-size:0.71875rem;margin-top:8px;color:var(--ink-soft);}
+.org-dest{padding:14px 15px;margin:12px 0 18px;}
+.org-saved{padding:12px 14px;}
+.org-edit-ta{font-family:ui-monospace,Menlo,monospace;font-size:0.75rem;}
+
 </style>
 </head>
 <body>
@@ -1057,16 +1040,16 @@ html[data-theme="dark"] .rxc-ref{color:#ff9b8a;background:rgba(255,99,71,0.12);b
     <div id="scenArea"></div>
   </section>
 
-  <!-- ================= SCREEN 9 : DRUG MCQ PRACTICE (full page) ================= -->
-  <section class="screen" id="screen-mcq">
+  <!-- ================= SCREEN 9 : AI NOTES / MEDICAL ORGANIZER ================= -->
+  <section class="screen" id="screen-organizer">
     <div class="sess-header">
-      <button class="sess-back" onclick="exitMcqToPedcalc()">
+      <button class="sess-back" onclick="goto('pedcalc')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
       </button>
-      <div class="sess-title"><div class="cat">AI QUIZ · BETA</div><div class="name">Drug MCQ Practice</div></div>
+      <div class="sess-title"><div class="cat">AI TOOL · BETA</div><div class="name">AI Notes</div></div>
       <div style="width:34px;"></div>
     </div>
-    <div id="mcqArea"></div>
+    <div id="orgArea"></div>
   </section>
 
   <button id="scrollTopBtn" onclick="scrollToTop()" title="Scroll to top">
@@ -2699,7 +2682,8 @@ const BLOCK_TYPES = {
   clinical: {ico:'🩺', label:'Clinical Notes', hint:'One note per line'},
   summary:  {ico:'✨', label:'Summary', hint:'Summary text', text:true},
   notes:    {ico:'📝', label:'Notes', hint:'One note per line'},
-  warnings: {ico:'⚠️', label:'Warnings / Interactions', hint:'One warning per line'}
+  warnings: {ico:'⚠️', label:'Warnings / Interactions', hint:'One warning per line'},
+  rich:     {ico:'🧩', label:'AI Notes', hint:'', hidden:true}
 };
 let blkFlashId = null;
 function ensureBlocks(c){
@@ -2712,6 +2696,7 @@ function ensureBlocks(c){
   return c.blocks;
 }
 function blockBodyHtml(b){
+  if(b.type==='rich') return richBodyHtml(b);
   const items = b.items || [];
   if(b.type==='summary') return `<div class="blk-summary">${formatInfoText(items.join('\n'))}</div>`;
   if(b.type==='steps') return `<ol class="blk-steps">${items.map(n=>`<li>${n}</li>`).join('')}</ol>`;
@@ -2767,13 +2752,14 @@ function flowItemHtml(c, key, i, n){
   return html ? `<div class="flow-item" data-fid="${key}">${html}</div>` : '';
 }
 function openBlockPicker(chapterId){
-  openModal('Add block', `<div class="blk-pick">${Object.entries(BLOCK_TYPES).map(([k,t],i)=>
+  openModal('Add block', `<div class="blk-pick">${Object.entries(BLOCK_TYPES).filter(([k,t])=>!t.hidden).map(([k,t],i)=>
     `<button class="blk-opt" style="--i:${i}" onclick="openBlockEditor('${chapterId}',null,'${k}')"><span class="blk-opt-ico">${t.ico}</span><span><b>${t.label}</b><small>${t.hint}</small></span></button>`
   ).join('')}</div>`, null);
 }
 function openBlockEditor(chapterId, blockId, type){
   const c = DB.find(x=>x.id===chapterId); if(!c) return;
   const blocks = ensureBlocks(c);
+  { const rb = blockId && blocks.find(x=>x.id===blockId); if(rb && rb.type==='rich'){ openSavedRichEditor(chapterId, null, blockId); return; } }
   const b = blockId ? blocks.find(x=>x.id===blockId) : null;
   if(blockId && !b) return;
   const ty = b ? b.type : type;
@@ -3109,7 +3095,7 @@ function goto(screen){
   if(screen==='pedcalc') renderPedCalc();
   if(screen==='scan') renderScan();
   if(screen==='scen') renderScenScreen();
-  if(screen==='mcq') renderMcqScreen();
+  if(screen==='organizer') renderOrganizer();
   updateCompactHeaders();
 }
 
@@ -3120,7 +3106,7 @@ function goto(screen){
    Only invisible guards remain: passive listeners (never block scroll),
    direction proof before arming (protects vertical scrolling),
    and modal / h-scroll-table exclusions. */
-const BACK_MAP = { session:'home', scan:'home', mcq:'pedcalc', scen:'pedcalc' };
+const BACK_MAP = { session:'home', scan:'home', organizer:'pedcalc', scen:'pedcalc' };
 function swipeBackTarget(){
   if(state.screen==='otcdetail') return state.otcReturnScreen || 'session';
   return BACK_MAP[state.screen] || (navOrder.indexOf(state.screen) > 0 ? 'home' : null);
@@ -3244,6 +3230,7 @@ function renderOtcDetail(topic){
   if(topic.tables && topic.tables.length){
     html += renderDataTables(topic.tables, chapterId ? {kind:'topic', chapterId, topicId:topic.id} : null);
   }
+  html += renderTopicRich(topic, chapterId, ed);
   if(topic.redFlags && topic.redFlags.length){
     html += `<div class="detail-section"><div class="card warn-card"><div class="detail-section-title">⚠️ Warnings / Red Flags${editLink(`openTopicRedFlagsModal('${chapterId}','${topic.id}')`)}</div>
       <ul class="warn-list">${topic.redFlags.map(w=>`<li>${w}</li>`).join('')}</ul></div></div>`;
@@ -4145,13 +4132,13 @@ function renderPedCalc(){
       <div id="pcEstResult" class="pc-note"></div>
     </div>
 
-    <div class="mcq-entry" onclick="goto('mcq')">
+    <div class="scen-entry org-entry" onclick="goto('organizer')">
       <div class="se-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3a6 6 0 00-6 6c0 2.2 1.2 3.6 2.3 4.8.8.9 1.7 1.9 1.7 3.2v.5a1.5 1.5 0 001.5 1.5h1a1.5 1.5 0 001.5-1.5v-.5c0-1.3.9-2.3 1.7-3.2C16.8 12.6 18 11.2 18 9a6 6 0 00-6-6z"/><path d="M10 21h4"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/></svg>
       </div>
       <div class="se-text">
-        <div class="se-title">Drug MCQ Practice</div>
-        <div class="se-sub">Quick-fire quiz from your library — contraindications, antidotes & more</div>
+        <div class="se-title">AI Notes</div>
+        <div class="se-sub">Turn long medical text into tables, steps, flowcharts & cards — review, then save</div>
       </div>
       <svg class="se-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>
     </div>
@@ -4167,31 +4154,6 @@ function renderPedCalc(){
     </div>
   `;
   state.pcUnit = 'years';
-}
-
-/* ---------- Drug MCQ: dedicated full-page screen (setup + play) ---------- */
-function renderMcqScreen(){
-  const area = document.getElementById('mcqArea');
-  if(!area) return;
-  if(mcqQuiz){ renderMcqQuestion(); return; } // resume an in-progress quiz
-  area.innerHTML = `
-    <div class="card" style="padding:16px;">
-      <div id="mcqSetup">
-        ${modelSwitcherHtml()}
-        <div class="field-card"><div class="field-label">Scope</div>
-          <select id="mcqScope" class="text-input" onchange="renderMcqTopics()"><option value="all">📚 Whole library</option>${DB.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}</select>
-        </div>
-        <div id="mcqTopicRow"></div>
-        <div class="field-card"><div class="field-label">Number of questions</div>
-          <select id="mcqCount" class="text-input">
-            <option value="5">5 questions</option><option value="10" selected>10 questions</option><option value="15">15 questions</option>
-          </select>
-        </div>
-        <button class="pill-btn primary" style="width:100%;margin-top:12px;" onclick="startMcq()">⚡ Start Quiz</button>
-      </div>
-      <div id="mcqPlayArea" style="display:none;"></div>
-    </div>`;
-  renderMcqTopics();
 }
 
 /* ---------- Clinical Scenarios: dedicated full-page screen ---------- */
@@ -4642,217 +4604,491 @@ function askScenText(text){
 }
 
 /* =========================================================
-   PHASE 2 — Drug MCQ Practice (BYOK, from your own library)
+   AI Medical Organizer (BYOK) — long medical text -> visual notes
+   Paste text / load a text file -> AI picks the forms (tables, steps,
+   flowcharts, cards, lists, dosing tables, warnings) -> full preview you can
+   edit / regenerate -> pick Chapter (+ topic) -> save. Nothing is saved
+   before you press Save.
    ========================================================= */
-let mcqQuiz = null; // {qs:[], i, correct, answered}
-function mcqTopicsFor(scope){
-  if(scope==='all') return DB.flatMap(c=>(c.drugs||[]).map(d=>({name:d.g, chapter:c.name, info:d.info||'', brands:(d.brands||[]).join(', ')})));
-  const c = DB.find(x=>x.id===scope); if(!c) return [];
-  return (c.drugs||[]).map(d=>({name:d.g, chapter:c.name, info:d.info||'', brands:(d.brands||[]).join(', ')}));
+const ORG_TYPES = {
+  summary:{ico:'✨',label:'Summary'}, table:{ico:'🧾',label:'Table'}, steps:{ico:'🪜',label:'Steps'},
+  flow:{ico:'🔀',label:'Flowchart'}, list:{ico:'📝',label:'Key points'}, cards:{ico:'🗂️',label:'Cards'},
+  warnings:{ico:'⚠️',label:'Warnings'}
+};
+let ORG = {text:'', instr:'', blocks:null, review:[], title:'', busy:false, err:'', info:'', gen:0,
+  dest:{chap:'', topic:'', newChap:'', newType:'drug', newTopic:''}, saveReview:true, saved:null};
+
+function orgSys(){
+  return `You are a medical NOTE ORGANIZER for a pharmacy student. You receive raw medical text (lecture transcript, book page, notes — Arabic, English or mixed). You re-organize it into clear visual study blocks. You are NOT allowed to change its medical meaning.
+
+STRICT RULES
+1. Use ONLY information found in the SOURCE TEXT. Never invent drugs, doses, indications, contraindications, adverse effects or numbers.
+2. Keep every number, unit, concentration, route, frequency and duration EXACTLY as in the source.
+3. Never drop a warning, contraindication, red flag, interaction or safety statement to make things shorter.
+4. If something is unclear, garbled by transcription, or contradicts another part: keep the original wording, append " [?]" to it, and explain the problem in the "review" list. Do NOT guess.
+5. Keep English medical / drug / brand terms as written. Explain in the language of the source (Egyptian Arabic source -> Arabic explanation with English terms kept).
+6. Choose the best form(s) for the content and MIX them: "table" (comparisons, dosing tables: Drug | Dose | Route/Frequency | Use | Warnings — only columns the source supports; differential/comparison tables), "steps" (ordered procedures), "flow" (decision algorithms), "cards" (topic split into small parts), "list" (key points), "warnings", "summary" (max 3 short sentences, source-only). Do not force one form on everything.
+7. Every block has "src". Use "text" for anything that comes from the source. If you add ANYTHING that is not in the source (e.g. a connecting explanation), put it alone in a separate block with "src":"ai" and start each of its lines with "[AI] ". Prefer to add nothing.
+8. Never merge data of different drugs; never generalize one drug's dose to another.
+9. Order: summary first, body blocks, warnings last.
+
+OUTPUT: ONLY one JSON object, no prose, no markdown fences:
+{"title": "short title",
+ "blocks": [
+  {"type":"summary","src":"text","title":"...","text":"..."},
+  {"type":"table","src":"text","title":"...","cols":["A","B"],"rows":[["x","y"]]},
+  {"type":"steps","src":"text","title":"...","items":["..."]},
+  {"type":"flow","src":"text","title":"...","nodes":[{"id":"n1","type":"start|decision|action|end","text":"...","next":[{"to":"n2","label":"Yes"}]}]},
+  {"type":"list","src":"text","title":"...","items":["..."]},
+  {"type":"cards","src":"text","title":"...","cards":[{"title":"...","lines":["..."]}]},
+  {"type":"warnings","src":"text","title":"...","items":["..."]}
+ ],
+ "review": ["each unclear / contradictory / doubtful item, quoted briefly"]}
+Tables: at most 6 columns, every row has the same number of cells ("—" when the source gives nothing). Flow: at most 25 nodes, every "to" must be an existing node id.`;
 }
-function renderMcqTopics(){
-  const row=document.getElementById('mcqTopicRow'); if(!row) return;
-  const scope=document.getElementById('mcqScope').value;
-  if(scope==='all'){ row.innerHTML=''; return; }
-  const topics=mcqTopicsFor(scope);
-  row.innerHTML=`<div class="field-card"><div class="field-label">Focus on one drug <span style="color:var(--muted);">(optional)</span></div>
-    <select id="mcqTopicSel" class="text-input"><option value="">🎲 Mixed — all drugs in this chapter</option>${topics.map(t=>`<option value="${escapeHtml(t.name)}">${escapeHtml(t.name)}</option>`).join('')}</select></div>`;
+
+/* strip anything that could become an HTML tag (existing renderers inject saved text as HTML) */
+function orgSafe(s){ return String(s==null?'':s).replace(/<(?=[a-zA-Z\/!?])/g,'&lt;').trim(); }
+function orgTxt(s){ return orgSafe(s).replace(/\[\?\]/g,'<mark class="org-q" title="Needs review">[?]</mark>').replace(/^\[AI\]\s*/,'<span class="org-aitag">AI</span> '); }
+function orgArr(a){ return (Array.isArray(a)?a:(a==null||a===''?[]:[a])).map(orgSafe).filter(Boolean); }
+
+function orgNormBlock(b){
+  if(!b || typeof b!=='object') return null;
+  const type = String(b.type||'').toLowerCase();
+  if(!ORG_TYPES[type]) return null;
+  const o = {id:uid(), type, title:orgSafe(b.title||''), src:(b.src==='ai'?'ai':'text'), on:true};
+  if(type==='summary'){ o.text = orgSafe(b.text || orgArr(b.items).join(' ')); return o.text ? o : null; }
+  if(type==='table'){
+    const cols = orgArr(b.cols); if(!cols.length) return null;
+    const rows = (Array.isArray(b.rows)?b.rows:[]).filter(Array.isArray).map(r=>{ const x=r.map(orgSafe); while(x.length<cols.length) x.push('—'); return x.slice(0,cols.length); });
+    if(!rows.length) return null;
+    o.cols = cols; o.rows = rows; return o;
+  }
+  if(type==='cards'){
+    o.cards = (Array.isArray(b.cards)?b.cards:[]).map(c=>({title:orgSafe(c&&c.title||''), lines:orgArr(c&&(c.lines||c.items||c.body))})).filter(c=>c.title||c.lines.length);
+    return o.cards.length ? o : null;
+  }
+  if(type==='flow'){
+    const nodes = (Array.isArray(b.nodes)?b.nodes:[]).filter(n=>n&&n.id&&n.text).slice(0,40).map(n=>({
+      id:String(n.id).replace(/[|,:\s]/g,'_'), type:['start','decision','action','end'].includes(n.type)?n.type:'action', text:orgSafe(n.text),
+      next:(Array.isArray(n.next)?n.next:[]).filter(e=>e&&e.to).map(e=>({to:String(e.to).replace(/[|,:\s]/g,'_'), label:orgSafe(e.label||'')}))
+    }));
+    const ids = new Set(nodes.map(n=>n.id));
+    nodes.forEach(n=>{ n.next = n.next.filter(e=>ids.has(e.to)); });
+    return nodes.length ? (o.nodes=nodes, o) : null;
+  }
+  o.items = orgArr(b.items); return o.items.length ? o : null;
 }
-function mcqSystemPrompt(){
-  const chapters = DB.map(c=>c.name).join(', ');
-  return `You are a pharmacology MCQ generator for a pharmacy student. You will receive a list of drugs (with notes/brands) from the student's own course library. Write exam-style single-best-answer MCQs that test practical judgment: contraindications, side effects, antidotes, drug interactions, pregnancy safety, and best/emergency drug choice for a short clinical vignette.
-Rules:
-- One question per line of thought; 4 options (A-D), exactly one correct.
-- Distractors must be plausible — same-class alternatives, common confusions.
-- Test recall + application, never trivia about the list itself.
-- Balance categories across the whole set: Contraindication, Side Effect, Antidote, Interaction, Pregnancy, Emergency (best-drug vignette). Spread them roughly evenly — each category appears at least once in a 5-question quiz, and no category may dominate.
-- Set "topic" to EXACTLY one of: Contraindication | Side Effect | Antidote | Interaction | Pregnancy | Emergency.
-- Distribute the correct answers EVENLY across A, B, C and D — never cluster them on A or B.
-- Output ONLY a JSON array, no prose around it. Each item: {"q": string, "opts": [4 strings], "answer": "A"|"B"|"C"|"D", "expl": short explanation naming the drug and the key fact, "topic": one of the six above}.`;
+function orgNormalize(obj){
+  const blocks = (Array.isArray(obj&&obj.blocks)?obj.blocks:[]).map(orgNormBlock).filter(Boolean);
+  return {title:orgSafe(obj&&obj.title||''), blocks, review:orgArr(obj&&obj.review)};
 }
-async function _callAiJson(cfg, userPrompt, maxTokens){
-  const model = cfg.model || defaultModelFor(cfg.provider);
-  const wantJsonHeader = {'anthropic-version':'2023-06-01','x-api-key':cfg.key,'anthropic-dangerous-direct-browser-access':'true','Content-Type':'application/json'};
+
+/* ---------- visual renderers (shared by preview and saved pages) ---------- */
+function orgFlowHtml(nodes){
+  const by = {}; nodes.forEach(n=>by[n.id]=n);
+  const targeted = new Set(); nodes.forEach(n=>n.next.forEach(e=>targeted.add(e.to)));
+  let roots = nodes.filter(n=>!targeted.has(n.id)); if(!roots.length && nodes.length) roots = [nodes[0]];
+  const seen = new Set();
+  const icon = {start:'▶ ',decision:'◆ ',end:'■ ',action:''};
+  const rec = n=>{
+    if(seen.has(n.id)) return `<div class="org-fn ref">↺ ${orgTxt(n.text)}</div>`;
+    seen.add(n.id);
+    let h = `<div class="org-fn ${n.type}">${icon[n.type]||''}${orgTxt(n.text)}</div>`;
+    const nx = n.next.filter(e=>by[e.to]);
+    if(nx.length===1){ h += `<div class="org-arrow">${nx[0].label?`<span>${orgTxt(nx[0].label)}</span>`:''}↓</div>` + rec(by[nx[0].to]); }
+    else if(nx.length>1){ h += `<div class="org-arrow">↓</div><div class="org-branches">${nx.map(e=>`<div class="org-br"><div class="org-brl">${orgTxt(e.label||'')}</div>${rec(by[e.to])}</div>`).join('')}</div>`; }
+    return h;
+  };
+  return `<div class="org-flow">${roots.map(rec).join('<div class="org-sep"></div>')}</div>`;
+}
+function orgBodyHtml(b){
+  const t = b.type;
+  if(t==='summary') return `<div class="blk-summary">${orgTxt(b.text)}</div>`;
+  if(t==='table') return `<div class="dtable-wrap org-tw"><table class="dtable"><thead><tr>${b.cols.map(c=>`<th>${orgTxt(c)}</th>`).join('')}</tr></thead><tbody>${b.rows.map(r=>`<tr>${r.map((v,i)=>`<td class="${i===0?'strong':''}">${orgTxt(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  if(t==='steps') return `<ol class="step-list">${b.items.map(s=>`<li>${orgTxt(s)}</li>`).join('')}</ol>`;
+  if(t==='list') return `<ul class="notes-list">${b.items.map(s=>`<li>${orgTxt(s)}</li>`).join('')}</ul>`;
+  if(t==='warnings') return `<ul class="warn-list">${b.items.map(s=>`<li>${orgTxt(s)}</li>`).join('')}</ul>`;
+  if(t==='flow') return orgFlowHtml(b.nodes);
+  if(t==='cards') return `<div class="org-cards">${b.cards.map(c=>`<div class="org-card2">${c.title?`<div class="org-card2-t">${orgTxt(c.title)}</div>`:''}${c.lines.length?`<ul class="notes-list">${c.lines.map(l=>`<li>${orgTxt(l)}</li>`).join('')}</ul>`:''}</div>`).join('')}</div>`;
+  return '';
+}
+function orgBadge(b){ return b.src==='ai' ? `<span class="org-badge ai">🤖 AI-added — verify</span>` : `<span class="org-badge">from source</span>`; }
+
+/* ---------- text <-> block editing (used in preview and on saved pages) ---------- */
+function orgToText(b){
+  if(b.type==='summary') return b.text;
+  if(b.type==='table') return [b.cols.join(' | ')].concat(b.rows.map(r=>r.join(' | '))).join('\n');
+  if(b.type==='cards') return b.cards.map(c=>[c.title].concat(c.lines).join('\n')).join('\n\n');
+  if(b.type==='flow') return b.nodes.map(n=>`${n.id} | ${n.type} | ${n.text} | ${n.next.map(e=>e.to+(e.label?':'+e.label:'')).join(', ')}`).join('\n');
+  return b.items.join('\n');
+}
+function orgEditHint(t){
+  return {summary:'Summary text', table:'First line = column names, then one row per line. Separate cells with  |', steps:'One step per line, in order',
+    list:'One point per line', warnings:'One warning per line', cards:'Each card: title on the first line, details on the next lines. Blank line between cards.',
+    flow:'One node per line:  id | start/decision/action/end | text | next-id:label, next-id:label'}[t];
+}
+function orgFromText(b, text){
+  const lines = text.split('\n').map(l=>l.replace(/\s+$/,''));
+  const nz = lines.map(l=>l.trim()).filter(Boolean);
+  if(b.type==='summary'){ b.text = orgSafe(text); return !!b.text; }
+  if(b.type==='table'){
+    if(nz.length<2) return false;
+    const cols = nz[0].split('|').map(orgSafe);
+    b.cols = cols; b.rows = nz.slice(1).map(l=>{ const r=l.split('|').map(orgSafe); while(r.length<cols.length) r.push('—'); return r.slice(0,cols.length); });
+    return true;
+  }
+  if(b.type==='cards'){
+    const cards = text.split(/\n\s*\n/).map(g=>g.split('\n').map(x=>x.trim()).filter(Boolean)).filter(g=>g.length).map(g=>({title:orgSafe(g[0]), lines:g.slice(1).map(orgSafe)}));
+    if(!cards.length) return false; b.cards = cards; return true;
+  }
+  if(b.type==='flow'){
+    const nodes = nz.map(l=>{
+      const p = l.split('|').map(x=>x.trim());
+      if(p.length<3 || !p[0]) return null;
+      return {id:p[0].replace(/[,:\s]/g,'_'), type:['start','decision','action','end'].includes(p[1])?p[1]:'action', text:orgSafe(p[2]),
+        next:(p[3]||'').split(',').map(x=>x.trim()).filter(Boolean).map(x=>{ const i=x.indexOf(':'); return i<0?{to:x,label:''}:{to:x.slice(0,i).trim(), label:orgSafe(x.slice(i+1))}; })};
+    }).filter(Boolean);
+    const ids = new Set(nodes.map(n=>n.id)); nodes.forEach(n=>{ n.next = n.next.filter(e=>ids.has(e.to)); });
+    if(!nodes.length) return false; b.nodes = nodes; return true;
+  }
+  b.items = nz.map(orgSafe); return b.items.length>0;
+}
+/* generic editor: `b` is a block object (preview block, or saved rich block); `done` runs after a successful save */
+function orgEditModal(b, done){
+  openModal('Edit '+(ORG_TYPES[b.type]||{label:'block'}).label, `
+    <div class="field-card"><div class="field-label">Title (optional)</div><input id="mOrgTitle" class="text-input" dir="auto" value="${escAttr(b.title||'')}"></div>
+    <div class="field-card"><div class="field-label">${orgEditHint(b.type)}</div><textarea id="mOrgBody" class="text-input org-edit-ta" dir="auto" style="min-height:200px;">${escapeHtml(orgToText(b))}</textarea></div>
+  `, ()=>{
+    if(!orgFromText(b, val('mOrgBody'))){ alert('Nothing to save — the content is empty or in the wrong format.'); return; }
+    b.title = orgSafe(val('mOrgTitle'));
+    closeModal(); if(done) done();
+  });
+}
+
+/* ---------- AI call (reuses the existing key / provider / model + auto-fallback) ---------- */
+async function _orgCall(cfg, userPrompt, maxTokens){
+  const model = cfg.model || defaultModelFor(cfg.provider), sys = orgSys();
   if(cfg.provider==='claude'){
     const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers:wantJsonHeader,
-      body: JSON.stringify({model, max_tokens:maxTokens||4000, system:mcqSystemPrompt(), messages:[{role:'user',content:userPrompt}]})
+      method:'POST', headers:{'anthropic-version':'2023-06-01','x-api-key':cfg.key,'anthropic-dangerous-direct-browser-access':'true','Content-Type':'application/json'},
+      body: JSON.stringify({model, max_tokens:maxTokens, system:sys, messages:[{role:'user',content:userPrompt}]})
     });
     if(!res.ok) throw httpErr(res, 'Claude error: '+res.status+' '+(await res.text()).slice(0,200));
-    const data = await res.json();
-    return data.content.map(c=>c.text||'').join('');
+    return (await res.json()).content.map(c=>c.text||'').join('');
   }
   if(cfg.provider==='openai'){
     const res = await fetch('https://api.openai.com/v1/chat/completions',{
       method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
-      body: JSON.stringify({model, max_tokens:maxTokens||4000, response_format:{type:'json_object'}, messages:[{role:'system',content:mcqSystemPrompt()},{role:'user',content:userPrompt}]})
+      body: JSON.stringify({model, max_tokens:Math.min(maxTokens,16000), response_format:{type:'json_object'}, messages:[{role:'system',content:sys},{role:'user',content:userPrompt}]})
     });
     if(!res.ok) throw httpErr(res, 'OpenAI error: '+res.status+' '+(await res.text()).slice(0,200));
     return (await res.json()).choices[0].message.content;
   }
   const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+cfg.key,{
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({system_instruction:{parts:[{text:mcqSystemPrompt()}]}, contents:[{role:'user',parts:[{text:userPrompt}]}], generationConfig:{responseMimeType:'application/json'}})
+    body: JSON.stringify({system_instruction:{parts:[{text:sys}]}, contents:[{role:'user',parts:[{text:userPrompt}]}], generationConfig:{responseMimeType:'application/json', maxOutputTokens:maxTokens}})
   });
   if(!res.ok) throw httpErr(res, 'Gemini error: '+res.status+' '+(await res.text()).slice(0,200));
   return (await res.json()).candidates[0].content.parts.map(p=>p.text||'').join('');
 }
-function startMcq(){
+const orgCall = (cfg, p, n)=>withFallback(cfg, c=>_orgCall(c, p, n));
+
+function orgChunks(text, max){
+  const out = []; let cur = '';
+  const push = s=>{ if(s.trim()) out.push(s.trim()); };
+  text.split(/\n\s*\n/).forEach(par=>{
+    while(par.length>max){ // very long paragraph: cut at a line/sentence boundary
+      let cut = Math.max(par.lastIndexOf('\n',max), par.lastIndexOf('. ',max), par.lastIndexOf('،',max));
+      if(cut<max*0.5) cut = max;
+      if(cur){ push(cur); cur=''; }
+      push(par.slice(0,cut+1)); par = par.slice(cut+1);
+    }
+    if(cur.length+par.length+2>max){ push(cur); cur=''; }
+    cur += (cur?'\n\n':'')+par;
+  });
+  push(cur); return out;
+}
+async function orgGenerate(){
   const cfg = loadAiConfig();
   if(!cfg.key){ goto('scan'); return; }
-  const scope = document.getElementById('mcqScope').value;
-  let topics = mcqTopicsFor(scope);
-  const topicSel = document.getElementById('mcqTopicSel');
-  if(topicSel && topicSel.value){ topics = topics.filter(t=>t.name===topicSel.value); }
-  const n = parseInt(document.getElementById('mcqCount').value)||10;
-  if(topics.length<2){ alert('Not enough drugs in this scope yet — add more or widen the scope.'); return; }
-  // sample drugs to test so the quiz reflects YOUR library, then ask AI
-  const shuffled=[...topics].sort(()=>Math.random()-0.5);
-  const focus = shuffled.slice(0, Math.min(n*2, 40));
-  const listing = focus.map(t=>`- ${t.name}${t.info?` (${t.info})`:''}${t.brands?` [brands: ${t.brands}]`:''} — chapter: ${t.chapter}`).join('\n');
-  const playArea=document.getElementById('mcqPlayArea'), setup=document.getElementById('mcqSetup');
-  setup.style.display='none'; playArea.style.display='block';
-  mcqQuiz = {qs:null, i:0, correct:0, answered:0, log:[]};
-  playArea.innerHTML = `<div class="card mcq-qcard"><div class="modal-hint" style="margin:0;">Generating ${n} questions from ${focus.length} drugs in your library…</div></div>`;
-  callAiJson(cfg, `Drugs from my library:\n${listing}\n\nWrite ${n} single-best-answer MCQs testing these drugs. Mix categories: contraindications, side effects, antidotes, interactions, pregnancy safety, emergency/best-drug vignettes. Return ONLY the JSON array.`)
-    .then(raw=>{
-      let arr;
-      const cleaned = raw.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
-      try{
-        const s=cleaned.indexOf('['), e=cleaned.lastIndexOf(']');
-        arr = JSON.parse(s>=0&&e>s ? cleaned.slice(s,e+1) : cleaned);
-      }catch(e2){
-        // model wrapped it in an object — try common keys
-        try{ const obj=JSON.parse(cleaned.slice(cleaned.indexOf('{'), cleaned.lastIndexOf('}')+1)); arr=obj.questions||obj.items; }catch(_e){}
-      }
-      if(!Array.isArray(arr) || !arr.length) throw new Error('Could not parse questions from AI reply.');
-      // normalize + shuffle each question's options on-device so the correct
-      // answer lands on a random letter (LLMs tend to cluster it on A/B)
-      const shuffle=(a)=>{ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
-      mcqQuiz.qs = arr.filter(q=>q&&q.q&&Array.isArray(q.opts)&&q.opts.length>=2).map(q=>{
-        const opts=q.opts.map(o=>String(o));
-        let ansIdx='ABCD'.indexOf(String(q.answer||'A').trim().toUpperCase().charAt(0));
-        if(ansIdx<0 || ansIdx>=opts.length) ansIdx=0;
-        const order=shuffle([...opts.keys()]);
-        return {
-          q:String(q.q),
-          opts:order.map(k=>opts[k]),
-          answer:'ABCD'[order.indexOf(ansIdx)],
-          expl:String(q.expl||''),
-          topic:String(q.topic||'')
-        };
-      }).filter(q=>q.opts.every(o=>o.length<=220)).slice(0,n);
-      if(!mcqQuiz.qs.length) throw new Error('AI returned no usable questions.');
-      renderMcqQuestion();
-    })
-    .catch(e=>{
-      playArea.innerHTML = `<div class="card mcq-qcard"><div class="modal-hint" style="color:var(--accent);margin:0;">⚠️ ${(e.message||e).toString().slice(0,300)}</div>
-        <button class="pill-btn ghost" style="width:100%;margin-top:10px;" onclick="renderPedCalc()">← Back</button></div>`;
-    });
-}
-function mcqLetter(i){ return 'ABCD'[i] || String(i+1); }
-function renderMcqQuestion(){
-  const qz = mcqQuiz, area = document.getElementById('mcqPlayArea');
-  const q = qz.qs[qz.i];
-  area.innerHTML = `
-    <div class="mcq-score-row">
-      <div class="mcq-score-num">${qz.correct}<small> / ${qz.answered} correct</small></div>
-      <div class="mcq-progress"><div class="mcq-progress-fill" style="width:${Math.round(qz.i/qz.qs.length*100)}%"></div></div>
-      <span class="mono" style="font-size:11px;color:var(--muted);">${qz.i+1}/${qz.qs.length}</span>
-    </div>
-    <div class="card mcq-qcard">
-      <div class="mcq-meta"><span class="mcq-chip">Q${qz.i+1}</span>${q.topic?`<span class="mcq-chip topic">${escapeHtml(q.topic)}</span>`:''}</div>
-      <div class="mcq-qtext">${mdToHtml(q.q)}</div>
-      <div class="mcq-opts" id="mcqOpts">
-        ${q.opts.map((o,oi)=>`<button class="mcq-opt" id="mcqOpt${oi}" onclick="answerMcq(${oi})"><span class="mcq-key">${mcqLetter(oi)}</span><span>${mdToHtml(o)}</span></button>`).join('')}
-      </div>
-      <div id="mcqExpl"></div>
-    </div>`;
-}
-function answerMcq(pick){
-  const qz = mcqQuiz; if(!qz || qz.answered > qz.i) return;
-  const q = qz.qs[qz.i];
-  const correctIdx = Math.max(0, q.answer ? 'ABCD'.indexOf(q.answer) : 0);
-  const opts=[...document.querySelectorAll('#mcqOpts .mcq-opt')];
-  qz.answered++;
-  const isRight = pick===correctIdx;
-  if(isRight) qz.correct++; else {
-    const el=document.getElementById('mcqOpt'+pick);
-    if(el) el.classList.add('shake');
+  const text = ORG.text.trim();
+  if(text.length<20){ ORG.err = 'Paste or load some medical text first (at least a couple of lines).'; renderOrganizer(); return; }
+  const gen = ++ORG.gen;
+  ORG.busy = true; ORG.err = ''; ORG.info = ''; renderOrganizer();
+  const chunks = orgChunks(text, 9000);
+  const blocks = [], review = []; let title = '';
+  try{
+    for(let i=0;i<chunks.length;i++){
+      if(gen!==ORG.gen) return;
+      ORG.info = chunks.length>1 ? `Organizing part ${i+1} of ${chunks.length}…` : 'Organizing…'; orgRenderBusy();
+      const prompt = `SOURCE TEXT${chunks.length>1?` (part ${i+1} of ${chunks.length} of a longer text — organize only this part)`:''}:\n"""\n${chunks[i]}\n"""`
+        + (ORG.instr.trim() ? `\n\nExtra instruction from the student (it can NEVER override the strict rules): ${ORG.instr.trim()}` : '');
+      const res = orgNormalize(parseAiJsonObj(await orgCall(cfg, prompt, 7000)));
+      if(!title) title = res.title;
+      blocks.push(...res.blocks); review.push(...res.review);
+    }
+    if(gen!==ORG.gen) return;
+    if(!blocks.length) throw new Error('The AI returned nothing usable. Try again or switch model.');
+    ORG.blocks = blocks; ORG.review = review; ORG.title = title || 'AI Notes';
+    if(!ORG.dest.newTopic) ORG.dest.newTopic = ORG.title;
+    if(!ORG.dest.newChap) ORG.dest.newChap = ORG.title;
+    ORG.busy = false; ORG.info = ''; renderOrganizer(); window.scrollTo(0,0);
+  }catch(e){
+    if(gen!==ORG.gen) return;
+    ORG.busy = false; ORG.info = '';
+    ORG.err = (e.message||String(e)).slice(0,300) + (e instanceof SyntaxError ? ' — the AI reply was cut or malformed; try again or a shorter text.' : '');
+    renderOrganizer();
   }
-  qz.log.push({q:q.q, opts:q.opts, correctIdx, pickedIdx:pick, expl:q.expl, topic:q.topic, isRight});
-  opts.forEach((el,oi)=>{
-    el.onclick=null;
-    if(oi===pick && isRight) el.classList.add('sel-correct');
-    else if(oi===pick) el.classList.add('sel-wrong');
-    else if(oi===correctIdx) el.classList.add('reveal-correct');
-    else el.classList.add('dim');
-  });
-  document.getElementById('mcqExpl').innerHTML =
-    `<div class="mcq-expl">${isRight?'✅ <b>Correct!</b> ':'❌ <b>Not quite.</b> '}${mdToHtml(q.expl||'')}</div>`;
-  const nextWrap=document.createElement('div');
-  nextWrap.innerHTML = (qz.i+1<qz.qs.length)
-    ? `<button class="pill-btn primary" style="width:100%;margin-top:12px;" onclick="nextMcq()">Next question →</button>`
-    : `<button class="pill-btn primary" style="width:100%;margin-top:12px;" onclick="finishMcq()">See results 🏁</button>`;
-  document.querySelector('.mcq-qcard .mcq-opts').insertAdjacentElement('afterend', nextWrap.firstElementChild);
 }
-function nextMcq(){ mcqQuiz.i++; renderMcqQuestion(); }
-function finishMcq(){
-  const qz=mcqQuiz, pct=qz.qs.length?Math.round(qz.correct/qz.qs.length*100):0;
-  const emoji = pct>=80?'🏆':pct>=60?'💪':'📚';
-  const msg = pct>=80?'Excellent — exam ready!':pct>=60?'Solid — review the misses and go again.':'Keep at it — reread the chapter cards, then retry.';
-  // per-topic breakdown so the student knows exactly where to focus
-  const byTopic = {};
-  qz.log.forEach(l=>{
-    const t = l.topic || 'Other';
-    if(!byTopic[t]) byTopic[t] = {correct:0, total:0};
-    byTopic[t].total++;
-    if(l.isRight) byTopic[t].correct++;
+function orgRenderBusy(){ const el = document.getElementById('orgBusyMsg'); if(el) el.textContent = ORG.info; }
+function orgCancel(){ ORG.gen++; ORG.busy = false; ORG.info = ''; renderOrganizer(); }
+
+/* ---------- screen ---------- */
+function renderOrganizer(){
+  const area = document.getElementById('orgArea'); if(!area) return;
+  const cfg = loadAiConfig();
+  if(!cfg.key){
+    area.innerHTML = `<div class="card" style="padding:16px;"><div class="detail-section-title">🔑 AI key needed</div><div class="modal-hint">AI Notes uses the same AI key as Scan. Add your key once, then come back.</div><button class="pill-btn primary" style="width:100%;" onclick="goto('scan')">Open AI settings</button></div>`;
+    return;
+  }
+  if(ORG.saved){ area.innerHTML = orgSavedHtml(); return; }
+  const steps = n=>`<div class="org-stepper">${['Text','Preview','Where','Save'].map((s,i)=>`<span class="${i<n?'done':''} ${i===n-1?'cur':''}">${i+1}. ${s}</span>`).join('')}</div>`;
+  if(ORG.busy){
+    area.innerHTML = steps(1) + `<div class="card" style="padding:22px;text-align:center;"><div class="detail-section-title" style="justify-content:center;">✨ AI is organizing your text</div><div class="modal-hint" id="orgBusyMsg">${escapeHtml(ORG.info||'Organizing…')}</div><button class="pill-btn ghost" onclick="orgCancel()">Cancel</button></div>`;
+    return;
+  }
+  if(!ORG.blocks){
+    area.innerHTML = steps(1) + `
+      <div class="card" style="padding:16px;margin-bottom:12px;">
+        <div class="detail-section-title">📥 Paste your medical text</div>
+        <div class="modal-hint">Lecture transcript, book page, notes — long text is fine (it is split automatically). The AI turns it into tables, steps, flowcharts, cards and lists. You review everything before anything is saved.</div>
+        <textarea id="orgText" class="text-input" dir="auto" style="min-height:220px;" placeholder="Paste text here…" oninput="ORG.text=this.value;orgCount()">${escapeHtml(ORG.text)}</textarea>
+        <div class="modal-hint" id="orgCount" style="margin-top:6px;"></div>
+        <input type="file" id="orgFile" accept=".txt,.md,.csv,.json,.html,text/*" style="display:none;" onchange="orgLoadFile(this)">
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button class="pill-btn ghost" style="flex:1;" onclick="document.getElementById('orgFile').click()">📄 Load text file</button>
+          <button class="pill-btn ghost" style="flex:1;" onclick="orgClearText()">Clear</button>
+        </div>
+        <div class="field-card" style="margin-top:10px;"><div class="field-label">Extra instruction <span style="color:var(--muted);">(optional — e.g. "focus on dosing tables")</span></div>
+          <input id="orgInstr" class="text-input" dir="auto" value="${escAttr(ORG.instr)}" oninput="ORG.instr=this.value"></div>
+        ${ORG.err?`<div class="card warn-card" style="padding:12px;margin-top:10px;"><div class="modal-hint" style="margin:0;">⚠️ ${escapeHtml(ORG.err)}</div></div>`:''}
+        <button class="pill-btn primary" style="width:100%;margin-top:12px;" onclick="orgGenerate()">✨ Organize Notes</button>
+      </div>
+      ${modelSwitcherHtml()}
+      <div class="modal-hint" style="text-align:center;">AI output is a study aid — not an approved protocol. Verify doses against your source.</div>`;
+    orgCount(); return;
+  }
+  const n = ORG.blocks.length;
+  area.innerHTML = steps(2) + `
+    <div class="org-note">🤖 AI-organized from your text. <b>Not an approved protocol</b> — check numbers and doses against the source. Nothing is saved yet.</div>
+    <div class="org-top">
+      <button class="pill-btn ghost" onclick="orgBackToText()">← Edit text</button>
+      <button class="pill-btn ghost" onclick="orgRegenerate()">🔄 Regenerate</button>
+    </div>
+    <div class="field-card"><div class="field-label">Regenerate with an instruction <span style="color:var(--muted);">(optional)</span></div>
+      <input id="orgInstr2" class="text-input" dir="auto" value="${escAttr(ORG.instr)}" oninput="ORG.instr=this.value" placeholder="e.g. make a dosing table / split into cards"></div>
+    ${ORG.err?`<div class="card warn-card" style="padding:12px;margin-bottom:10px;"><div class="modal-hint" style="margin:0;">⚠️ ${escapeHtml(ORG.err)}</div></div>`:''}
+    ${modelSwitcherHtml()}
+    <div class="org-title-row"><div class="field-label">Title</div><input class="text-input" dir="auto" value="${escAttr(ORG.title)}" oninput="ORG.title=this.value"></div>
+    <div class="org-count">${ORG.blocks.filter(b=>b.on).length} of ${n} blocks selected</div>
+    <div id="orgBlocks">${ORG.blocks.map((b,i)=>orgPreviewBlock(b,i,n)).join('')}</div>
+    ${ORG.review.length?`<div class="card warn-card org-review"><div class="detail-section-title">❓ Needs your review (${ORG.review.length})</div><ul class="warn-list">${ORG.review.map(r=>`<li>${orgTxt(r)}</li>`).join('')}</ul>
+      <label class="org-chk"><input type="checkbox" ${ORG.saveReview?'checked':''} onchange="ORG.saveReview=this.checked"> Save this list with the notes</label></div>`:''}
+    <div id="orgDest"></div>`;
+  orgRenderDest();
+}
+function orgPreviewBlock(b,i,n){
+  const t = ORG_TYPES[b.type];
+  return `<div class="card org-blk ${b.on?'':'off'} ${b.src==='ai'?'ai':''}" data-oid="${b.id}">
+    <div class="detail-section-title blk-head"><input type="checkbox" class="org-on" aria-label="Include" ${b.on?'checked':''} onchange="orgToggle('${b.id}',this.checked)"><span class="blk-ico">${t.ico}</span><span class="blk-title">${orgTxt(b.title)||t.label}</span>
+      <span class="edit-btns blk-ctl" style="display:inline-flex;">
+        <button ${i>0?'':'disabled'} aria-label="Move up" onclick="orgMove('${b.id}',-1)">▲</button>
+        <button ${i<n-1?'':'disabled'} aria-label="Move down" onclick="orgMove('${b.id}',1)">▼</button>
+        <button aria-label="Edit" onclick="orgEdit('${b.id}')">✎</button>
+        <button aria-label="Delete" onclick="orgDelete('${b.id}')">🗑</button></span></div>
+    <div class="org-meta">${orgBadge(b)}</div>
+    <div class="org-body">${orgBodyHtml(b)}</div></div>`;
+}
+function orgCount(){ const el=document.getElementById('orgCount'); if(el){ const n=ORG.text.trim().length; el.textContent = n ? n.toLocaleString()+' characters'+(n>9000?' · will be processed in '+orgChunks(ORG.text,9000).length+' parts':'') : ''; } }
+function orgClearText(){ ORG.text=''; ORG.err=''; renderOrganizer(); }
+function orgLoadFile(inp){
+  const f = inp.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    let t = String(r.result||'');
+    if(/\.html?$/i.test(f.name)) t = t.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi,'').replace(/<[^>]+>/g,' ');
+    ORG.text = (ORG.text.trim()?ORG.text.trim()+'\n\n':'') + t; ORG.err=''; renderOrganizer();
+  };
+  r.onerror = ()=>{ ORG.err = 'Could not read that file.'; renderOrganizer(); };
+  r.readAsText(f); inp.value='';
+}
+function orgBackToText(){
+  if(ORG.blocks && !confirm('Go back to the text? The current preview will be discarded.')) return;
+  ORG.blocks = null; ORG.review = []; ORG.err = ''; renderOrganizer();
+}
+function orgRegenerate(){
+  if(!confirm('Regenerate? Your edits to the current preview will be replaced.')) return;
+  orgGenerate();
+}
+function orgFind(id){ return ORG.blocks.find(b=>b.id===id); }
+function orgToggle(id,on){ const b=orgFind(id); if(b){ b.on=on; renderOrganizer(); } }
+function orgMove(id,d){ const i=ORG.blocks.findIndex(b=>b.id===id), j=i+d; if(i<0||j<0||j>=ORG.blocks.length) return; [ORG.blocks[i],ORG.blocks[j]]=[ORG.blocks[j],ORG.blocks[i]]; renderOrganizer(); }
+function orgDelete(id){ ORG.blocks = ORG.blocks.filter(b=>b.id!==id); if(!ORG.blocks.length){ ORG.blocks=null; } renderOrganizer(); }
+function orgEdit(id){ const b=orgFind(id); if(b) orgEditModal(b, renderOrganizer); }
+
+/* ---------- destination ---------- */
+function orgNorm(s){ return String(s||'').toLowerCase().replace(/\s+/g,' ').trim(); }
+function orgRenderDest(){
+  const el = document.getElementById('orgDest'); if(!el) return;
+  const d = ORG.dest;
+  if(!d.chap || (d.chap!=='__new' && !DB.find(c=>c.id===d.chap))) d.chap = DB[0] ? DB[0].id : '__new';
+  const chap = d.chap==='__new' ? null : DB.find(c=>c.id===d.chap);
+  const topicMode = chap ? chap.type==='otc' : d.newType==='otc';
+  let html = `<div class="card org-dest"><div class="detail-section-title">📍 Where should this go?</div>
+    <div class="field-card"><div class="field-label">Chapter</div>
+      <select class="text-input" onchange="ORG.dest.chap=this.value;ORG.dest.topic='';orgRenderDest()">
+        ${DB.map(c=>`<option value="${c.id}" ${c.id===d.chap?'selected':''}>${escapeHtml(c.name)}</option>`).join('')}
+        <option value="__new" ${d.chap==='__new'?'selected':''}>➕ New chapter…</option></select></div>`;
+  if(!chap){
+    html += `<div class="field-card"><div class="field-label">New chapter name</div><input class="text-input" dir="auto" value="${escAttr(d.newChap)}" oninput="ORG.dest.newChap=this.value"></div>
+      <div class="field-card"><div class="field-label">Chapter layout</div>
+        <select class="text-input" onchange="ORG.dest.newType=this.value;orgRenderDest()"><option value="drug" ${d.newType==='drug'?'selected':''}>Drug chapter — notes on the chapter page</option><option value="otc" ${d.newType==='otc'?'selected':''}>Topics chapter (like OTC) — notes inside a topic</option></select></div>`;
+  }
+  if(topicMode){
+    const topics = chap ? (chap.topics||[]) : [];
+    if(d.topic!=='__new' && !topics.find(t=>t.id===d.topic)) d.topic = topics[0] ? topics[0].id : '__new';
+    html += `<div class="field-card"><div class="field-label">Topic (sub-chapter)</div>
+      <select class="text-input" onchange="ORG.dest.topic=this.value;orgRenderDest()">
+        ${topics.map(t=>`<option value="${t.id}" ${t.id===d.topic?'selected':''}>${escapeHtml(t.t)}</option>`).join('')}
+        <option value="__new" ${d.topic==='__new'?'selected':''}>➕ New topic…</option></select></div>`;
+    if(d.topic==='__new') html += `<div class="field-card"><div class="field-label">New topic title</div><input class="text-input" dir="auto" value="${escAttr(d.newTopic)}" oninput="ORG.dest.newTopic=this.value">
+      <div class="modal-hint" style="margin-top:6px;">If a topic with this title already exists, the notes are added to it — no duplicate is created.</div></div>`;
+  } else {
+    html += `<div class="modal-hint">Saved on the chapter page, above the drug list (you can reorder it there in edit mode).</div>`;
+  }
+  html += `<button class="pill-btn primary" style="width:100%;margin-top:10px;" onclick="orgSave()">💾 Save to ${chap?escapeHtml(chap.name):'new chapter'}</button></div>`;
+  el.innerHTML = html;
+}
+
+/* ---------- save ---------- */
+function orgMark(b){ return b.src==='ai' ? (b.title?b.title+' · ':'')+'🤖 AI-added (verify)' : b.title; }
+function orgSave(){
+  const sel = ORG.blocks.filter(b=>b.on);
+  if(!sel.length){ alert('Select at least one block to save.'); return; }
+  const d = ORG.dest; let chap = d.chap==='__new' ? null : DB.find(c=>c.id===d.chap);
+  const notes = [];
+  snapshotForUndo();
+  if(!chap){
+    const name = orgSafe(d.newChap); if(!name){ alert('Give the new chapter a name.'); return; }
+    chap = DB.find(c=>orgNorm(c.name)===orgNorm(name));
+    if(chap) notes.push('A chapter with this name already exists — added to it.');
+    else { chap = {id:uid(), name, color:'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'), type:d.newType==='otc'?'otc':'drug'}; if(chap.type==='otc') chap.topics=[]; else chap.drugs=[]; DB.push(chap); }
+  }
+  const review = ORG.saveReview ? ORG.review : [];
+  let topic = null, where = chap.name;
+  if(chap.type==='otc'){
+    if(!chap.topics) chap.topics = [];
+    if(d.topic==='__new' || !chap.topics.find(t=>t.id===d.topic)){
+      const title = orgSafe(d.newTopic||ORG.title); if(!title){ alert('Give the topic a title.'); return; }
+      topic = chap.topics.find(t=>orgNorm(t.t)===orgNorm(title));
+      if(topic) notes.push('A topic with this title already exists — added to it.');
+      else { topic = {id:uid(), t:title, ar:'', dd:[], management:[], redFlags:[], notes:[], tables:[]}; chap.topics.push(topic); }
+    } else topic = chap.topics.find(t=>t.id===d.topic);
+    where += ' › '+topic.t;
+    orgSaveToTopic(topic, sel, review);
+  } else orgSaveToChapter(chap, sel, review);
+  saveDB();
+  refreshSessionIfOpen(chap.id);
+  ORG.saved = {chapId:chap.id, topicId:topic?topic.id:null, where, n:sel.length, notes};
+  ORG.blocks = null; ORG.text = ''; ORG.review = []; ORG.dest.topic = '';
+  renderOrganizer(); window.scrollTo(0,0);
+  showUndoToast('Saved '+sel.length+' block'+(sel.length>1?'s':'')+' to '+escapeHtml(where));
+}
+function orgSaveToChapter(c, sel, review){
+  const blocks = ensureBlocks(c); ensureFlow(c);
+  const addBlock = (type, title, items, extra)=>{ const id=uid(); flowInsert(c,'b:'+id); blocks.push(Object.assign({id, type, title:title||undefined, items:items||[]}, extra||{})); };
+  sel.forEach(b=>{
+    const title = orgMark(b);
+    if(b.type==='table'){ if(!c.tables) c.tables=[]; const id=uid(); flowInsert(c,'t:'+id); c.tables.push({id, title:(ORG_TYPES.table.ico+' ')+(title||'Table'), cols:b.cols.slice(), rows:b.rows.map(r=>r.slice())}); }
+    else if(b.type==='summary') addBlock('summary', title, [b.text]);
+    else if(b.type==='steps') addBlock('steps', title, b.items.slice());
+    else if(b.type==='list') addBlock('notes', title, b.items.slice());
+    else if(b.type==='warnings') addBlock('warnings', title, b.items.slice());
+    else if(b.type==='flow') addBlock('rich', title, [], {rich:{kind:'flow', nodes:JSON.parse(JSON.stringify(b.nodes))}, src:b.src});
+    else if(b.type==='cards') addBlock('rich', title, [], {rich:{kind:'cards', cards:JSON.parse(JSON.stringify(b.cards))}, src:b.src});
   });
-  const topicRows = Object.keys(byTopic).map(t=>{
-    const b = byTopic[t];
-    const weak = b.correct < b.total;
-    return `<div class="mcq-topic-row${weak?' weak':''}"><span>${escapeHtml(t)}</span><span>${b.correct}/${b.total}</span></div>`;
+  if(review.length) addBlock('notes', '❓ Needs review (from AI Notes)', review.slice());
+}
+function orgSaveToTopic(t, sel, review){
+  ['redFlags','notes','tables','steps'].forEach(k=>{ if(!Array.isArray(t[k])) t[k]=[]; });
+  if(!Array.isArray(t.rich)) t.rich = [];
+  const ai = b=>b.src==='ai' ? '🤖 ' : '';
+  sel.forEach(b=>{
+    const title = orgMark(b);
+    if(b.type==='table') t.tables.push({title:(ORG_TYPES.table.ico+' ')+(title||'Table'), cols:b.cols.slice(), rows:b.rows.map(r=>r.slice())});
+    else if(b.type==='summary') t.notes.push(ai(b)+'<b>'+(b.title||'Summary')+':</b> '+b.text);
+    else if(b.type==='warnings') b.items.forEach(x=>t.redFlags.push(ai(b)+x));
+    else if(b.type==='list'){ if(b.title) t.notes.push('<b>'+b.title+'</b>'); b.items.forEach(x=>t.notes.push(ai(b)+x)); }
+    else if(b.type==='steps' && !t.steps.length && b.src!=='ai') t.steps = b.items.slice();
+    else t.rich.push({id:uid(), type:b.type, title, src:b.src, items:b.items&&b.items.slice(), nodes:b.nodes&&JSON.parse(JSON.stringify(b.nodes)), cards:b.cards&&JSON.parse(JSON.stringify(b.cards))});
+  });
+  if(review.length){ t.notes.push('<b>❓ Needs review (from AI Notes)</b>'); review.forEach(x=>t.notes.push(x)); }
+}
+function orgSavedHtml(){
+  const s = ORG.saved;
+  return `<div class="card" style="padding:20px;text-align:center;"><div style="font-size:2rem;">✅</div>
+    <div class="detail-section-title" style="justify-content:center;">Saved ${s.n} block${s.n>1?'s':''}</div>
+    <div class="modal-hint">${escapeHtml(s.where)}${s.notes.length?'<br>'+s.notes.map(escapeHtml).join('<br>'):''}</div>
+    <button class="pill-btn primary" style="width:100%;margin-top:8px;" onclick="orgOpenSaved()">Open it</button>
+    <button class="pill-btn ghost" style="width:100%;margin-top:8px;" onclick="ORG.saved=null;renderOrganizer()">➕ New AI note</button></div>`;
+}
+function orgOpenSaved(){
+  const s = ORG.saved; if(!s) return;
+  ORG.saved = null;
+  openChapter(s.chapId);
+  if(s.topicId) openOtcDetail(s.topicId);
+}
+
+/* ---------- saved rich blocks (flow / cards / steps-in-topic) shown on pages ---------- */
+function richBodyHtml(b){
+  if(!b) return '';
+  const o = b.rich ? Object.assign({type:b.rich.kind}, b.rich) : b;   // chapter block {rich:{kind,..}} or topic rich item
+  const t = o.type;
+  if(t==='flow' && o.nodes) return orgFlowHtml(o.nodes);
+  if(t==='cards' && o.cards) return orgBodyHtml({type:'cards', cards:o.cards});
+  if(t==='table' && o.cols) return orgBodyHtml(o);
+  if(o.items) return orgBodyHtml({type:(t==='steps'||t==='warnings')?t:'list', items:o.items});
+  if(t==='summary' && o.text) return orgBodyHtml(o);
+  return '';
+}
+function openSavedRichEditor(chapterId, topicId, id){
+  const c = DB.find(x=>x.id===chapterId); if(!c) return;
+  let holder, blk;
+  if(topicId){ const t = findTopic(chapterId, topicId); holder = t && t.rich; blk = holder && holder.find(x=>x.id===id); }
+  else { holder = c.blocks; blk = holder && holder.find(x=>x.id===id); }
+  if(!blk) return;
+  const proxy = blk.rich ? Object.assign({type:blk.rich.kind, title:blk.title}, blk.rich) : blk;
+  orgEditModal(proxy, ()=>{
+    if(blk.rich){ if(proxy.nodes) blk.rich.nodes = proxy.nodes; if(proxy.cards) blk.rich.cards = proxy.cards; blk.title = proxy.title||undefined; }
+    saveDB(); refreshSessionIfOpen(chapterId);
+    if(topicId){ refreshOtcDetailIfOpen(topicId); } else renderSession();
+  });
+}
+function deleteTopicRich(chapterId, topicId, id){
+  const t = findTopic(chapterId, topicId); if(!t || !t.rich) return;
+  snapshotForUndo(); t.rich = t.rich.filter(x=>x.id!==id); saveDB();
+  refreshOtcDetailIfOpen(topicId); showUndoToast('Block deleted');
+}
+function renderTopicRich(topic, chapterId, ed){
+  if(!topic.rich || !topic.rich.length) return '';
+  return topic.rich.map(r=>{
+    const ty = ORG_TYPES[r.type] || {ico:'🧩',label:'AI Notes'};
+    const ctl = ed ? ` <span class="edit-inline" onclick="openSavedRichEditor('${chapterId}','${topic.id}','${r.id}')">✎ edit</span> <span class="edit-inline" onclick="deleteTopicRich('${chapterId}','${topic.id}','${r.id}')">🗑</span>` : '';
+    return `<div class="detail-section"><div class="card org-saved"><div class="detail-section-title">${ty.ico} ${orgTxt(r.title)||ty.label}${ctl}</div>${richBodyHtml(r)}</div></div>`;
   }).join('');
-  document.getElementById('mcqPlayArea').innerHTML = `
-    <div class="card mcq-done-card">
-      <span class="mcq-done-emoji">${emoji}</span>
-      <div class="mcq-done-title">${qz.correct} / ${qz.qs.length} correct · ${pct}%</div>
-      <div class="mcq-done-sub">${msg}</div>
-      ${topicRows ? `<div class="mcq-topic-breakdown">${topicRows}</div>` : ''}
-      <button class="pill-btn primary" style="width:100%;" onclick="renderMcqReview()">Review answers</button>
-      <button class="pill-btn ghost" style="width:100%;margin-top:8px;" onclick="retryMcq()">Try again</button>
-      <button class="pill-btn ghost" style="width:100%;margin-top:8px;" onclick="exitMcq()">Change settings</button>
-    </div>`;
 }
-/* Full-detail review: every question, what you picked, the right answer,
-   and the explanation — so a finished quiz is something you can actually
-   learn from, not just a score you forget five seconds later. */
-function renderMcqReview(){
-  const qz = mcqQuiz; if(!qz) return;
-  const rows = qz.log.map((l,i)=>`
-    <div class="mcq-review-item ${l.isRight?'right':'wrong'}">
-      <div class="mcq-review-q">Q${i+1}. ${mdToHtml(l.q)}</div>
-      ${l.opts.map((o,oi)=>{
-        let cls='';
-        if(oi===l.correctIdx) cls='reveal-correct';
-        else if(oi===l.pickedIdx) cls='sel-wrong';
-        return `<div class="mcq-review-opt ${cls}"><span class="mcq-key">${mcqLetter(oi)}</span><span>${mdToHtml(o)}</span></div>`;
-      }).join('')}
-      <div class="mcq-expl">${l.isRight?'✅ ':'❌ '}${mdToHtml(l.expl||'')}</div>
-    </div>`).join('');
-  document.getElementById('mcqPlayArea').innerHTML = `
-    <div class="mcq-review-list">${rows}</div>
-    <button class="pill-btn primary" style="width:100%;margin-top:6px;" onclick="finishMcq()">← Back to results</button>`;
-}
-function retryMcq(){ exitMcq(); setTimeout(()=>startMcq(), 60); }
-function exitMcq(){
-  mcqQuiz=null;
-  document.getElementById('mcqSetup').style.display='block';
-  document.getElementById('mcqPlayArea').style.display='none';
-  document.getElementById('mcqPlayArea').innerHTML='';
-}
-function exitMcqToPedcalc(){ goto('pedcalc'); }
+
 async function pushScenarioTurn(isNewScenario){
   const cfg = loadAiConfig();
   const log = document.getElementById('scenarioChatLog');
@@ -5150,7 +5386,6 @@ async function runAi(cfg, b64, mime, prompt, maxTokens){
   return withFallback(cfg, c=>call(c.key, b64, mime, c.model || defaultModelFor(c.provider), prompt, maxTokens));
 }
 const callAiChat = (cfg, messages)=>withFallback(cfg, c=>_callAiChat(c, messages));
-const callAiJson = (cfg, userPrompt, maxTokens)=>withFallback(cfg, c=>_callAiJson(c, userPrompt, maxTokens));
 
 /* ---- switching models while you work ---- */
 function httpErr(res, msg){ const e = new Error(msg); e.status = res.status; return e; }
