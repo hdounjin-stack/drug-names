@@ -854,23 +854,76 @@ mark.org-q{background:rgba(179,60,44,0.16);color:var(--accent);border-radius:4px
 .org-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px;}
 .org-card2{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius-md);padding:10px 12px;}
 .org-card2-t{font-family:'Fraunces',serif;font-weight:700;font-size:0.84375rem;margin-bottom:5px;color:var(--ink);}
-.org-flow{display:flex;flex-direction:column;align-items:center;gap:0;overflow-x:auto;padding:4px 2px 8px;}
-.org-fn{max-width:260px;text-align:center;font-size:0.75rem;line-height:1.45;padding:8px 12px;border-radius:12px;background:var(--card);border:1.5px solid var(--line-strong);color:var(--ink);}
-.org-fn.start{background:rgba(52,168,83,0.10);border-color:rgba(52,140,63,0.55);font-weight:700;}
-.org-fn.end{background:rgba(179,60,44,0.08);border-color:rgba(179,60,44,0.55);font-weight:700;}
-.org-fn.decision{background:rgba(156,107,18,0.10);border:1.5px dashed var(--amber);font-weight:600;}
-.org-fn.ref{opacity:.65;font-style:italic;border-style:dotted;}
-.org-arrow{display:flex;flex-direction:column;align-items:center;color:var(--accent);font-weight:700;line-height:1.1;padding:3px 0;}
-.org-arrow span{font-size:0.65625rem;color:var(--muted);font-weight:700;}
-.org-branches{display:flex;gap:10px;align-items:flex-start;justify-content:center;flex-wrap:wrap;width:100%;}
-.org-br{display:flex;flex-direction:column;align-items:center;min-width:130px;flex:1;max-width:280px;padding:6px 6px 2px;border-top:2px solid var(--line-strong);}
-.org-brl{font-size:0.65625rem;font-weight:700;color:var(--accent);margin-bottom:4px;}
 .org-sep{height:10px;}
 .org-review{padding:12px 14px;margin:10px 0;}
 .org-chk{display:flex;align-items:center;gap:8px;font-size:0.71875rem;margin-top:8px;color:var(--ink-soft);}
 .org-dest{padding:14px 15px;margin:12px 0 18px;}
 .org-saved{padding:12px 14px;}
 .org-edit-ta{font-family:ui-monospace,Menlo,monospace;font-size:0.75rem;}
+
+/* ---------- Flowchart display: tree connectors, any branch count, fit-to-width ---------- */
+:root{--fl-line:var(--line-strong);--fl-yes:#2a7a38;--fl-no:var(--accent);--fl-alt:#2b6cb0;}
+html[data-theme="dark"]{--fl-line:rgba(255,255,255,.28);--fl-yes:#7fd68f;--fl-no:#ff9a86;--fl-alt:#8db8f5;}
+.org-flow{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:12px 6px 16px;width:100%;}
+.org-flow-in{display:flex;flex-direction:column;align-items:center;width:max-content;min-width:100%;margin:0 auto;}
+.org-fn{position:relative;max-width:230px;min-width:100px;text-align:center;font-size:0.8125rem;line-height:1.5;padding:11px 15px;border-radius:14px;background:var(--card);border:1.5px solid var(--line-strong);color:var(--ink);box-shadow:0 3px 10px -4px rgba(33,26,19,.28);overflow-wrap:anywhere;}
+.org-fn.start{background:linear-gradient(135deg,rgba(52,168,83,.18),rgba(52,168,83,.07));border-color:rgba(52,140,63,.65);border-radius:999px;font-weight:700;padding:9px 20px;}
+.org-fn.end{background:linear-gradient(135deg,rgba(179,60,44,.16),rgba(179,60,44,.06));border-color:rgba(179,60,44,.65);border-radius:999px;font-weight:700;padding:9px 20px;}
+.org-fn.decision{background:linear-gradient(135deg,rgba(214,150,30,.22),rgba(214,150,30,.08));border:1.5px solid var(--amber);font-weight:700;border-radius:16px;padding:12px 18px;min-width:120px;}
+.org-fn.decision::before{content:"◆";position:absolute;top:-2px;right:8px;font-size:0.7rem;opacity:.5;color:var(--amber);}
+.org-fn.action{border-left:4px solid var(--accent);}
+.org-fn.ref{opacity:.72;font-style:italic;border-style:dashed;box-shadow:none;}
+.org-arrow{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;height:30px;font-size:0;color:transparent;}
+.org-arrow::before{content:"";width:2.5px;flex:1;background:var(--fl-line);border-radius:2px;}
+.org-arrow::after{content:"";width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid var(--fl-line);margin-top:-1px;}
+.org-arrow span{position:absolute;left:calc(50% + 10px);top:50%;transform:translateY(-50%);font-size:0.625rem;font-weight:700;color:var(--muted);background:var(--paper);padding:1px 6px;border-radius:8px;white-space:nowrap;}
+/* branches: every branch draws its own piece of the bar, so uneven widths still connect */
+.org-branches{display:flex;align-items:flex-start;justify-content:center;width:max-content;max-width:none;}
+.org-br{position:relative;display:flex;flex-direction:column;align-items:center;min-width:140px;max-width:240px;padding:24px 7px 0;}
+.org-br::before{content:"";position:absolute;top:0;left:50%;width:2.5px;height:24px;transform:translateX(-50%);background:var(--fl-line);}
+.org-br::after{content:"";position:absolute;top:0;left:0;right:0;height:2.5px;background:var(--fl-line);}
+.org-br:first-child::after{left:50%;}
+.org-br:last-child::after{right:50%;}
+.org-br:only-child::after{display:none;}
+.org-brl{position:relative;z-index:1;margin:0 0 14px;font-size:0.6875rem;font-weight:800;letter-spacing:.03em;padding:4px 12px;border-radius:999px;background:var(--paper-2);border:1.5px solid var(--line-strong);color:var(--ink-soft);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
+.org-brl::after{content:"";position:absolute;left:50%;top:100%;width:2.5px;height:14px;transform:translateX(-50%);background:var(--fl-line);}
+.org-brl:empty{display:none;}
+.org-brl.yes{background:rgba(52,168,83,.16);border-color:rgba(52,140,63,.65);color:var(--fl-yes);}
+.org-brl.no{background:rgba(179,60,44,.14);border-color:rgba(179,60,44,.6);color:var(--fl-no);}
+.org-brl.alt{background:rgba(66,133,244,.12);border-color:rgba(66,133,244,.5);color:var(--fl-alt);}
+.org-sep{height:14px;}
+.org-flow.fit{box-shadow:inset -14px 0 10px -12px rgba(0,0,0,.18);}
+/* flowchart builder */
+.modal-card.wide{max-width:720px;}
+.fe-prev{position:sticky;top:-1px;z-index:5;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-md);margin-bottom:12px;box-shadow:0 8px 18px -10px rgba(33,26,19,.45);}
+.fe-prev-h{display:flex;align-items:center;justify-content:space-between;font-size:0.625rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 12px 4px;}
+.fe-tog{font-family:inherit;font-size:0.65625rem;font-weight:800;padding:3px 10px;border-radius:999px;border:1px solid var(--line-strong);background:var(--paper-2);color:var(--ink-soft);cursor:pointer;}
+.fe-add button:active,.fe-addbr:active,.fe-chip:active{transform:scale(.96);}
+.fe-prev-body{max-height:42vh;overflow:auto;padding:4px 8px 10px;}
+.fe-hint{font-size:0.6875rem;color:var(--muted);line-height:1.5;margin:2px 2px 10px;}
+.fe-flowname{font-weight:800;font-size:0.6875rem;color:var(--accent);margin:10px 0 4px;}
+.fe-list{display:flex;flex-direction:column;gap:10px;}
+.fe-item{background:var(--card);border:1px solid var(--line-strong);border-radius:var(--radius-md);padding:10px 11px 11px;border-left:4px solid var(--accent);}
+.fe-item.k-q{border-left-color:var(--amber);background:rgba(214,150,30,.08);}
+.fe-item.k-end{border-left-color:#b33c2c;}
+.fe-item.k-ref{border-left-style:dashed;opacity:.85;}
+.fe-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:7px;}
+.fe-kind{font-size:0.65625rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);}
+.fe-btns button{min-width:28px;}
+.fe-in{margin:0 !important;width:100%;}
+.fe-ref{font-size:0.75rem;font-style:italic;color:var(--muted);}
+.fe-branches{margin:10px 0 0 6px;padding-left:12px;border-left:2px dashed var(--line-strong);display:flex;flex-direction:column;gap:12px;}
+.fe-branch{display:flex;flex-direction:column;gap:7px;}
+.fe-bh{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.fe-arrowl{color:var(--accent);font-weight:800;}
+.fe-lbl{flex:1;min-width:70px;font-family:inherit;font-size:0.75rem;font-weight:700;padding:7px 10px;border-radius:10px;border:1px solid var(--line-strong);background:var(--paper);color:var(--ink);}
+.fe-chip{font-size:0.65625rem;font-weight:800;padding:5px 11px;border-radius:999px;border:1px solid var(--line-strong);background:var(--paper-2);color:var(--ink-soft);cursor:pointer;}
+.fe-chip.yes{color:#2a7a38;border-color:rgba(52,140,63,.55);background:rgba(52,168,83,.1);}
+.fe-chip.no{color:var(--accent);border-color:rgba(179,60,44,.55);background:rgba(179,60,44,.1);}
+.fe-add{display:flex;gap:7px;flex-wrap:wrap;}
+.fe-add button,.fe-addbr{flex:1;min-width:90px;font-family:inherit;font-size:0.71875rem;font-weight:700;padding:9px 11px;border-radius:12px;border:1.5px dashed var(--accent-line);background:var(--accent-soft);color:var(--accent);cursor:pointer;}
+.fe-addbr{align-self:flex-start;flex:none;}
+.fe-addq{background:rgba(214,150,30,.12)!important;border-color:rgba(214,150,30,.55)!important;color:var(--amber)!important;}
 
 </style>
 </head>
@@ -2554,7 +2607,7 @@ function openModal(title, bodyHtml, onSave, saveLabel){
   else { btn.style.display='none'; }
   document.getElementById('editModal').classList.add('open');
 }
-function closeModal(){ document.getElementById('editModal').classList.remove('open'); }
+function closeModal(){ document.getElementById('editModal').classList.remove('open'); const mc=document.querySelector('#editModal .modal-card'); if(mc) mc.classList.remove('wide'); }
 function refreshSessionIfOpen(chapterId){
   if(state.sessionChapterId===chapterId){
     const c = DB.find(x=>x.id===chapterId);
@@ -4751,18 +4804,48 @@ function orgFlowHtml(nodes){
   const targeted = new Set(); nodes.forEach(n=>n.next.forEach(e=>targeted.add(e.to)));
   let roots = nodes.filter(n=>!targeted.has(n.id)); if(!roots.length && nodes.length) roots = [nodes[0]];
   const seen = new Set();
-  const icon = {start:'▶ ',decision:'◆ ',end:'■ ',action:''};
+  const icon = {start:'▶ ',decision:'',end:'■ ',action:''};
+  const isYes = l => /^\s*(yes|نعم|ايوه|أيوه|اه|y)\s*$/i.test(l||'');
+  const isNo  = l => /^\s*(no|لا|لأ|n)\s*$/i.test(l||'');
+  const branchCls = (lbl) => {
+    if(isYes(lbl)) return 'yes';
+    if(isNo(lbl)) return 'no';
+    if(lbl && lbl.trim()) return 'alt';
+    return '';
+  };
   const rec = n=>{
     if(seen.has(n.id)) return `<div class="org-fn ref">↺ ${orgTxt(n.text)}</div>`;
     seen.add(n.id);
     let h = `<div class="org-fn ${n.type}">${icon[n.type]||''}${orgTxt(n.text)}</div>`;
     const nx = n.next.filter(e=>by[e.to]);
-    if(nx.length===1){ h += `<div class="org-arrow">${nx[0].label?`<span>${orgTxt(nx[0].label)}</span>`:''}↓</div>` + rec(by[nx[0].to]); }
-    else if(nx.length>1){ h += `<div class="org-arrow">↓</div><div class="org-branches">${nx.map(e=>`<div class="org-br"><div class="org-brl">${orgTxt(e.label||'')}</div>${rec(by[e.to])}</div>`).join('')}</div>`; }
+    if(nx.length===1){
+      h += `<div class="org-arrow">${nx[0].label?`<span>${orgTxt(nx[0].label)}</span>`:''}</div>` + rec(by[nx[0].to]);
+    } else if(nx.length>1){
+      const count = nx.length;
+      h += `<div class="org-arrow"></div><div class="org-branches" style="--br-count:${count}">${nx.map(e=>{
+        const lbl = e.label||'';
+        return `<div class="org-br"><div class="org-brl ${branchCls(lbl)}">${orgTxt(lbl)}</div>${rec(by[e.to])}</div>`;
+      }).join('')}</div>`;
+    }
     return h;
   };
-  return `<div class="org-flow">${roots.map(rec).join('<div class="org-sep"></div>')}</div>`;
+  return `<div class="org-flow" role="group" aria-label="Flowchart"><div class="org-flow-in">${roots.map(rec).join('<div class="org-sep"></div>')}</div></div>`;
 }
+/* shrink wide flowcharts to fit the screen (min 72%), scroll for the rest */
+function orgFitFlows(){
+  document.querySelectorAll('.org-flow').forEach(f=>{
+    const inn = f.firstElementChild; if(!inn || !f.clientWidth) return;
+    inn.style.zoom = '';
+    const avail = f.clientWidth-14, need = inn.scrollWidth;
+    const z = need>avail ? Math.max(.72, avail/need) : 1;
+    if(z<1) inn.style.zoom = z.toFixed(3);
+    f.classList.toggle('fit', need*z > avail+4);
+    if(f.scrollWidth>f.clientWidth+2 && !f.dataset.c){ f.scrollLeft = (f.scrollWidth-f.clientWidth)/2; f.dataset.c = '1'; }   // start centred on the first step
+  });
+}
+let _fitQ = 0;
+new MutationObserver(()=>{ if(_fitQ) return; _fitQ = requestAnimationFrame(()=>{ _fitQ=0; orgFitFlows(); }); }).observe(document.body,{childList:true,subtree:true});
+window.addEventListener('resize', orgFitFlows);
 function orgBodyHtml(b){
   const t = b.type;
   if(t==='summary') return `<div class="blk-summary">${orgTxt(b.text)}</div>`;
@@ -4815,8 +4898,171 @@ function orgFromText(b, text){
   }
   b.items = nz.map(orgSafe); return b.items.length>0;
 }
+/* ---------- Visual flowchart builder ----------
+   Build the flowchart with buttons: add steps, add a Question (it gets Yes / No branches),
+   rename, move up/down, delete — with a live preview on top. Stored as the same
+   node graph the AI produces, so old flowcharts open here too. */
+let FE = null;
+const feId = ()=>'f'+Math.random().toString(36).slice(2,8);
+function feFromNodes(nodes){
+  const by = {}; nodes.forEach(n=>by[n.id]=n);
+  const inc = {}; nodes.forEach(n=>n.next.forEach(e=>{ if(by[e.to]) inc[e.to]=(inc[e.to]||0)+1; }));
+  let roots = nodes.filter(n=>!inc[n.id]); if(!roots.length && nodes.length) roots = [nodes[0]];
+  const seen = new Set();
+  const chain = n=>{
+    const items = [];
+    while(n){
+      if(seen.has(n.id)){ items.push({fid:feId(), k:'ref', to:n.id, text:n.text}); break; }
+      seen.add(n.id);
+      const nx = n.next.filter(e=>by[e.to]);
+      if(n.type==='decision' || nx.length>1){
+        items.push({fid:feId(), id:n.id, k:'q', text:n.text, branches:nx.map(e=>({bid:feId(), label:e.label||'', items:chain(by[e.to])}))});
+        break;
+      }
+      items.push({fid:feId(), id:n.id, k:(n.type==='end'&&!nx.length)?'end':'step', text:n.text});
+      n = nx.length ? by[nx[0].to] : null;
+    }
+    return items;
+  };
+  return roots.map(r=>({items:chain(r)}));
+}
+function feToNodes(){
+  const nodes = [], ids = new Set();
+  const serialize = list=>{
+    let first = null, prev = null;
+    for(const it of list){
+      if(it.k==='ref'){ if(prev) prev.next.push({to:it.to,label:''}); else first = it.to; return first; }
+      if(!it.id) it.id = 'n'+feId();
+      const nd = {id:it.id, type:it.k==='q'?'decision':it.k==='end'?'end':'action', text:orgSafe(it.text)||'…', next:[]};
+      nodes.push(nd); ids.add(nd.id);
+      if(prev) prev.next.push({to:nd.id,label:''}); else first = nd.id;
+      if(it.k==='q'){
+        (it.branches||[]).forEach(b=>{ const f = serialize(b.items); if(f) nd.next.push({to:f, label:orgSafe(b.label)}); });
+        return first;
+      }
+      if(it.k==='end') return first;
+      prev = nd;
+    }
+    return first;
+  };
+  FE.roots.forEach(r=>serialize(r.items));
+  if(nodes.length && FE.roots[0].items.length && nodes[0].type==='action') nodes[0].type = 'start';
+  nodes.forEach(n=>{ n.next = n.next.filter(e=>ids.has(e.to)); });
+  return nodes;
+}
+function feFind(fid){
+  let hit = null;
+  const walk = list=>{ list.forEach((it,i)=>{ if(hit) return; if(it.fid===fid){ hit = {list, i, it}; return; } (it.branches||[]).forEach(b=>{ if(!hit) walk(b.items); }); }); };
+  FE.roots.forEach(r=>walk(r.items)); return hit;
+}
+function feFindBranch(bid){
+  let hit = null;
+  const walk = list=>list.forEach(it=>(it.branches||[]).forEach((b,i)=>{ if(hit) return; if(b.bid===bid){ hit={q:it, b, i}; return; } walk(b.items); }));
+  FE.roots.forEach(r=>walk(r.items)); return hit;
+}
+const feTerminal = it=>it.k==='q'||it.k==='end'||it.k==='ref';
+function feNew(k){
+  if(k==='q') return {fid:feId(), k, text:'', branches:[{bid:feId(),label:'Yes',items:[]},{bid:feId(),label:'No',items:[]}]};
+  return {fid:feId(), k, text:''};
+}
+function openFlowEditor(b, done){
+  FE = {b, done, title:b.title||'', roots:feFromNodes(b.nodes||[]), lists:{}};
+  if(!FE.roots.length) FE.roots = [{items:[]}];
+  openModal('Flowchart builder', '<div id="feRoot"></div>', ()=>{
+    const nodes = feToNodes();
+    if(!nodes.length){ alert('Add at least one step first.'); return; }
+    b.nodes = nodes; b.title = orgSafe(FE.title);
+    closeModal(); FE = null; if(done) done();
+  });
+  const mc = document.querySelector('#editModal .modal-card'); if(mc) mc.classList.add('wide');
+  feRender();
+}
+function feRender(focusFid){
+  const root = document.getElementById('feRoot'); if(!root || !FE) return;
+  FE.lists = {};
+  root.innerHTML = `<div class="fe-prev"><div class="fe-prev-h"><span>👁 Live preview</span><button class="fe-tog" onclick="FE.hide=!FE.hide;feRender()">${FE.hide?'Show':'Hide'}</button></div>${FE.hide?'':'<div id="fePrev" class="fe-prev-body"></div>'}</div>
+    <div class="field-card"><div class="field-label">Title (optional)</div><input class="text-input" dir="auto" value="${escAttr(FE.title)}" oninput="FE.title=this.value"></div>
+    <div class="fe-hint">Build top → down. A <b>Question</b> splits into branches (Yes / No …); each branch has its own steps.</div>
+    ${FE.roots.map((r,ri)=>`${FE.roots.length>1?`<div class="fe-flowname">Flow ${ri+1}</div>`:''}${feListHtml(r.items,'r'+ri,ri===0)}`).join('')}`;
+  feRefreshPreview();
+  if(focusFid){ const el = root.querySelector(`[data-fid="${focusFid}"] .fe-in`); if(el) el.focus(); }
+}
+function feRefreshPreview(){
+  const el = document.getElementById('fePrev'); if(!el||!FE) return;
+  const nodes = feToNodes();
+  el.innerHTML = nodes.length ? orgFlowHtml(nodes) : '<div class="modal-hint" style="text-align:center;margin:8px 0;">Add your first step below.</div>';
+}
+function feListHtml(items, lid, isFirstList){
+  FE.lists[lid] = items;
+  const last = items[items.length-1];
+  const add = (last && feTerminal(last)) ? '' : `<div class="fe-add">
+    <button onclick="feAdd('${lid}','step')">＋ Step</button>
+    <button class="fe-addq" onclick="feAdd('${lid}','q')">＋ Yes/No Question</button>
+    <button onclick="feAdd('${lid}','end')">＋ Finish</button>
+  </div>`;
+  return `<div class="fe-list">${items.map((it,i)=>feItemHtml(it,lid,i,items.length,isFirstList&&lid==='r0'&&i===0)).join('')}${add}</div>`;
+}
+function feItemHtml(it, lid, i, n, isStart){
+  const kind = it.k==='q' ? '◆ Question' : it.k==='end' ? '■ Finish' : it.k==='ref' ? '↺ Back to' : (isStart ? '▶ Start' : '▭ Step');
+  const ph = it.k==='q' ? 'Ask a question…' : it.k==='end' ? 'Final result / action…' : 'What to do…';
+  const body = it.k==='ref' ? `<div class="fe-ref">“${orgTxt(it.text)}”</div>` : `<input class="text-input fe-in" dir="auto" value="${escAttr(it.text)}" placeholder="${ph}" oninput="feText('${it.fid}',this.value)">`;
+  const canMove = d=>{ const j=i+d; if(j<0||j>=n) return false; const arr=FE.lists[lid].slice(); [arr[i],arr[j]]=[arr[j],arr[i]]; return arr.every((x,k)=>k===arr.length-1||!feTerminal(x)); };
+  let html = `<div class="fe-item k-${it.k}" data-fid="${it.fid}"><div class="fe-head"><span class="fe-kind">${kind}</span>
+    <span class="edit-btns fe-btns" style="display:inline-flex;">
+      <button ${canMove(-1)?'':'disabled'} aria-label="Move up" onclick="feMove('${it.fid}',-1)">▲</button>
+      <button ${canMove(1)?'':'disabled'} aria-label="Move down" onclick="feMove('${it.fid}',1)">▼</button>
+      ${feTerminal(it)?'':`<button aria-label="Add step below" title="Add step below" onclick="feBelow('${it.fid}')">＋</button>`}
+      <button aria-label="Delete" onclick="feDel('${it.fid}')">🗑</button></span></div>${body}`;
+  if(it.k==='q'){
+    html += `<div class="fe-branches">${it.branches.map((b,bi)=>`<div class="fe-branch"><div class="fe-bh"><span class="fe-arrowl">↳</span>
+        <input class="fe-lbl" dir="auto" value="${escAttr(b.label)}" placeholder="Label" oninput="feLbl('${b.bid}',this.value)">
+        <button class="fe-chip yes" onclick="feSetLbl('${b.bid}','Yes')">Yes</button>
+        <button class="fe-chip no" onclick="feSetLbl('${b.bid}','No')">No</button>
+        <button class="fe-chip" onclick="feSetLbl('${b.bid}','Maybe')">Maybe</button>
+        <span class="edit-btns fe-btns" style="display:inline-flex;"><button ${bi>0?'':'disabled'} onclick="feMoveBranch('${b.bid}',-1)">▲</button><button ${bi<it.branches.length-1?'':'disabled'} onclick="feMoveBranch('${b.bid}',1)">▼</button><button onclick="feDelBranch('${b.bid}')">🗑</button></span></div>
+        ${feListHtml(b.items,b.bid,false)}</div>`).join('')}
+      <button class="fe-addbr" onclick="feAddBranch('${it.fid}')">＋ Add another branch (3rd / 4th…)</button></div>`;
+  }
+  return html+'</div>';
+}
+function feText(fid,v){ const h=feFind(fid); if(h){ h.it.text=v; feRefreshPreview(); } }
+function feLbl(bid,v){ const h=feFindBranch(bid); if(h){ h.b.label=v; feRefreshPreview(); } }
+function feSetLbl(bid,v){ const h=feFindBranch(bid); if(h){ h.b.label=v; feRender(); } }
+function feAdd(lid,k){
+  const l=FE.lists[lid]; if(!l) return;
+  const it=feNew(k); l.push(it); feRender(it.fid);
+  // auto-focus the new text field
+  setTimeout(()=>{ const el=document.querySelector(`[data-fid="${it.fid}"] .fe-in`); if(el){ el.focus(); el.select(); } }, 40);
+}
+function feBelow(fid){ const h=feFind(fid); if(!h||feTerminal(h.it)) return; const it=feNew('step'); h.list.splice(h.i+1,0,it); feRender(it.fid); }
+function feMove(fid,d){
+  const h=feFind(fid); if(!h) return; const j=h.i+d; if(j<0||j>=h.list.length) return;
+  const arr=h.list.slice(); [arr[h.i],arr[j]]=[arr[j],arr[h.i]];
+  if(!arr.every((x,k)=>k===arr.length-1||!feTerminal(x))) return;
+  h.list.splice(0,h.list.length,...arr); feRender(fid);
+}
+function feDel(fid){
+  const h=feFind(fid); if(!h) return;
+  if(h.it.k==='q' && h.it.branches.some(b=>b.items.length) && !confirm('Delete this question and everything under its branches?')) return;
+  h.list.splice(h.i,1); feRender();
+}
+function feAddBranch(fid){
+  const h=feFind(fid); if(!h) return;
+  const n = (h.it.branches||[]).length + 1;
+  const defaultLbl = n===1 ? 'Yes' : n===2 ? 'No' : ('Option '+n);
+  const b={bid:feId(), label:defaultLbl, items:[]};
+  h.it.branches.push(b); feRender();
+}
+function feDelBranch(bid){
+  const h=feFindBranch(bid); if(!h) return;
+  if(h.b.items.length && !confirm('Delete this branch and its steps?')) return;
+  h.q.branches.splice(h.i,1); feRender();
+}
+function feMoveBranch(bid,d){ const h=feFindBranch(bid); if(!h) return; const j=h.i+d; if(j<0||j>=h.q.branches.length) return; const a=h.q.branches; [a[h.i],a[j]]=[a[j],a[h.i]]; feRender(); }
+
 /* generic editor: `b` is a block object (preview block, or saved rich block); `done` runs after a successful save */
 function orgEditModal(b, done){
+  if(b.type==='flow') return openFlowEditor(b, done);
   openModal('Edit '+(ORG_TYPES[b.type]||{label:'block'}).label, `
     <div class="field-card"><div class="field-label">Title (optional)</div><input id="mOrgTitle" class="text-input" dir="auto" value="${escAttr(b.title||'')}"></div>
     <div class="field-card"><div class="field-label">${orgEditHint(b.type)}</div><textarea id="mOrgBody" class="text-input org-edit-ta" dir="auto" style="min-height:200px;">${escapeHtml(orgToText(b))}</textarea></div>
