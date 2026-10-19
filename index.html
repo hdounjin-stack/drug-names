@@ -692,13 +692,13 @@ html[data-theme="dark"] .treat-check.diff{color:#ff8a65;}
 #scenAskSelBtn:active{transform:scale(.96);}
 /* big entry card for Clinical Scenarios */
 .scen-entry{display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:16px;border-radius:var(--radius-lg);background:linear-gradient(135deg,rgba(179,80,44,0.10),rgba(156,107,18,0.08) 55%,var(--card) 100%);border:1px solid var(--accent-line);box-shadow:0 2px 0 rgba(179,80,44,0.05), 0 12px 26px -20px rgba(33,26,19,0.4);cursor:pointer;transition:transform .15s, box-shadow .15s, border-color .2s;animation:pcIn .35s cubic-bezier(.2,.8,.3,1) backwards;}
-.scen-entry:active:active{transform:scale(.98);}
-.scen-entry .se-icon .se-icon{flex:none;width:52px;height:52px;border-radius:16px;background:var(--card);border:1px solid var(--accent-line);box-shadow:inset 0 0 0 3px var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:1.625rem;}
-.scen-entry .se-text .se-text{flex:1;min-width:0;}
-.scen-entry .se-title .se-title{font-family:'Fraunces',serif;font-weight:700;font-size:1.03125rem;color:var(--ink);}
-.scen-entry .se-sub .se-sub{font-size:0.71875rem;color:var(--muted);margin-top:3px;line-height:1.5;}
-.scen-entry .se-arrow .se-arrow{flex:none;color:var(--accent);}
-.scen-entry .se-icon svg .se-icon svg,.scan-entry .se-icon svg{width:26px;height:26px;color:var(--accent);}
+.scen-entry:active{transform:scale(.98);}
+.scen-entry .se-icon{flex:none;width:52px;height:52px;border-radius:16px;background:var(--card);border:1px solid var(--accent-line);box-shadow:inset 0 0 0 3px var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:1.625rem;}
+.scen-entry .se-text{flex:1;min-width:0;}
+.scen-entry .se-title{font-family:'Fraunces',serif;font-weight:700;font-size:1.03125rem;color:var(--ink);}
+.scen-entry .se-sub{font-size:0.71875rem;color:var(--muted);margin-top:3px;line-height:1.5;}
+.scen-entry .se-arrow{flex:none;color:var(--accent);}
+.scen-entry .se-icon svg,.scan-entry .se-icon svg{width:26px;height:26px;color:var(--accent);}
 .avatar svg{color:var(--card);}
 .scan-entry{background:linear-gradient(135deg,rgba(179,80,44,0.15),rgba(156,107,18,0.06) 55%,var(--card) 100%);}
 .sync-entry{background:linear-gradient(135deg,rgba(66,133,244,0.12),rgba(52,168,83,0.06) 55%,var(--card) 100%);margin-top:10px;}
@@ -2754,6 +2754,8 @@ function flowItemHtml(c, key, i, n){
 function openBlockPicker(chapterId){
   openModal('Add block', `<div class="blk-pick">${Object.entries(BLOCK_TYPES).filter(([k,t])=>!t.hidden).map(([k,t],i)=>
     `<button class="blk-opt" style="--i:${i}" onclick="openBlockEditor('${chapterId}',null,'${k}')"><span class="blk-opt-ico">${t.ico}</span><span><b>${t.label}</b><small>${t.hint}</small></span></button>`
+  ).join('')}${[['cards','🗂️','Cards','Side-by-side cards: title + details in each'],['flow','🔀','Flowchart','Decision steps with Yes / No branches']].map(([k,ico,l,h],i)=>
+    `<button class="blk-opt" onclick="openRichCreator('${chapterId}',null,'${k}')"><span class="blk-opt-ico">${ico}</span><span><b>${l}</b><small>${h}</small></span></button>`
   ).join('')}</div>`, null);
 }
 function openBlockEditor(chapterId, blockId, type){
@@ -2898,7 +2900,7 @@ function deleteRxCard(chapterId, topicId, i){
 function openRxModal(chapterId, topicId, i){
   const t = findTopic(chapterId, topicId); if(!t) return;
   const c = i===null ? {title:'',dx:'',sym:[],rx:[],adv:[],ref:'',red:false} : t.rx[i];
-  const E = escapeHtml;
+  const E = x=>escapeHtml(x).replace(/"/g,'&quot;');
   openModal(i===null?'Add Rx Card':'Edit Rx Card', `
     <div class="field-card"><div class="field-label">Disease / title</div><input id="mRxT" class="text-input" value="${E(c.title||'')}" placeholder="e.g. Gastritis"></div>
     <div class="field-card"><div class="field-label">Key clue → diagnosis (one line)</div><input id="mRxDx" class="text-input" value="${E(c.dx||'')}" placeholder="Epigastric pain + heartburn, worse after food"></div>
@@ -2908,7 +2910,7 @@ function openRxModal(chapterId, topicId, i){
     <div class="field-card"><div class="field-label">Refer / warning (optional)</div><input id="mRxRef" class="text-input" value="${E(c.ref||'')}"></div>
     <label class="field-card" style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="mRxRed" ${c.red?'checked':''}> <span>Emergency / refer-only card (red)</span></label>
   `, ()=>{
-    const title = val('mRxT').trim(); if(!title) return;
+    const title = val('mRxT').trim(); if(!title){ alert('Write the disease / title first.'); document.getElementById('mRxT').focus(); return; }
     const lines = id=>val(id).split('\n').map(l=>l.trim()).filter(Boolean);
     const card = {id: i===null ? 'rx-'+uid() : c.id, title, dx:val('mRxDx').trim(), sym:lines('mRxSym'),
       rx: lines('mRxRx').map(l=>{ const p=l.split('|').map(x=>x.trim()); return [p[0]||'',p[1]||'',p[2]||'',p[3]||'']; }),
@@ -2985,21 +2987,38 @@ function openTopicModal(chapterId, topicId){
   const c = DB.find(x=>x.id===chapterId); if(!c) return;
   const t = topicId===null ? {t:'',ar:''} : findTopic(chapterId, topicId);
   if(!t) return;
+  const otcChaps = DB.filter(x=>x.type==='otc');
+  const chapPick = otcChaps.length>1 ? `<div class="field-card"><div class="field-label">Chapter (move this topic)</div><select id="mTopicChap" class="text-input">${otcChaps.map(x=>`<option value="${x.id}" ${x.id===chapterId?'selected':''}>${escapeHtml(x.name)}</option>`).join('')}</select></div>` : '';
   openModal(topicId===null?'Add OTC Topic':'Edit Topic', `
-    <div class="field-card"><div class="field-label">Topic title</div><input id="mTopicT" class="text-input" value="${t.t||''}" placeholder="e.g. Ear Pain"></div>
-    <div class="field-card"><div class="field-label">Arabic summary (optional)</div><textarea id="mTopicAr" class="text-input">${t.ar||''}</textarea></div>
+    <div class="field-card"><div class="field-label">Topic title</div><input id="mTopicT" class="text-input" dir="auto" value="${escAttr(t.t||'')}" placeholder="e.g. Ear Pain"></div>
+    <div class="field-card"><div class="field-label">Arabic summary (optional)</div><textarea id="mTopicAr" class="text-input">${escapeHtml(t.ar||'')}</textarea></div>
+    ${chapPick}
   `, ()=>{
-    const title = val('mTopicT').trim(); if(!title) return;
+    const title = val('mTopicT').trim(); if(!title){ alert('Write a topic title first.'); return; }
     const ar = val('mTopicAr').trim();
+    const sel = document.getElementById('mTopicChap'), toId = sel ? sel.value : chapterId;
     if(topicId===null){
       if(!c.topics) c.topics=[];
       c.topics.push({id:uid(), t:title, ar, dd:[], management:[], redFlags:[], notes:[], tables:[]});
-    } else { t.t=title; t.ar=ar; }
+    } else {
+      t.t=title; t.ar=ar;
+      if(toId!==chapterId){
+        const dest = DB.find(x=>x.id===toId);
+        if(dest){ snapshotForUndo(); c.topics = c.topics.filter(x=>x.id!==topicId); (dest.topics = dest.topics||[]).push(t); }
+      }
+    }
     saveDB(); closeModal();
     refreshSessionIfOpen(chapterId);
     renderSession();
     if(topicId!==null) refreshOtcDetailIfOpen(topicId);
   });
+}
+function moveTopic(chapterId, topicId, d){
+  const c = DB.find(x=>x.id===chapterId); if(!c||!c.topics) return;
+  const i = c.topics.findIndex(t=>t.id===topicId), j = i+d;
+  if(i<0||j<0||j>=c.topics.length) return;
+  const [x] = c.topics.splice(i,1); c.topics.splice(j,0,x);
+  saveDB(); refreshSessionIfOpen(chapterId); renderSession();
 }
 function deleteTopic(chapterId, topicId){
   if(!confirm('Delete this OTC topic and everything in it?')) return;
@@ -3191,6 +3210,43 @@ function openOtcDetail(id){
 function closeOtcDetail(){
   goto(state.otcReturnScreen || 'session');
 }
+/* Topic page = ordered sections. topic.order holds the keys; new/unknown sections are appended. */
+const TOPIC_FIXED = {ar:'🇪🇬 Arabic Summary', dd:'🔍 Differential Diagnosis', rx:'℞ Prescription Cards', steps:'📋 Approach Steps', mgmt:'Management by Cause', red:'⚠️ Warnings / Red Flags', notes:'📌 Clinical Notes'};
+function topicSectionKeys(t){
+  (t.tables||[]).forEach(x=>{ if(!x.id) x.id = uid(); });
+  return ['ar','dd','rx','steps','mgmt'].concat((t.tables||[]).map(x=>'t:'+x.id), (t.rich||[]).map(x=>'r:'+x.id), ['red','notes']);
+}
+function ensureTopicOrder(t){
+  const want = topicSectionKeys(t), have = new Set(want);
+  const prev = Array.isArray(t.order) ? t.order.filter(k=>have.has(k)) : [];
+  const seen = new Set(prev);
+  t.order = prev.concat(want.filter(k=>!seen.has(k)));
+  return t.order;
+}
+function topicSectionLabel(t, k){
+  if(TOPIC_FIXED[k]) return TOPIC_FIXED[k];
+  const id = k.slice(2);
+  if(k[0]==='t'){ const x=(t.tables||[]).find(y=>y.id===id); return x ? String(x.title||'Table').replace(/<[^>]*>/g,'') : 'Table'; }
+  const r=(t.rich||[]).find(y=>y.id===id);
+  if(!r) return 'Block';
+  const ty = ORG_TYPES[r.type] || {ico:'🧩',label:'AI Notes'};
+  return ty.ico+' '+(String(r.title||'').replace(/<[^>]*>/g,'')||ty.label);
+}
+function openTopicSectionsReorder(chapterId, topicId){
+  const t = findTopic(chapterId, topicId); if(!t) return;
+  const c = DB.find(x=>x.id===chapterId);
+  const items = ensureTopicOrder(t).map(k=>({id:k, label:topicSectionLabel(t,k), sub:'', color:c?c.color:'#999'}));
+  openReorder('Reorder sections', items, (its)=>{
+    t.order = its.map(i=>i.id); saveDB(); refreshOtcDetailIfOpen(topicId);
+  }, 'Drag ⠿ up or down. Empty sections only show in edit mode.');
+}
+function openTopicsReorder(chapterId){
+  const c = DB.find(x=>x.id===chapterId); if(!c || !c.topics || c.topics.length<2) return;
+  openReorder('Reorder topics', c.topics.map(t=>({id:t.id, label:t.t, sub:'', color:c.color})), (its)=>{
+    const by = new Map(c.topics.map(t=>[t.id,t]));
+    c.topics = its.map(i=>by.get(i.id)); saveDB(); refreshSessionIfOpen(chapterId); renderSession();
+  }, 'Drag ⠿ up or down.');
+}
 function renderOtcDetail(topic){
   document.getElementById('otcDetName').textContent = topic.t;
   const chapterId = findOtcChapterId(topic.id);
@@ -3198,49 +3254,53 @@ function renderOtcDetail(topic){
   const editLink = (fn) => ed ? ` <span class="edit-inline" onclick="${fn}">✎ edit</span>` : '';
   const addBtn = (label, fn) => ed ? `<button class="pill-btn ghost" style="width:100%;margin:4px 0 10px;" onclick="${fn}">+ Add ${label}</button>` : '';
 
-  let html = '';
-  if(ed){
-    html += `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="openTopicTableModal('${chapterId}','${topic.id}',null)">+ Add Table</button>`;
-  }
+  ensureTopicOrder(topic);   // gives legacy tables ids before the sections are built
+  const P = {};
   if(topic.ar){
-    html += `<div class="card acc-ar" style="margin-bottom:10px;">${topic.ar}${editLink(`openTopicArModal('${chapterId}','${topic.id}')`)}</div>`;
-  } else { html += addBtn('Arabic Summary', `openTopicArModal('${chapterId}','${topic.id}')`); }
+    P.ar = `<div class="card acc-ar" style="margin-bottom:10px;">${topic.ar}${editLink(`openTopicArModal('${chapterId}','${topic.id}')`)}</div>`;
+  } else { P.ar = addBtn('Arabic Summary', `openTopicArModal('${chapterId}','${topic.id}')`); }
 
   if(topic.dd && topic.dd.length){
-    html += `<div class="detail-section"><div class="detail-section-title">🔍 Differential Diagnosis${editLink(`openTopicDdModal('${chapterId}','${topic.id}')`)}</div>
+    P.dd = `<div class="detail-section"><div class="detail-section-title">🔍 Differential Diagnosis${editLink(`openTopicDdModal('${chapterId}','${topic.id}')`)}</div>
       <div class="card dtable-wrap"><table class="dtable"><thead><tr><th>Sign / Trigger</th><th>Likely Cause</th></tr></thead><tbody>
       ${topic.dd.map(r=>`<tr><td>${r[0]}</td><td class="strong">${r[1]}</td></tr>`).join('')}
       </tbody></table></div></div>`;
-  } else { html += addBtn('Differential Diagnosis', `openTopicDdModal('${chapterId}','${topic.id}')`); }
+  } else { P.dd = addBtn('Differential Diagnosis', `openTopicDdModal('${chapterId}','${topic.id}')`); }
 
-  html += renderRxSection(topic, chapterId, ed);
+  P.rx = renderRxSection(topic, chapterId, ed);
 
   if(topic.steps && topic.steps.length){
-    html += `<div class="detail-section"><div class="detail-section-title">📋 Approach Steps${editLink(`openTopicStepsModal('${chapterId}','${topic.id}')`)}</div>
+    P.steps = `<div class="detail-section"><div class="detail-section-title">📋 Approach Steps${editLink(`openTopicStepsModal('${chapterId}','${topic.id}')`)}</div>
       <div class="card notes-card"><ol class="step-list">${topic.steps.map(s=>`<li>${s}</li>`).join('')}</ol></div></div>`;
-  } else { html += addBtn('Steps', `openTopicStepsModal('${chapterId}','${topic.id}')`); }
+  } else { P.steps = addBtn('Steps', `openTopicStepsModal('${chapterId}','${topic.id}')`); }
 
   if(topic.management && topic.management.length){
-    html += `<div class="detail-section"><div class="detail-section-title">Management by Cause${editLink(`openTopicMgmtModal('${chapterId}','${topic.id}')`)}</div>
+    P.mgmt = `<div class="detail-section"><div class="detail-section-title">Management by Cause${editLink(`openTopicMgmtModal('${chapterId}','${topic.id}')`)}</div>
       <div class="card dtable-wrap"><table class="dtable"><thead><tr><th>Cause</th><th>Drug Class</th><th>Example</th><th>Regimen</th></tr></thead><tbody>
       ${topic.management.map(m=>`<tr><td class="strong">${m.cause}</td><td>${m.cls}</td><td class="mono-cell">${m.example}</td><td>${m.regimen}</td></tr>`).join('')}
       </tbody></table></div></div>`;
-  } else { html += addBtn('Management by Cause', `openTopicMgmtModal('${chapterId}','${topic.id}')`); }
+  } else { P.mgmt = addBtn('Management by Cause', `openTopicMgmtModal('${chapterId}','${topic.id}')`); }
 
-  if(topic.tables && topic.tables.length){
-    html += renderDataTables(topic.tables, chapterId ? {kind:'topic', chapterId, topicId:topic.id} : null);
-  }
-  html += renderTopicRich(topic, chapterId, ed);
+  (topic.tables||[]).forEach((tb,i)=>{ P['t:'+tb.id] = renderDataTables([tb], chapterId ? {kind:'topic', chapterId, topicId:topic.id, base:i} : null); });
+  (topic.rich||[]).forEach(r=>{ P['r:'+r.id] = renderTopicRich({rich:[r], id:topic.id}, chapterId, ed); });
+
   if(topic.redFlags && topic.redFlags.length){
-    html += `<div class="detail-section"><div class="card warn-card"><div class="detail-section-title">⚠️ Warnings / Red Flags${editLink(`openTopicRedFlagsModal('${chapterId}','${topic.id}')`)}</div>
+    P.red = `<div class="detail-section"><div class="card warn-card"><div class="detail-section-title">⚠️ Warnings / Red Flags${editLink(`openTopicRedFlagsModal('${chapterId}','${topic.id}')`)}</div>
       <ul class="warn-list">${topic.redFlags.map(w=>`<li>${w}</li>`).join('')}</ul></div></div>`;
-  } else { html += addBtn('Red Flags', `openTopicRedFlagsModal('${chapterId}','${topic.id}')`); }
+  } else { P.red = addBtn('Red Flags', `openTopicRedFlagsModal('${chapterId}','${topic.id}')`); }
 
   if(topic.notes && topic.notes.length){
-    html += `<div class="detail-section"><div class="detail-section-title">📌 Clinical Notes${editLink(`openTopicNotesModal('${chapterId}','${topic.id}')`)}</div>
+    P.notes = `<div class="detail-section"><div class="detail-section-title">📌 Clinical Notes${editLink(`openTopicNotesModal('${chapterId}','${topic.id}')`)}</div>
       <div class="card notes-card"><ul class="notes-list">${topic.notes.map(n=>`<li>${n}</li>`).join('')}</ul></div></div>`;
-  } else { html += addBtn('Notes', `openTopicNotesModal('${chapterId}','${topic.id}')`); }
+  } else { P.notes = addBtn('Notes', `openTopicNotesModal('${chapterId}','${topic.id}')`); }
 
+  let html = '';
+  if(ed){
+    html += `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="openTopicTableModal('${chapterId}','${topic.id}',null)">+ Add Table</button>`;
+    html += `<div class="add-row"><button class="pill-btn ghost" onclick="openRichCreator('${chapterId}','${topic.id}','cards')">+ Add Cards</button><button class="pill-btn ghost" onclick="openRichCreator('${chapterId}','${topic.id}','flow')">+ Add Flowchart</button></div>`;
+    html += `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="openTopicSectionsReorder('${chapterId}','${topic.id}')">↕ Reorder sections</button>`;
+  }
+  html += ensureTopicOrder(topic).map(k=>P[k]||'').join('');
   document.getElementById('otcDetArea').innerHTML = html;
 }
 
@@ -3916,6 +3976,7 @@ function drugAccCard(d, color, uid, chapId, idx, isSearch, searchChapName){
 
 function otcAccCard(t, color, uid, chapId){
   const editBtns = (editMode && chapId) ? `<div class="edit-btns" onclick="event.stopPropagation()">
+      ${state.screen==='session' ? `<button aria-label="Move up" onclick="moveTopic('${chapId}','${t.id}',-1)">▲</button><button aria-label="Move down" onclick="moveTopic('${chapId}','${t.id}',1)">▼</button>` : ''}
       <button onclick="openTopicModal('${chapId}','${t.id}')">✎</button>
       <button onclick="deleteTopic('${chapId}','${t.id}')">🗑</button>
     </div>` : '';
@@ -3985,8 +4046,8 @@ function renderDataTables(tables, ctx){
   return tables.map((t,ti)=>{
     let editHtml = '';
     if(editMode && ctx){
-      const editCall = ctx.kind==='topic' ? `openTopicTableModal('${ctx.chapterId}','${ctx.topicId}',${ti})` : `openTableModal('${ctx.chapterId}',${ti+(ctx.base||0)})`;
-      const base = ctx.base||0; const delCall = ctx.kind==='topic' ? `deleteTopicTable('${ctx.chapterId}','${ctx.topicId}',${ti})` : `deleteTable('${ctx.chapterId}',${ti+base})`;
+      const editCall = ctx.kind==='topic' ? `openTopicTableModal('${ctx.chapterId}','${ctx.topicId}',${ti+(ctx.base||0)})` : `openTableModal('${ctx.chapterId}',${ti+(ctx.base||0)})`;
+      const base = ctx.base||0; const delCall = ctx.kind==='topic' ? `deleteTopicTable('${ctx.chapterId}','${ctx.topicId}',${ti+base})` : `deleteTable('${ctx.chapterId}',${ti+base})`;
       editHtml = ` <span class="edit-inline" onclick="${editCall}">✎ edit</span> <span class="edit-inline" onclick="${delCall}">🗑</span>`;
     }
     return `
@@ -4028,7 +4089,7 @@ function renderSession(){
   const addDrugBtn = (editMode && notOtc) ?
     `<button class="pill-btn primary" style="width:100%;margin-bottom:${drugReorderLink?'2px':'14px'};" onclick="openDrugModal('${chapter.id}',null)">+ Add Drug</button>${drugReorderLink?`<div style="margin:0 0 14px;text-align:right;">${drugReorderLink}</div>`:''}` : '';
   const addTopicBtn = (editMode && chapter && chapter.type==='otc') ?
-    `<button class="pill-btn primary" style="width:100%;margin-bottom:14px;" onclick="openTopicModal('${chapter.id}',null)">+ Add Topic</button>` : '';
+    `<button class="pill-btn primary" style="width:100%;margin-bottom:${chapter.topics&&chapter.topics.length>1?'6px':'14px'};" onclick="openTopicModal('${chapter.id}',null)">+ Add Topic</button>` + (chapter.topics&&chapter.topics.length>1 ? `<button class="pill-btn ghost" style="width:100%;margin-bottom:14px;" onclick="openTopicsReorder('${chapter.id}')">↕ Reorder topics</button>` : '') : '';
   const emptyHint = !total ? (editMode ? `<div class="empty-hint">No ${chapter && chapter.type==='otc'?'topics':'drugs'} yet — use "+ Add ${chapter && chapter.type==='otc'?'Topic':'Drug'}" above to start this chapter.</div>` : `<div class="empty-hint">No ${chapter && chapter.type==='otc'?'topics':'drugs'} in this chapter yet.</div>`) : '';
   const shareBtn = chapter ? `<button class="pill-btn ghost" style="width:100%;margin-bottom:10px;" onclick="shareOrDownload([DB.find(c=>c.id==='${chapter.id}')],'pharmacore-${chapter.id}.json','PharmaCore — ${chapter.name} chapter')">Share This Chapter</button>` : '';
   area.innerHTML = shareBtn + addDrugBtn + addTopicBtn + addRowBtns + flowHtml + emptyHint + (notOtc ? '' : renderCardList(cards, {prefix:'sess', grouped:true}));
@@ -5073,6 +5134,25 @@ function openSavedRichEditor(chapterId, topicId, id){
     if(blk.rich){ if(proxy.nodes) blk.rich.nodes = proxy.nodes; if(proxy.cards) blk.rich.cards = proxy.cards; blk.title = proxy.title||undefined; }
     saveDB(); refreshSessionIfOpen(chapterId);
     if(topicId){ refreshOtcDetailIfOpen(topicId); } else renderSession();
+  });
+}
+function openRichCreator(chapterId, topicId, kind){
+  const c = DB.find(x=>x.id===chapterId); if(!c) return;
+  const tpl = kind==='cards'
+    ? {type:'cards', title:'', src:'text', cards:[{title:'Card 1',lines:['detail','detail']},{title:'Card 2',lines:['detail','detail']}]}
+    : {type:'flow', title:'', src:'text', nodes:[{id:'a',type:'start',text:'Start',next:[{to:'b',label:''}]},{id:'b',type:'decision',text:'Question?',next:[{to:'c',label:'Yes'},{to:'d',label:'No'}]},{id:'c',type:'action',text:'Do this',next:[]},{id:'d',type:'end',text:'Stop',next:[]}]};
+  closeModal();
+  orgEditModal(tpl, ()=>{
+    if(topicId){
+      const t = findTopic(chapterId, topicId); if(!t) return;
+      if(!Array.isArray(t.rich)) t.rich = [];
+      t.rich.push({id:uid(), type:kind, title:tpl.title||undefined, src:'text', cards:tpl.cards, nodes:tpl.nodes});
+      saveDB(); refreshOtcDetailIfOpen(topicId);
+    } else {
+      const blocks = ensureBlocks(c), id = uid(); flowInsert(c,'b:'+id);
+      blocks.push({id, type:'rich', title:tpl.title||undefined, items:[], src:'text', rich:kind==='cards'?{kind, cards:tpl.cards}:{kind, nodes:tpl.nodes}});
+      saveDB(); refreshSessionIfOpen(chapterId); renderSession();
+    }
   });
 }
 function deleteTopicRich(chapterId, topicId, id){
