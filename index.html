@@ -864,7 +864,15 @@ mark.org-q{background:rgba(179,60,44,0.16);color:var(--accent);border-radius:4px
 /* ---------- Flowchart display: tree connectors, any branch count, fit-to-width ---------- */
 :root{--fl-line:var(--line-strong);--fl-yes:#2a7a38;--fl-no:var(--accent);--fl-alt:#2b6cb0;}
 html[data-theme="dark"]{--fl-line:rgba(255,255,255,.28);--fl-yes:#7fd68f;--fl-no:#ff9a86;--fl-alt:#8db8f5;}
-.org-flow{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:12px 6px 16px;width:100%;}
+.org-flow-wrap{position:relative;}
+.org-zoom{position:absolute;top:4px;right:4px;z-index:3;display:flex;gap:4px;}
+.org-zoom button{min-width:30px;height:28px;font-family:inherit;font-size:0.75rem;font-weight:800;border-radius:9px;border:1px solid var(--line-strong);background:var(--card);color:var(--ink-soft);cursor:pointer;box-shadow:0 2px 6px -3px rgba(33,26,19,.4);}
+.org-zoom button:active{transform:scale(.94);}
+.org-flow{overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;padding:34px 8px 18px;width:100%;max-height:78vh;cursor:grab;}
+.org-flow.drag{cursor:grabbing;user-select:none;}
+.org-fn[data-nid].pulse{animation:orgPulse 1.2s ease;}
+.org-fn.ref{cursor:pointer;}
+@keyframes orgPulse{0%,100%{box-shadow:0 3px 10px -4px rgba(33,26,19,.28);}40%{box-shadow:0 0 0 5px rgba(214,150,30,.55);}}
 .org-flow-in{display:flex;flex-direction:column;align-items:center;width:max-content;min-width:100%;margin:0 auto;}
 .org-fn{position:relative;max-width:230px;min-width:100px;text-align:center;font-size:0.8125rem;line-height:1.5;padding:11px 15px;border-radius:14px;background:var(--card);border:1.5px solid var(--line-strong);color:var(--ink);box-shadow:0 3px 10px -4px rgba(33,26,19,.28);overflow-wrap:anywhere;}
 .org-fn.start{background:linear-gradient(135deg,rgba(52,168,83,.18),rgba(52,168,83,.07));border-color:rgba(52,140,63,.65);border-radius:999px;font-weight:700;padding:9px 20px;}
@@ -879,13 +887,13 @@ html[data-theme="dark"]{--fl-line:rgba(255,255,255,.28);--fl-yes:#7fd68f;--fl-no
 .org-arrow span{position:absolute;left:calc(50% + 10px);top:50%;transform:translateY(-50%);font-size:0.625rem;font-weight:700;color:var(--muted);background:var(--paper);padding:1px 6px;border-radius:8px;white-space:nowrap;}
 /* branches: every branch draws its own piece of the bar, so uneven widths still connect */
 .org-branches{display:flex;align-items:flex-start;justify-content:center;width:max-content;max-width:none;}
-.org-br{position:relative;display:flex;flex-direction:column;align-items:center;min-width:140px;max-width:240px;padding:24px 7px 0;}
+.org-br{position:relative;display:flex;flex-direction:column;align-items:center;min-width:140px;padding:24px 7px 0;}
 .org-br::before{content:"";position:absolute;top:0;left:50%;width:2.5px;height:24px;transform:translateX(-50%);background:var(--fl-line);}
 .org-br::after{content:"";position:absolute;top:0;left:0;right:0;height:2.5px;background:var(--fl-line);}
 .org-br:first-child::after{left:50%;}
 .org-br:last-child::after{right:50%;}
 .org-br:only-child::after{display:none;}
-.org-brl{position:relative;z-index:1;margin:0 0 14px;font-size:0.6875rem;font-weight:800;letter-spacing:.03em;padding:4px 12px;border-radius:999px;background:var(--paper-2);border:1.5px solid var(--line-strong);color:var(--ink-soft);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
+.org-brl{position:relative;z-index:1;margin:0 0 14px;font-size:0.6875rem;font-weight:800;letter-spacing:.03em;padding:4px 12px;border-radius:999px;background:var(--paper-2);border:1.5px solid var(--line-strong);color:var(--ink-soft);white-space:normal;text-align:center;max-width:210px;line-height:1.35;}
 .org-brl::after{content:"";position:absolute;left:50%;top:100%;width:2.5px;height:14px;transform:translateX(-50%);background:var(--fl-line);}
 .org-brl:empty{display:none;}
 .org-brl.yes{background:rgba(52,168,83,.16);border-color:rgba(52,140,63,.65);color:var(--fl-yes);}
@@ -4814,9 +4822,9 @@ function orgFlowHtml(nodes){
     return '';
   };
   const rec = n=>{
-    if(seen.has(n.id)) return `<div class="org-fn ref">↺ ${orgTxt(n.text)}</div>`;
+    if(seen.has(n.id)) return `<div class="org-fn ref" data-ref="${escAttr(n.id)}" role="button" tabindex="0" title="Tap to jump to this step" onclick="orgJumpRef(this)">↺ Back to: ${orgTxt(n.text)}</div>`;
     seen.add(n.id);
-    let h = `<div class="org-fn ${n.type}">${icon[n.type]||''}${orgTxt(n.text)}</div>`;
+    let h = `<div class="org-fn ${n.type}" data-nid="${escAttr(n.id)}">${icon[n.type]||''}${orgTxt(n.text)}</div>`;
     const nx = n.next.filter(e=>by[e.to]);
     if(nx.length===1){
       h += `<div class="org-arrow">${nx[0].label?`<span>${orgTxt(nx[0].label)}</span>`:''}</div>` + rec(by[nx[0].to]);
@@ -4829,20 +4837,48 @@ function orgFlowHtml(nodes){
     }
     return h;
   };
-  return `<div class="org-flow" role="group" aria-label="Flowchart"><div class="org-flow-in">${roots.map(rec).join('<div class="org-sep"></div>')}</div></div>`;
+  return `<div class="org-flow-wrap"><div class="org-zoom"><button type="button" aria-label="Zoom out" onclick="orgZoom(this,-1)">−</button><button type="button" aria-label="Fit to screen" onclick="orgZoom(this,0)">Fit</button><button type="button" aria-label="Zoom in" onclick="orgZoom(this,1)">+</button></div><div class="org-flow" role="group" aria-label="Flowchart"><div class="org-flow-in">${roots.map(rec).join('<div class="org-sep"></div>')}</div></div></div>`;
 }
 /* shrink wide flowcharts to fit the screen (min 72%), scroll for the rest */
 function orgFitFlows(){
   document.querySelectorAll('.org-flow').forEach(f=>{
     const inn = f.firstElementChild; if(!inn || !f.clientWidth) return;
+    const manual = parseFloat(f.dataset.z);
     inn.style.zoom = '';
-    const avail = f.clientWidth-14, need = inn.scrollWidth;
-    const z = need>avail ? Math.max(.72, avail/need) : 1;
-    if(z<1) inn.style.zoom = z.toFixed(3);
-    f.classList.toggle('fit', need*z > avail+4);
-    if(f.scrollWidth>f.clientWidth+2 && !f.dataset.c){ f.scrollLeft = (f.scrollWidth-f.clientWidth)/2; f.dataset.c = '1'; }   // start centred on the first step
+    const avail = f.clientWidth-16, need = inn.scrollWidth;
+    const auto = need>avail ? Math.max(.72, avail/need) : 1;
+    const z = manual>0 ? manual : auto;
+    if(z!==1) inn.style.zoom = z.toFixed(3);
+    f.classList.toggle('fit', f.scrollWidth > f.clientWidth+4);
+    if(!f.dataset.c && f.scrollWidth>f.clientWidth+2){ f.scrollLeft = (f.scrollWidth-f.clientWidth)/2; f.dataset.c = '1'; }   // start centred on the first step
   });
 }
+/* zoom buttons: − / Fit / + ; Fit = auto size */
+function orgZoom(btn, dir){
+  const f = btn.closest('.org-flow-wrap').querySelector('.org-flow'); if(!f) return;
+  const inn = f.firstElementChild, cur = parseFloat(inn.style.zoom)||1;
+  const cx = (f.scrollLeft+f.clientWidth/2)/cur;
+  if(dir===0){ delete f.dataset.z; delete f.dataset.c; f.scrollLeft = 0; }
+  else f.dataset.z = Math.min(1.6, Math.max(.4, cur + dir*.15)).toFixed(3);
+  orgFitFlows();
+  if(dir!==0){ const nz = parseFloat(inn.style.zoom)||1; f.scrollLeft = cx*nz - f.clientWidth/2; }
+}
+/* tap a "Back to" box: jump to that step and pulse it */
+function orgJumpRef(el){
+  const f = el.closest('.org-flow'); if(!f) return;
+  const t = [...f.querySelectorAll('[data-nid]')].find(x=>x.dataset.nid===el.dataset.ref); if(!t) return;
+  t.scrollIntoView({behavior:'smooth', block:'center', inline:'center'});
+  t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse');
+}
+/* mouse: drag the chart to pan (touch already pans natively) */
+document.addEventListener('pointerdown', e=>{
+  if(e.pointerType!=='mouse' || e.button!==0) return;
+  const f = e.target.closest && e.target.closest('.org-flow'); if(!f || e.target.closest('.org-fn.ref')) return;
+  const sx=e.clientX, sy=e.clientY, sl=f.scrollLeft, st=f.scrollTop; f.classList.add('drag');
+  const mv = ev=>{ f.scrollLeft = sl-(ev.clientX-sx); f.scrollTop = st-(ev.clientY-sy); };
+  const up = ()=>{ f.classList.remove('drag'); window.removeEventListener('pointermove',mv); window.removeEventListener('pointerup',up); };
+  window.addEventListener('pointermove',mv); window.addEventListener('pointerup',up);
+});
 let _fitQ = 0;
 new MutationObserver(()=>{ if(_fitQ) return; _fitQ = requestAnimationFrame(()=>{ _fitQ=0; orgFitFlows(); }); }).observe(document.body,{childList:true,subtree:true});
 window.addEventListener('resize', orgFitFlows);
