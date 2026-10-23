@@ -3350,13 +3350,29 @@ function topicSectionLabel(t, k){
   const ty = ORG_TYPES[r.type] || {ico:'🧩',label:'AI Notes'};
   return ty.ico+' '+(String(r.title||'').replace(/<[^>]*>/g,'')||ty.label);
 }
+function topicSectionHasContent(t,k){
+  if(k==='ar') return !!t.ar;
+  if(k==='dd') return !!(t.dd&&t.dd.length);
+  if(k==='rx') return !!(t.rx&&t.rx.length);
+  if(k==='steps') return !!(t.steps&&t.steps.length);
+  if(k==='mgmt') return !!(t.management&&t.management.length);
+  if(k==='red') return !!(t.redFlags&&t.redFlags.length);
+  if(k==='notes') return !!(t.notes&&t.notes.length);
+  return true;   // tables / AI blocks always show
+}
 function openTopicSectionsReorder(chapterId, topicId){
   const t = findTopic(chapterId, topicId); if(!t) return;
   const c = DB.find(x=>x.id===chapterId);
-  const items = ensureTopicOrder(t).map(k=>({id:k, label:topicSectionLabel(t,k), sub:'', color:c?c.color:'#999'}));
+  const full = ensureTopicOrder(t).slice();
+  const vis = full.filter(k=>topicSectionHasContent(t,k));     // only sections you can actually see
+  if(vis.length<2){ alert('Nothing to reorder yet — this topic has fewer than two sections with content.'); return; }
+  const items = vis.map(k=>({id:k, label:topicSectionLabel(t,k), sub:'', color:c?c.color:'#999'}));
   openReorder('Reorder sections', items, (its)=>{
-    t.order = its.map(i=>i.id); saveDB(); refreshOtcDetailIfOpen(topicId);
-  }, 'Drag ⠿ up or down. Empty sections only show in edit mode.');
+    // new order of the visible ones goes into the same slots; empty sections keep their place
+    const nv = its.map(i=>i.id); let j = 0;
+    t.order = full.map(k=>topicSectionHasContent(t,k) ? nv[j++] : k);
+    saveDB(); refreshOtcDetailIfOpen(topicId);
+  }, 'Drag ⠿ up or down. Only sections that have content are listed.');
 }
 function openTopicsReorder(chapterId){
   const c = DB.find(x=>x.id===chapterId); if(!c || !c.topics || c.topics.length<2) return;
