@@ -896,7 +896,11 @@ html[data-theme="dark"]{--fl-line:rgba(255,255,255,.28);--fl-yes:#7fd68f;--fl-no
 .org-zoom{position:absolute;top:4px;right:4px;z-index:3;display:flex;gap:4px;}
 .org-zoom button{min-width:30px;height:28px;font-family:inherit;font-size:0.75rem;font-weight:800;border-radius:9px;border:1px solid var(--line-strong);background:var(--card);color:var(--ink-soft);cursor:pointer;box-shadow:0 2px 6px -3px rgba(33,26,19,.4);}
 .org-zoom button:active{transform:scale(.94);}
-.org-flow{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding:34px 8px 18px;width:100%;cursor:grab;}
+.org-thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.org-thumb{position:relative;width:74px;height:74px;border-radius:12px;overflow:hidden;border:1px solid var(--line-strong);background:var(--paper-2);}
+.org-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.org-thumb button{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.62);color:#fff;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.org-flow{touch-action:pan-y;overscroll-behavior-x:contain;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding:34px 8px 18px;width:100%;cursor:grab;}
 .org-flow-size{position:relative;margin:0 auto;}
 .org-flow.drag{cursor:grabbing;user-select:none;}
 .org-fn[data-nid].pulse{animation:orgPulse 1.2s ease;}
@@ -4790,7 +4794,7 @@ const ORG_TYPES = {
   flow:{ico:'🔀',label:'Flowchart'}, list:{ico:'📝',label:'Key points'}, cards:{ico:'🗂️',label:'Cards'},
   warnings:{ico:'⚠️',label:'Warnings'}
 };
-let ORG = {imgMsg:'', imgBusy:false, text:'', instr:'', blocks:null, review:[], title:'', busy:false, err:'', info:'', gen:0,
+let ORG = {imgs:[], imgMsg:'', imgBusy:false, text:'', instr:'', blocks:null, review:[], title:'', busy:false, err:'', info:'', gen:0,
   dest:{chap:'', topic:'', newChap:'', newType:'drug', newTopic:''}, saveReview:true, saved:null};
 
 function orgSys(){
@@ -4930,7 +4934,35 @@ function orgJumpRef(el){
   t.scrollIntoView({behavior:'smooth', block:'center', inline:'center'});
   t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse');
 }
-/* mouse: drag the chart to pan (touch already pans natively) */
+/* touch: we pan horizontally ourselves (with momentum) — native nested scrolling is unreliable in iOS home-screen apps.
+   touch-action:pan-y on .org-flow leaves vertical page scrolling to the browser. */
+(function(){
+  let f=null, sx=0, sy=0, sl=0, mode='', lx=0, lt=0, vx=0, raf=0;
+  const stop=()=>{ if(raf){ cancelAnimationFrame(raf); raf=0; } };
+  document.addEventListener('touchstart', e=>{
+    stop(); f = e.target.closest && e.target.closest('.org-flow');
+    if(!f || e.touches.length!==1){ f=null; return; }
+    const t=e.touches[0]; sx=lx=t.clientX; sy=t.clientY; sl=f.scrollLeft; mode=''; vx=0; lt=e.timeStamp;
+  }, {passive:true});
+  document.addEventListener('touchmove', e=>{
+    if(!f) return; const t=e.touches[0], dx=t.clientX-sx, dy=t.clientY-sy;
+    if(!mode){ if(Math.abs(dx)<6 && Math.abs(dy)<6) return; mode = Math.abs(dx)>Math.abs(dy) ? 'h' : 'v'; }
+    if(mode!=='h') return;
+    if(e.cancelable) e.preventDefault();
+    f.scrollLeft = sl - dx;
+    const dt = Math.max(1, e.timeStamp-lt); vx = (lx-t.clientX)/dt; lx=t.clientX; lt=e.timeStamp;
+  }, {passive:false});
+  const end=()=>{
+    if(!f || mode!=='h'){ f=null; return; }
+    const el=f; f=null; let v=vx*16, last=performance.now();   // px per frame
+    if(Math.abs(v)<.5) return;
+    const step=now=>{ const k=Math.min(3,(now-last)/16); last=now; el.scrollLeft += v*k; v *= Math.pow(.95,k); if(Math.abs(v)>.3) raf=requestAnimationFrame(step); else raf=0; };
+    raf=requestAnimationFrame(step);
+  };
+  document.addEventListener('touchend', end, {passive:true});
+  document.addEventListener('touchcancel', ()=>{ f=null; }, {passive:true});
+})();
+/* mouse: drag the chart to pan */
 document.addEventListener('pointerdown', e=>{
   if(e.pointerType!=='mouse' || e.button!==0) return;
   const f = e.target.closest && e.target.closest('.org-flow'); if(!f || e.target.closest('.org-fn.ref')) return;
@@ -5171,12 +5203,13 @@ function orgEditModal(b, done){
 }
 
 /* ---------- AI call (reuses the existing key / provider / model + auto-fallback) ---------- */
-async function _orgCall(cfg, userPrompt, maxTokens){
+async function _orgCall(cfg, userPrompt, maxTokens, imgs){
+  imgs = imgs||[];
   const model = cfg.model || defaultModelFor(cfg.provider), sys = orgSys();
   if(cfg.provider==='claude'){
     const res = await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST', headers:{'anthropic-version':'2023-06-01','x-api-key':cfg.key,'anthropic-dangerous-direct-browser-access':'true','Content-Type':'application/json'},
-      body: JSON.stringify({model, max_tokens:maxTokens, system:sys, messages:[{role:'user',content:userPrompt}]})
+      body: JSON.stringify({model, max_tokens:maxTokens, system:sys, messages:[{role:'user',content: imgs.length ? [...imgs.map(i=>({type:'image',source:{type:'base64',media_type:i.mime,data:i.b64}})),{type:'text',text:userPrompt}] : userPrompt}]})
     });
     if(!res.ok) throw httpErr(res, 'Claude error: '+res.status+' '+(await res.text()).slice(0,200));
     return (await res.json()).content.map(c=>c.text||'').join('');
@@ -5184,19 +5217,19 @@ async function _orgCall(cfg, userPrompt, maxTokens){
   if(cfg.provider==='openai'){
     const res = await fetch('https://api.openai.com/v1/chat/completions',{
       method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
-      body: JSON.stringify({model, max_tokens:Math.min(maxTokens,16000), response_format:{type:'json_object'}, messages:[{role:'system',content:sys},{role:'user',content:userPrompt}]})
+      body: JSON.stringify({model, max_tokens:Math.min(maxTokens,16000), response_format:{type:'json_object'}, messages:[{role:'system',content:sys},{role:'user',content: imgs.length ? [{type:'text',text:userPrompt},...imgs.map(i=>({type:'image_url',image_url:{url:'data:'+i.mime+';base64,'+i.b64}}))] : userPrompt}]})
     });
     if(!res.ok) throw httpErr(res, 'OpenAI error: '+res.status+' '+(await res.text()).slice(0,200));
     return (await res.json()).choices[0].message.content;
   }
   const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(model)+':generateContent?key='+cfg.key,{
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({system_instruction:{parts:[{text:sys}]}, contents:[{role:'user',parts:[{text:userPrompt}]}], generationConfig:{responseMimeType:'application/json', maxOutputTokens:maxTokens}})
+    body: JSON.stringify({system_instruction:{parts:[{text:sys}]}, contents:[{role:'user',parts:[{text:userPrompt},...imgs.map(i=>({inline_data:{mime_type:i.mime,data:i.b64}}))]}], generationConfig:{responseMimeType:'application/json', maxOutputTokens:maxTokens}})
   });
   if(!res.ok) throw httpErr(res, 'Gemini error: '+res.status+' '+(await res.text()).slice(0,200));
   return (await res.json()).candidates[0].content.parts.map(p=>p.text||'').join('');
 }
-const orgCall = (cfg, p, n)=>withFallback(cfg, c=>_orgCall(c, p, n));
+const orgCall = (cfg, p, n, imgs)=>withFallback(cfg, c=>_orgCall(c, p, n, imgs));
 
 function orgChunks(text, max){
   const out = []; let cur = '';
@@ -5217,18 +5250,22 @@ async function orgGenerate(){
   const cfg = loadAiConfig();
   if(!cfg.key){ goto('scan'); return; }
   const text = ORG.text.trim();
-  if(text.length<20){ ORG.err = 'Paste or load some medical text first (at least a couple of lines).'; renderOrganizer(); return; }
+  if(text.length<20 && !ORG.imgs.length){ ORG.err = 'Paste some medical text or add a photo first.'; renderOrganizer(); return; }
   const gen = ++ORG.gen;
   ORG.busy = true; ORG.err = ''; ORG.info = ''; renderOrganizer();
-  const chunks = orgChunks(text, 9000);
+  const chunks = text.length>=20 ? orgChunks(text, 9000) : [];
+  const jobs = chunks.map((c,i)=>({c, i, n:chunks.length})).concat(ORG.imgs.map((im,i)=>({img:im, i, n:ORG.imgs.length})));
   const blocks = [], review = []; let title = '';
   try{
-    for(let i=0;i<chunks.length;i++){
+    for(let j=0;j<jobs.length;j++){
+      const J = jobs[j], isImg = !!J.img;
       if(gen!==ORG.gen) return;
-      ORG.info = chunks.length>1 ? `Organizing part ${i+1} of ${chunks.length}…` : 'Organizing…'; orgRenderBusy();
-      const prompt = `SOURCE TEXT${chunks.length>1?` (part ${i+1} of ${chunks.length} of a longer text — organize only this part)`:''}:\n"""\n${chunks[i]}\n"""`
+      ORG.info = jobs.length>1 ? `Organizing part ${j+1} of ${jobs.length}…` : 'Organizing…'; orgRenderBusy();
+      const head = isImg ? `SOURCE: the attached image${J.n>1?` (image ${J.i+1} of ${J.n})`:''} — a photo/scan of notes, a book page, a slide or a table. Read ALL of it carefully (Arabic and English) and organize only what is visible in it, following the strict rules. Unreadable words → [?].`
+                         : `SOURCE TEXT${J.n>1?` (part ${J.i+1} of ${J.n} of a longer text — organize only this part)`:''}:\n"""\n${J.c}\n"""`;
+      const prompt = head
         + (ORG.instr.trim() ? `\n\nExtra instruction from the student (it can NEVER override the strict rules): ${ORG.instr.trim()}` : '');
-      const res = orgNormalize(parseAiJsonObj(await orgCall(cfg, prompt, 7000)));
+      const res = orgNormalize(parseAiJsonObj(await orgCall(cfg, prompt, 7000, isImg?[J.img]:[])));
       if(!title) title = res.title;
       blocks.push(...res.blocks); review.push(...res.review);
     }
@@ -5249,28 +5286,20 @@ function orgRenderBusy(){ const el = document.getElementById('orgBusyMsg'); if(e
 function orgCancel(){ ORG.gen++; ORG.busy = false; ORG.info = ''; renderOrganizer(); }
 
 
-/* ---------- images -> text (vision), then the normal organizer ---------- */
-const ORG_OCR_PROMPT = `Transcribe ALL the text visible in this image exactly as written (book page, slide, lecture notes, handwriting). Rules: do not summarize, translate, correct or add anything. Keep every number, unit, dose, drug name and abbreviation exactly. Keep Arabic and English as they appear. Tables: one row per line, cells separated by " | ". If the image has a diagram or flowchart, write its steps in order, one per line, using "->" and mark branches like "Yes: ..." / "No: ...". If a word is unreadable write [?]. Output plain text only, no commentary.`;
+/* ---------- images: attached and sent straight to the AI together with the organizing rules ---------- */
 async function orgLoadImages(inp){
-  const files = [...(inp.files||[])]; inp.value = ''; if(!files.length || ORG.imgBusy) return;
-  const cfg = loadAiConfig(); if(!cfg.key){ goto('scan'); return; }
+  const files = [...(inp.files||[])]; inp.value = ''; if(!files.length) return;
   const ta = document.getElementById('orgText'); if(ta) ORG.text = ta.value;
-  ORG.imgBusy = true; const setMsg = m=>{ ORG.imgMsg = m; const el = document.getElementById('orgImgStatus'); if(el) el.textContent = m; };
-  let ok = 0, fail = [];
-  for(let i=0;i<files.length;i++){
-    setMsg(`Reading image ${i+1} of ${files.length}…`);
-    try{
-      const {b64, mime} = await preprocessImage(files[i], 1800, 0.85);
-      const txt = String(await runAi(cfg, b64, mime, ORG_OCR_PROMPT, 3500)||'').replace(/^```[a-z]*\n?|```$/gi,'').trim();
-      if(!txt) throw new Error('empty');
-      ORG.text = (ORG.text.trim()?ORG.text.trim()+'\n\n':'') + (files.length>1 ? `[Image ${i+1}]\n` : '') + orgSafe(txt); ok++;
-      const t2 = document.getElementById('orgText'); if(t2){ t2.value = ORG.text; orgCount(); }
-    }catch(e){ fail.push(i+1); }
+  let bad = 0;
+  for(const f of files){
+    if(ORG.imgs.length>=6){ ORG.imgMsg = 'Max 6 images at a time.'; break; }
+    try{ const {b64, mime} = await preprocessImage(f, 1800, 0.85); ORG.imgs.push({b64, mime, url:'data:'+mime+';base64,'+b64}); }
+    catch(e){ bad++; }
   }
-  ORG.imgBusy = false;
-  setMsg(ok ? `Added text from ${ok} image${ok>1?'s':''}${fail.length?` (image ${fail.join(', ')} failed)`:''}. Check it, fix mistakes, then press Organize Notes.` : 'Could not read the image(s). Try a clearer or closer photo.');
+  ORG.imgMsg = bad ? bad+' image(s) could not be opened.' : '';
   renderOrganizer();
 }
+function orgRemoveImg(i){ ORG.imgs.splice(i,1); const ta=document.getElementById('orgText'); if(ta) ORG.text=ta.value; renderOrganizer(); }
 /* ---------- screen ---------- */
 function renderOrganizer(){
   const area = document.getElementById('orgArea'); if(!area) return;
@@ -5299,7 +5328,8 @@ function renderOrganizer(){
           <button class="pill-btn ghost" style="flex:1;min-width:120px;" onclick="document.getElementById('orgFile').click()">📄 Text file</button>
           <button class="pill-btn ghost" style="flex:0 0 auto;" onclick="orgClearText()">Clear</button>
         </div>
-        <div class="modal-hint" id="orgImgStatus" style="margin-top:6px;">${ORG.imgMsg?escapeHtml(ORG.imgMsg):'Photos of book pages, slides or notes are read into the box above first — check the text before organizing.'}</div>
+        ${ORG.imgs.length?`<div class="org-thumbs">${ORG.imgs.map((im,i)=>`<div class="org-thumb"><img src="${im.url}" alt="image ${i+1}"><button type="button" onclick="orgRemoveImg(${i})" aria-label="Remove image">×</button></div>`).join('')}</div>`:''}
+        <div class="modal-hint" id="orgImgStatus" style="margin-top:6px;">${ORG.imgMsg?escapeHtml(ORG.imgMsg):(ORG.imgs.length?'The AI will read these photos directly and organize them with your text (if any). Check the result in the preview.':'You can add photos of book pages, slides or notes — no need to type.')}</div>
         <div class="field-card" style="margin-top:10px;"><div class="field-label">Extra instruction <span style="color:var(--muted);">(optional — e.g. "focus on dosing tables")</span></div>
           <input id="orgInstr" class="text-input" dir="auto" value="${escAttr(ORG.instr)}" oninput="ORG.instr=this.value"></div>
         ${ORG.err?`<div class="card warn-card" style="padding:12px;margin-top:10px;"><div class="modal-hint" style="margin:0;">⚠️ ${escapeHtml(ORG.err)}</div></div>`:''}
@@ -5341,7 +5371,7 @@ function orgPreviewBlock(b,i,n){
     <div class="org-body">${orgBodyHtml(b)}</div></div>`;
 }
 function orgCount(){ const el=document.getElementById('orgCount'); if(el){ const n=ORG.text.trim().length; el.textContent = n ? n.toLocaleString()+' characters'+(n>9000?' · will be processed in '+orgChunks(ORG.text,9000).length+' parts':'') : ''; } }
-function orgClearText(){ ORG.text=''; ORG.err=''; renderOrganizer(); }
+function orgClearText(){ ORG.text=''; ORG.imgs=[]; ORG.err=''; renderOrganizer(); }
 function orgLoadFile(inp){
   const f = inp.files[0]; if(!f) return;
   const r = new FileReader();
