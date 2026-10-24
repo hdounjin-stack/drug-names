@@ -2352,6 +2352,243 @@ const LIPID_CHAPTER = {id:"antihyperlipidemic",name:"Antihyperlipidemic Drugs",c
   {group:"PCSK9 Inhibitors (new)",g:"Alirocumab",info:"PCSK9 monoclonal antibody • SC injection every 2 weeks • fridge • very expensive • the more popular injection",brands:["Praluent"]}
  ]};
 
+/* ---------- v52 content update (from lecture transcripts) — merge once per chapter, never overwrites user edits ---------- */
+const EDU_NOTE = '⚠ Educational template from lecture notes — not individualized medical advice. Verify doses/brands with the label & a pharmacist.';
+const CONTENT_V3 = {
+ eye:{
+  fix:{
+   'Artificial Tears':{brands:['Tears Guard','Tears Natural','Silo Tears Gel','Gentyl Gel','Lykofilm','Refresh Lycogel'],info:'Dry eye (sun/heat) & after eye surgery e.g. LASIK 1–2 months • 1 drop/eye 3–4×/day, gel at bedtime • Tears Guard = best OTC pick (Arabic label, mid price) • Artelac 2 per box • Systane: regular / Ultra (stronger) / Gel Drops (bedtime)'},
+   'Anti-Allergy eye drops':{brands:['Tri-Allerg'],info:'Redness / itching / tearing, also viral conjunctivitis • 2 drops 3–4×/day • "Pred" in name = prednisolone (cortisone) • Alcon colour code: brown stripes = cortisone, blue = antibiotic • Visine red = redness only; Visine green (+ zinc sulfate) = also itch • Prisoline = vasoconstrictor (misused) – not for long use'},
+   'Tobramycin (eye)':{info:'Antibiotic • 2 drops 4–6×/day • Tobrex = best; Tobrin (brown stripes) weaker'},
+   'Moxifloxacin / Gatifloxacin (eye)':{info:'Moxifloxacin (Vigamox, Fortymox): 1 drop ×3 for 4 days • Gatifloxacin (Zymar, Tymer): 1 drop ×8 for 2 days then ×4 for 4 days • Ointment at night'},
+   'Brimonidine (glaucoma)':{info:'Alpha-2 agonist • ↓ secretion + ↑ outflow • 1×3'},
+   'Glaucoma Combinations':{info:'Cosopt/Xolamol = BB+CAI • Combigan = BB+α2 agonist'}
+  },
+  tables:[{title:'📝 Eye — Lecture Notes (educational)',cols:['Point','Note'],rows:[
+   ['4 families','Artificial tears • anti-allergy • antibiotic • glaucoma'],
+   ['Eye ↔ Ear','Eye drops can be used in the ear; EAR drops (e.g. Otal) must NEVER go in the eye (sterility)'],
+   ['Comatose / ICU','Eye care ("I care") with gel + oral care'],
+   ['Glaucoma dosing','Timolol ×2 • Azopt (brinzolamide) ×3 • prostaglandins (Travatan/Xalatan/Lumigan) once at night • Alphagan ×3'],
+   ['Contact lens','Solutions: Opti-Free, Perfect Care, ReNu'],
+   ['Note',EDU_NOTE]]}]
+ },
+ cough:{
+  fix:{
+   'Butamirate':{info:'Antitussive (dry cough) • Sinecod 15 ml ×4 (impractical for adults) • not under 2 y'},
+   'Dextromethorphan':{brands:['Toskan','Congestal'],info:'Only in combos • abuse risk — ~14 syrups are now Schedule • avoid combos mixing antitussive + expectorant (Apiplex, Toskan: contradictory)'},
+   'Pipazetate':{info:'Antitussive (dry cough) • Selgon tabs/drops/supp • first choice for all ages except <2 y'},
+   'Cloperastine':{brands:['Notasil'],info:'Antitussive (dry cough) • 5 ml ×3'},
+   'N-Acetyl Cysteine':{info:'Mucolytic (wet cough) • effervescent 1×2 • Cat B • also the paracetamol-overdose antidote'},
+   'Bromhexine':{info:'Mucolytic (wet cough) • Bisolvon • tablets considered pregnancy-safe (verify) • ×3'},
+   'Erdosteine':{rmBrands:['Mucosol'],info:'Mucolytic (wet cough) • Mucotec • 1×2'},
+   'Mucolytic + Expectorant combos':{brands:['Alvent','Ultrasolv tablets'],info:'Mucolytic + expectorant (guaifenesin) → makes you cough more • 10 ml ×3 (Ultrasolv 15 ml ×3, Mucophylline ×2) • Alvent starts with A (not O)'},
+   'Herbal dry-cough syrups':{info:'Adjuncts • safe in pregnancy unless label says "Elixir" (= alcohol) • Guava syrup & drops'},
+   'Dry & allergic cough combo':{info:'Contain dextromethorphan'},
+   'Wet & allergic cough combo':{brands:['Cof-Sed'],info:'Avipect syrup • suppositories Rectoplexil & Cof-Sed for children (after 1 year)'}
+  },
+  add:[
+   {group:'Mucolytics (Wet Cough)',g:'Ambroxol',info:'Mucolytic (wet cough) • 1×3 • syrup/drops safe from 1 year',brands:['Mucosolvan','Muco']},
+   {group:'Mucolytics (Wet Cough)',g:'Carbocisteine',info:'Mucolytic (wet cough)',brands:['Mucosol']}
+  ],
+  tables:[{title:'📝 Cough — Approach & Rules (educational)',cols:['Point','Note'],rows:[
+   ['First question','Dry or wet? Ask if sputum comes up. Cough is a symptom — treat the cause'],
+   ['Never swap','Antitussive → dry cough only • mucolytic/expectorant → wet cough only'],
+   ['Age rules','No antitussive <2 years • no wet-cough drug <1 year'],
+   ['<2 years','Saline nasal wash, raise the head, warm fluids → see pediatrician'],
+   ['Adults','Prefer tablets over syrups'],
+   ['Not cough drugs','Mucosta / Mucogel (stomach products)'],
+   ['Note',EDU_NOTE]]},
+   {title:'🧾 Rx — Cough by type (template)',cols:['Type','Option','Note'],rows:[
+    ['Dry cough','Pipazetate (Selgon) / Cloperastine (Notasil) / Butamirate (Sinecod)','Not <2 y'],
+    ['Wet cough','Ambroxol (Mucosolvan) ×3 or NAC effervescent ×2','Not <1 y'],
+    ['Wet + allergic','Avipect syrup; children: Rectoplexil / Cof-Sed supp','>1 y'],
+    ['Adjunct','Herbal syrup (Bronchicum, Ivyrospan…)','Check "Elixir" = alcohol']]}]
+ },
+ imported:{
+  fix:{
+   'Move Free':{group:'Joint & Bone',rep:1,brands:['Move Free'],info:'Glucosamine + chondroitin • 120 tabs, 3/day • imported only (no Egyptian twin)'},
+   'Centrum':{group:'Multivitamins',rep:1,info:'Multivitamin • imported only'},
+   'Feroglobin':{group:'Multivitamins',rep:1,info:'Iron supplement • has an Egyptian twin — ask which one the patient wants'},
+   'Osteocare':{group:'Joint & Bone',rep:1,info:'Calcium / bone supplement'},
+   'Panadol Family':{group:'Analgesics',rep:1,info:'Paracetamol products • Egyptian vs imported version — ask which one'},
+   'Pregnacare':{group:'Multivitamins',rep:1,info:'Multivitamin for pregnancy'},
+   'Perfectil':{group:'Multivitamins',rep:1,info:'Hair / skin / nails multivitamin'},
+   'Lipo 6 / Harva / Fettarm':{group:'Weight loss (DANGEROUS)',rep:1,info:'⚠ Slimming imports can contain thyroxine, caffeine or sibutramine — do not dispense / warn the patient'},
+   'Omega 3.6.9':{group:'Multivitamins',rep:1,info:'Imported = omega 3-6-9; Egyptian version = omega-3 only — ask which one'},
+   'Neurobion':{group:'Vitamins',rep:1,info:'Vitamin B complex'},
+   'Biotin + Bepanthen':{group:'Vitamins',rep:1,info:'Hair/skin ampoules'},
+   'Cytotec':{group:'GIT',rep:1,info:'Misoprostol • Schedule drug + imported • Cat X — do NOT dispense for abortion'},
+   'PG':{group:'Vitamins',rep:1,info:'Hair vitamin'},
+   'Navidoxine':{group:'Analgesics',rep:1,info:'⚠ Garbled in transcript — check the actual composition (paracetamol + caffeine ± codeine?) before use'},
+   'Solpadeine':{group:'Analgesics',rep:1,info:'Analgesic (paracetamol-based combination)'},
+   'Radian Cream / Moov Cream':{group:'Topical',rep:1,info:'Massage / counter-irritant cream (Radian = Saudi)'},
+   'Gripe Water':{group:'Pediatric',rep:1,info:'Anti-flatulent for infant colic'},
+   'Efalex / Efamol Syrup':{group:'Pediatric',rep:1,info:'Omega-3 for children'},
+   'Green Tea':{group:'Weight loss (DANGEROUS)',rep:1,info:'Weight-loss / herbal product'},
+   'Eltroxin 50–100':{group:'Hormones',rep:1,info:'Thyroxine (L-thyroxine) 50/100 mcg'},
+   'Nexium':{group:'GIT',rep:1,info:'Esomeprazole PPI • most expensive PPI'},
+   'Plavix':{group:'Cardiac',rep:1,info:'Clopidogrel • antiplatelet • ↓ blood viscosity'}
+  },
+  tables:[{title:'📝 Imported Drugs — Rules (educational)',cols:['Point','Note'],rows:[
+   ['2 kinds','Legit import (stamped, priced in EGP e.g. Controloc, Plavix) vs smuggled (hidden, unlicensed)'],
+   ['Never','Never dispense fakes / unlicensed items'],
+   ['Discount','Only ~5% (margin ~10–12%)'],
+   ['Egyptian twin?','Panadol, Feroglobin, Omega have Egyptian versions → ask which one. Centrum, Move Free exist only imported'],
+   ['Inspection','Know inspection etiquette; keep papers/prices clear'],
+   ['Note',EDU_NOTE]]}]
+ },
+ derma:{
+  fix:{
+   'Anal fissure (GTN)':{rmBrands:['Acretin']},
+   'Hydrocortisone':{info:'MILD steroid • 3–4×/day • mostly in combos (Dactacort, Fucicort)'},
+   'Fluticasone / Alclometasone':{info:'MODERATE steroid • 2–3×/day'},
+   'Betamethasone / Mometasone / Triamcinolone':{info:'POTENT steroid • 1–2×/day (Betnovate/Beta-derm overused — max 1–2×)'},
+   'Clobetasol':{info:'VERY potent steroid • once daily • severe cases only'},
+   'Fusidic Acid (topical)':{info:'Topical antibiotic'},
+   'Massage Creams':{brands:['Moov (purple)'],info:'Counter-irritant: warm compress first, then massage in 1–2×/day'},
+   'Bruises care':{info:'Colour change → cold compress day 1, then warm'},
+   'Edema care':{info:'Swelling without colour change'}
+  },
+  add:[{group:'Massage & Supportive Creams',g:'Acne / Retinoids',info:'Tretinoin (cream) / adapalene — acne',brands:['Acretin']}],
+  tables:[{title:'📝 Creams & Ointments — Notes (educational)',cols:['Point','Note'],rows:[
+   ['Ointment vs cream','Ointment: more oily, stays longer, moisturizing → dry skin & wounds • Cream (~50/50): absorbs fast → use on the face'],
+   ['Steroid use','Allergic/autoimmune skin disease (psoriasis, eczema, urticaria, dermatitis)'],
+   ['Potency ladder','Mild: hydrocortisone → Moderate: fluticasone/alclometasone → Potent: betamethasone/mometasone/triamcinolone → Very potent: clobetasol'],
+   ['Steroid risks','Skin atrophy, colour change, systemic absorption'],
+   ['Hemorrhoids','Proctosedyl, Procto-4, Faktu (also suppositories); surgical cases → refer'],
+   ['Note',EDU_NOTE]]}]
+ },
+ sexual:{
+  fix:{
+   'Sildenafil':{brands:['Viavag'],info:'PDE5 inhibitor • 25/50/100 mg • 1 h before intercourse, ½ h before food • lasts 6–8 h • lowest dose for elderly/hypertensive • Viagra blue, Erec red, Virecta gold (100 only), Napifit 100 (splittable)'},
+   'Tadalafil':{info:'PDE5 inhibitor • 2 h before • lasts ~36 h ("weekend pill") • not affected by food'},
+   'Vardenafil':{info:'PDE5 inhibitor • 10/20 mg • 30 min before intercourse • more selective / safer'},
+   'Avanafil':{info:'PDE5 inhibitor • 50/100/200 mg • 15 min before • safest for elderly/hypertensive'},
+   'Dapoxetine':{info:'SSRI • 30/60 mg • 1 h before • elderly/hypertensive 30 mg • Joybox orange, Matujac red'},
+   'Lidocaine (topical)':{info:'Spray 1–2 puffs ~25 min before intercourse'},
+   'Flibanserin':{info:'Women: no true "female Viagra" • 100 mg at bedtime, stop after 8 weeks if no benefit • only for organic low desire — otherwise refer'}
+  },
+  tables:[{title:'📝 Sexual Health — Safety Notes (educational)',cols:['Point','Note'],rows:[
+   ['Approved PDE5i','Only 4: sildenafil, vardenafil, tadalafil, avanafil — anything else = fake'],
+   ['NITRATES','NEVER with nitrates (angina) → fatal hypotension. Always ask about current medicines first'],
+   ['Strength not count','Raise the strength, never the number of tablets'],
+   ['Eating','Eat after intercourse (sildenafil/vardenafil)'],
+   ['Headache','Offer a headache tablet with sildenafil'],
+   ['Avoid','Alcohol, tramadol, hashish "for delay"'],
+   ['PE off-label','Clomipramine/escitalopram 4 h before'],
+   ['Note',EDU_NOTE]]}]
+ },
+ peptic:{
+  fix:{
+   'Rabeprazole':{info:'PPI • 20 mg once (taught as ~2× potency of others) • Cat C'},
+   'Omeprazole':{info:'PPI • 20–40 mg once in the MORNING on an empty stomach • Cat C'},
+   'Esomeprazole':{info:'PPI • 20–40 mg once • Nexium = most expensive • Cat C'},
+   'Misoprostol':{info:'Prostaglandin analogue • Cat X (abortifacient) — do NOT dispense • max 800 mcg'},
+   'Sucralfate':{info:'Mucosal protective • max 4 g/day • Cat B • needs acidic pH → separate from PPI/antacids'},
+   'Rebamipide':{info:'Mucosal protective • ×3 • Mucosta is NOT a mucolytic'},
+   'Magaldrate + Simethicone':{info:'Antacid • after meals • shake liquids, chew tablets • Cat B'},
+   'Magaldrate + Alginic Acid':{brands:['Rennie (mint)'],info:'Antacid • alginate for reflux • Cat B'}
+  },
+  tables:[{title:'🧾 Rx — Ulcer & H. pylori (template)',cols:['Situation','Regimen','Duration'],rows:[
+   ['Duodenal ulcer','PPI + mucosal protective','4 weeks'],
+   ['Gastric ulcer','PPI + mucosal protective','8 weeks'],
+   ['After healing','Half dose (PPI 40 → 20)','6 months'],
+   ['H. pylori — triple','PPI 20 mg BID + metronidazole 500 BID + clarithromycin 500 BID (Klacid)','14 days'],
+   ['H. pylori — packs','HelCure (now 500 mg clarithromycin), Trio-Clar; avoid Pepticare (250 mg)','14 days'],
+   ['H. pylori — sequential','Days 1–5 PPI + amoxicillin → days 6–10 triple therapy (~95% vs ~80%)','10 days']]},
+   {title:'📝 Peptic — Notes (educational)',cols:['Point','Note'],rows:[
+   ['Pain timing','Gastric ulcer: right after eating • Duodenal: ~2 h after eating / at night'],
+   ['No painkiller','Never give a painkiller for stomach pain — H2 blocker IM or PPI infusion instead'],
+   ['Pregnancy','Safest order: antacid → H2 blocker → PPI'],
+   ['Antacid alone','Never alone for chronic disease'],
+   ['No response','Suspect H. pylori'],
+   ['Licorice','Helps but raises blood pressure'],
+   ['Note',EDU_NOTE]]}]
+ },
+ git:{
+  fix:{
+   'Lactulose':{info:'Osmotic laxative • onset 24 h • 15–30 ml/day • Cat B • safe in diabetes & children • first line in hepatic encephalopathy (acidifies gut NH3→NH4+; neomycin as antibiotic)'},
+   'Glycerin Suppository':{info:'Onset 30 min • acute / bedridden / post-op constipation • adult & pediatric'},
+   'Bisacodyl':{info:'Stimulant laxative • Minalax = first choice • 2 tabs at bedtime • Cat B'},
+   'Sodium Picosulfate':{info:'Stimulant laxative • Picolax ~15 drops in half a cup of water • Cat B'},
+   'Senna':{info:'Stimulant laxative • Cat C • NOT in pregnancy'},
+   'Loperamide':{info:'Only IBS-D, diabetic neuropathy, rectal cancer • NEVER in infective diarrhea • Cat B'},
+   'Antimicrobial GIT agents':{info:'Antinal (nifuroxazide) tabs ×3, syrup for infants • Streptoquin/Dixx contain sulfa — whole tablet only'},
+   'Domperidone':{info:'Anti-emetic • Cat C • tab/syrup/supp • best for reflux-related vomiting & children • ×3 before meals'},
+   'Metoclopramide':{info:'Anti-emetic • Cat B • extrapyramidal reactions → avoid in children & pregnancy • antidote Akineton'},
+   'Ondansetron':{brands:['Ondalenz ODT'],info:'Anti-emetic • 5-HT3 antagonist • first choice for chemotherapy & pregnancy • ODT strip from 6 months'},
+   'Cortisone + Vit B6':{info:'Anti-emetic adjunct • safe in pregnancy & children • max 2 amps/day'},
+   'Hyoscine':{info:'Antispasmodic • Cat C • Buscopan'},
+   'Clidinium + Chlordiazepoxide':{info:'Librax • benzodiazepine → can give false-positive drug test • Cat D'},
+   'ORS':{info:'MOST important item • 200 ml boiled-cooled water, chilled, spoonful every minute • 100 ml per episode <2 y, 200 ml >2 y • skin pinch: ~1 s mild (pharmacy ORS), <2 s moderate (hospital), >2 s severe (PICU) • never an antidiarrheal without ORS'}
+  },
+  tables:[{title:'📝 GIT — Notes (educational)',cols:['Point','Note'],rows:[
+   ['Vomiting triggers','CTZ (dopamine/serotonin) • vestibular (H1; motion) • cortex (smell, sight, stress) • GIT (5-HT3)'],
+   ['How many times?','1–2 → oral • 3+ → injection'],
+   ['Dysmenorrhea','Ponstan, not antispasmodics'],
+   ['IBS combo','Mebeverine 15 min before meals ×3 + anti-flatulent (simethicone after meals; charcoal separate from other drugs) + loperamide (IBS-D) or prokinetic (IBS-C)'],
+   ['IBS triggers','Beans, falafel, spicy, pickles, soda, coffee, smoking, chewing gum'],
+   ['Baby colic','Simethicone (Baby Rest, Dentinox) 15 drops mid-feed; Gripe Water'],
+   ['Digestants','1 tab ×3 before meals; After Meal = the only one taken after meals'],
+   ['Note',EDU_NOTE]]}]
+ },
+ analgesics:{
+  fix:{
+   'Aspirin':{info:'NSAID • non-selective COX • antiplatelet • maintenance 75–162 mg, loading 162–325 mg (chew for suspected MI) • stop 7 days before surgery • non-enteric (Aspocid, Rivo) for emergency; enteric (Ezacard, Jusprin) for routine'},
+   'Ibuprofen':{info:'NSAID • max 1200 mg/day (400×3 / 600×2) • from 6 months • safest NSAID (GI & kidney)'},
+   'Ketoprofen':{info:'NSAID • max 300 mg/day • 150 mg ×2 (the "half-yellow headache pill")'},
+   'Diclofenac Na':{info:'NSAID • max 150 mg/day • age guidance varies (1 / 2 / 3 y) — not before 1 y'},
+   'Diclofenac K':{info:'Faster-acting • Cataflam/Catafast (effervescent: swallow, don\'t gargle) • Cataflam syrup (Catafly) = only diclofenac syrup • Dolphin supp in infants linked to acute renal failure • don\'t confuse Olfen (Na) with Oflam (K)'},
+   'Ketorolac':{info:'Strongest non-opioid (30 mg ≈ 10 mg morphine) • max 5 days, injection only 2 days • oral 40 mg/day • IM max 120 • post-cesarean • Adolor = twin'},
+   'Aceclofenac':{info:'NSAID • lower GIT risk • max 150 mg/day (lecture said 200 — ⚠ verify)'},
+   'Indomethacin':{info:'NSAID • strong anti-inflammatory (orthopedic/arthritis) • Endocid supp'},
+   'Lornoxicam':{info:'Rapid • tablets 4 mg ×4 • injection for emergencies • max 16 mg/day'},
+   'Piroxicam':{info:'High GIT risk • max 40 mg/day'},
+   'Mefenamic Acid':{info:'First line for dysmenorrhea • max 1500 mg/day • 2nd choice naproxen if unavailable'},
+   'Meloxicam':{info:'Max 15 mg/day • 7.5/15 • Anticox-2 = cheap first choice'},
+   'Paracetamol':{brands:['Berral drops','Beral X Plus ⚠'],info:'COX-3 • max 4 g/day (toxic ~10 g adult; ~4 g in small child) • analgesic 1 g/dose, antipyretic 500 mg • antidote acetylcysteine • safe: infants, pregnancy, G6PD, asthma, HTN, renal, cardiac, gastritis • avoid only in liver disease → paracetamol + methionine (Paralex Plus?) ⚠ verify name • Tempra syrup = sweet berry (best for kids)'}
+  },
+  tables:[{title:'🧾 Best analgesic per case (template)',cols:['Case','Choice'],rows:[
+   ['Pregnancy','Paracetamol'],['Dysmenorrhea','Ponstan Forte (2nd: naproxen)'],['Gastritis','Paracetamol or selective COX-2'],
+   ['Asthma / HTN / heart / G6PD / anemia','Paracetamol'],['Renal colic','Diclofenac (Na or K)'],
+   ['Renal disease','Paracetamol; if anti-inflammatory needed → ibuprofen (least harmful)'],
+   ['Children <6 months','Paracetamol only'],['Children ≥6 months','Ibuprofen first choice; diclofenac ≥1 y (preferably ≥3)'],
+   ['Liver disease','Paracetamol + methionine product ⚠']]},
+   {title:'📝 Analgesics — Notes (educational)',cols:['Point','Note'],rows:[
+   ['Mechanism','NSAIDs block COX-1 (stomach/kidney/platelets) + COX-2; paracetamol COX-3 (pain/fever only)'],
+   ['GI risk ladder','Low: celecoxib, aceclofenac, ibuprofen • Mild: diclofenac, indomethacin, naproxen • HIGH: piroxicam, ketorolac, ketoprofen'],
+   ['Panadol vs Extra','Extra = + caffeine → stronger (synergism) but NOT for pregnancy or hypertension'],
+   ['Max doses','Ibuprofen 1200 • Diclofenac 150 • Paracetamol 4 g (2 tabs ×4 of 500; 1 tab ×4 of 1 g)'],
+   ['NSAID side effects','Ulcer/bleeding, renal impairment, HTN, thrombosis, asthma bronchospasm'],
+   ['Cardiac/renal','All NSAIDs (selective or not) contraindicated → paracetamol'],
+   ['Note',EDU_NOTE]]}]
+ }
+};
+function applyContentV3(data){
+  let changed=false;
+  const lc=s=>String(s||'').trim().toLowerCase();
+  Object.keys(CONTENT_V3).forEach(cid=>{
+    const c=data.find(x=>x.id===cid); if(!c || c.v3) return;
+    const P=CONTENT_V3[cid]; if(!c.drugs) c.drugs=[];
+    Object.keys(P.fix||{}).forEach(g=>{
+      const d=c.drugs.find(x=>lc(x.g)===lc(g)); if(!d) return; const f=P.fix[g];
+      if(f.group && !d.group) d.group=f.group;
+      if(f.rmBrands && d.brands) d.brands=d.brands.filter(b=>!f.rmBrands.includes(b));
+      if(f.brands){ if(!d.brands) d.brands=[]; f.brands.forEach(b=>{ if(!d.brands.some(x=>lc(x)===lc(b))) d.brands.push(b); }); }
+      if(f.info){
+        const sc=(DATA.find(x=>x.id===cid)||{}).drugs||[]; const sd=sc.find(x=>lc(x.g)===lc(g));
+        if(f.rep || !d.info || (sd && d.info===sd.info)) d.info=f.info;      // untouched seed text -> upgrade
+        else if(!d.info.includes(f.info)) d.info = d.info+' • '+f.info;     // user-edited -> append, keep theirs
+      }
+    });
+    (P.add||[]).forEach(a=>{ if(!c.drugs.some(x=>lc(x.g)===lc(a.g))){ const n=JSON.parse(JSON.stringify(a)); n.id=uid(); c.drugs.push(n); } });
+    if(!c.tables) c.tables=[];
+    (P.tables||[]).forEach(t=>{ if(!c.tables.some(x=>x.title===t.title)){ const n=JSON.parse(JSON.stringify(t)); n.id=uid(); c.tables.push(n); } });
+    c.v3=1; changed=true;
+  });
+  return changed;
+}
+
 /* ---------- Apply built-in content patch once (merge, never overwrite user edits) ---------- */
 function applyContentPatch(data){
   let changed=false, done=false;
@@ -2381,6 +2618,7 @@ function applyContentPatch(data){
   });
   if(!done && !data.some(c=>c.id===LIPID_CHAPTER.id)){ data.push(JSON.parse(JSON.stringify(LIPID_CHAPTER))); changed=true; }
   try{ localStorage.setItem('pc_patch_v2','1'); }catch(e){}
+  try{ if(applyContentV3(data)) changed=true; }catch(e){ console.error(e); }
   return changed;
 }
 
